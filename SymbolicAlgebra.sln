@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicAlgebra", "SymbolicAlgebra\SymbolicAlgebra.csproj", "{08B658DC-9295-4098-BD45-37311FEA3AC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicAlgebraUnitTesting", "SymbolicAlgebraUnitTesting\SymbolicAlgebraUnitTesting.csproj", "{4E0623D0-E713-4209-9F11-9DF8A8047A5E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BEEA9115-EFEA-40CA-B997-8B6BAAD1AD4A}"
+	ProjectSection(SolutionItems) = preProject
+		Local.testsettings = Local.testsettings
+		SymbolicAlgebra.vsmdi = SymbolicAlgebra.vsmdi
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UnitTesting", "UnitTesting", "{E893C5B5-EE00-4675-8621-B1849564A26B}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 3
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs02.codeplex.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = SymbolicAlgebra\\SymbolicAlgebra.csproj
+		SccProjectName1 = SymbolicAlgebra
+		SccLocalPath1 = SymbolicAlgebra
+		SccProjectUniqueName2 = SymbolicAlgebraUnitTesting\\SymbolicAlgebraUnitTesting.csproj
+		SccProjectTopLevelParentUniqueName2 = SymbolicAlgebra.sln
+		SccProjectName2 = SymbolicAlgebraUnitTesting
+		SccLocalPath2 = SymbolicAlgebraUnitTesting
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = SymbolicAlgebra.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{08B658DC-9295-4098-BD45-37311FEA3AC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08B658DC-9295-4098-BD45-37311FEA3AC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08B658DC-9295-4098-BD45-37311FEA3AC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08B658DC-9295-4098-BD45-37311FEA3AC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E0623D0-E713-4209-9F11-9DF8A8047A5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E0623D0-E713-4209-9F11-9DF8A8047A5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E0623D0-E713-4209-9F11-9DF8A8047A5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E0623D0-E713-4209-9F11-9DF8A8047A5E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4E0623D0-E713-4209-9F11-9DF8A8047A5E} = {E893C5B5-EE00-4675-8621-B1849564A26B}
+	EndGlobalSection
+EndGlobal
