@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Symbolic Algebra")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Attempt for another algebric expressions library")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Lost Particles Network")]
+[assembly: AssemblyCompany("Lost Particles Network http://www.lostparticles.net")]
 [assembly: AssemblyProduct("Symbolic Algebra")]
 [assembly: AssemblyCopyright("Copyright © Lost Particles 2010")]
 [assembly: AssemblyTrademark("")]
