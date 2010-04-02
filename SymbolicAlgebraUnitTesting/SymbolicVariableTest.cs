@@ -63,7 +63,32 @@ namespace SymbolicAlgebraUnitTesting
         #endregion
 
 
+        #region Testing variables
+        SymbolicVariable x = new SymbolicVariable("x");
 
+        SymbolicVariable y = new SymbolicVariable("y");
+
+        SymbolicVariable z = new SymbolicVariable("z");
+
+        SymbolicVariable vv = new SymbolicVariable("vv");
+
+        SymbolicVariable vs = new SymbolicVariable("vs");
+
+        SymbolicVariable Zero = new SymbolicVariable("0");
+        SymbolicVariable One = new SymbolicVariable("1");
+        SymbolicVariable Two = new SymbolicVariable("2");
+        SymbolicVariable Three = new SymbolicVariable("3");
+        SymbolicVariable Four = new SymbolicVariable("4");
+        SymbolicVariable Five = new SymbolicVariable("5");
+        SymbolicVariable Six = new SymbolicVariable("6");
+        SymbolicVariable Seven = new SymbolicVariable("7");
+        SymbolicVariable Eight = new SymbolicVariable("8");
+        SymbolicVariable Nine = new SymbolicVariable("9");
+        SymbolicVariable Ten = new SymbolicVariable("10");
+
+        SymbolicVariable Eleven = new SymbolicVariable("11");
+
+        #endregion
 
         /// <summary>
         ///A test for Add
@@ -71,27 +96,6 @@ namespace SymbolicAlgebraUnitTesting
         [TestMethod()]
         public void OperationsTest()
         {
-            SymbolicVariable x = new SymbolicVariable("x");
-
-            SymbolicVariable y = new SymbolicVariable("y");
-
-            SymbolicVariable vv = new SymbolicVariable("vv");
-
-            SymbolicVariable vs = new SymbolicVariable("vs");
-
-            SymbolicVariable Zero = new SymbolicVariable("0");
-            SymbolicVariable One = new SymbolicVariable("1");
-            SymbolicVariable Two = new SymbolicVariable("2");
-            SymbolicVariable Three = new SymbolicVariable("3");
-            SymbolicVariable Four = new SymbolicVariable("4");
-            SymbolicVariable Five = new SymbolicVariable("5");
-            SymbolicVariable Six = new SymbolicVariable("6");
-            SymbolicVariable Seven = new SymbolicVariable("7");
-            SymbolicVariable Eight = new SymbolicVariable("8");
-            SymbolicVariable Nine = new SymbolicVariable("9");
-            SymbolicVariable Ten = new SymbolicVariable("10");
-
-            SymbolicVariable Eleven = new SymbolicVariable("11");
 
 
             var pr = (Four / Two) * y * y * y / x;   //2*y^3/x
@@ -159,6 +163,63 @@ namespace SymbolicAlgebraUnitTesting
 
         }
 
-    
+        [TestMethod]
+        public void MultiplyOneByTerms()
+        {
+            var term = x - y + z;
+            var rRight = term * One;
+
+            Assert.AreEqual(rRight.ToString(), "x-y+z");
+
+            var rleft = One * term;
+            Assert.AreEqual(rleft.ToString(), "x-y+z");
+        }
+
+        [TestMethod]
+        public void DivisionTest()
+        {
+
+            var a = x + y;
+            var b = x - y;
+
+            // dividing by two terms
+            var r = a / b;
+
+            Assert.AreEqual(r.ToString(), "x+y/(x-y)");
+
+            // dividing by one term
+            var rx = a / x;
+            var ry = a / y;
+
+            Assert.AreEqual(rx.ToString(), "1+y/x");
+
+            Assert.AreEqual(ry.ToString(), "x/y+1");
+
+
+            // dividing one term by three terms
+
+            var r3 = x * y / (x - y + z);
+
+            Assert.AreEqual(r3.ToString(), "x*y/(x-y+z)");
+
+        }
+
+
+
+        [TestMethod]
+        public void PowerTest()
+        {
+            var r = x.Power(5);
+            Assert.AreEqual(r.ToString(), "x^5");
+
+            var co = x - y;
+            var ee = co.Power(3);
+            Assert.AreEqual(ee.ToString(), "x^3-3*y*x^2+3*y^2*x-y^3");
+
+            var re = ee / x.Power(3);
+
+            Assert.AreEqual(re.ToString(), "1-3*y/x+3*y^2/x^2-y^3/x^3");
+
+        }
     }
 }

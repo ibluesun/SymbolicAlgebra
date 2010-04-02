@@ -55,6 +55,8 @@ namespace SymbolicAlgebra
         public SymbolicVariable(string variable)
         {
             double coe;
+
+            //try the numbers first
             if (double.TryParse(variable, out coe))
             {
                 VariableName = string.Empty;
@@ -63,6 +65,7 @@ namespace SymbolicAlgebra
             }
             else
             {
+                // not number then take the whole string as a symbol
                 VariableName = variable;
                 Coeffecient = 1;
                 SymbolPower = 1;
@@ -87,10 +90,19 @@ namespace SymbolicAlgebra
 
 
         /// <summary>
+        /// Terms that couldn't be divide on this term like  x/(x^2-y^5)
+        /// </summary>
+        SymbolicVariable _DividedTerm;
+
+
+        /// <summary>
         /// a*x^2*y^3*z^7  I mean {y^3, and z^7}
         /// </summary>
         private Dictionary<string, double> _FusedVariables;
 
+        /// <summary>
+        /// Extra terms that couldn't be added to the current term.
+        /// </summary>
         public Dictionary<string, SymbolicVariable> AddedTerms
         {
             get
@@ -100,6 +112,27 @@ namespace SymbolicAlgebra
             }
         }
 
+        
+        /// <summary>
+        /// Extra terms that couldn't be divided into the term.
+        /// </summary>
+        public SymbolicVariable DividedTerm
+        {
+            get
+            {
+                if (_DividedTerm == null) _DividedTerm = new SymbolicVariable("1");
+                return _DividedTerm;
+            }
+            internal set
+            {
+                _DividedTerm = value;
+            }
+        }
+
+
+        /// <summary>
+        /// Multiplied terms in the term other that original symbol letter.
+        /// </summary>
         public Dictionary<string, double> FusedVariables
         {
             get
@@ -312,6 +345,7 @@ namespace SymbolicAlgebra
             string result = SymbolTextValue;
 
             if (AddedTerms.Count > 0)
+            {
                 foreach (var sv in AddedTerms.Values)
                 {
                     if (sv.Coeffecient != 0)
@@ -322,6 +356,9 @@ namespace SymbolicAlgebra
                             result += "+" + sv.SymbolTextValue;
                     }
                 }
+            }
+
+            if (DividedTerm.SymbolTextValue != "1") result = result + "/(" + DividedTerm.ToString() + ")";
 
             return result;
         }
@@ -435,25 +472,7 @@ namespace SymbolicAlgebra
 
 
 
-        public static SymbolicVariable Add(SymbolicVariable a, SymbolicVariable b)
-        {
-            return a + b;
-        }
-
-        public static SymbolicVariable Subtract(SymbolicVariable a, SymbolicVariable b)
-        {
-            return a - b;
-        }
-
-        public static SymbolicVariable Multiply(SymbolicVariable a, SymbolicVariable b)
-        {
-            return a * b;
-        }
-
-        public static SymbolicVariable Divide(SymbolicVariable a, SymbolicVariable b)
-        {
-            return a / b;
-        }
+ 
 
 
 
@@ -707,7 +726,7 @@ namespace SymbolicAlgebra
                 //   this new term is a sub term in b and will be added to all terms of a.
                 subB = b.AddedTerms.ElementAt(subIndex).Value;
 
-                if (total != null) total = total + sv + (a * subB);
+                if (total != null) total = total + (a * subB);
                 else total = sv + (a * subB);
 
                 subIndex = subIndex + 1;  //increase 
@@ -726,17 +745,30 @@ namespace SymbolicAlgebra
 
         public static SymbolicVariable operator /(SymbolicVariable a, SymbolicVariable b)
         {
-            if (b.AddedTerms.Count > 0) throw new Exception("Can't divide over multi term number");
+
+            SymbolicVariable sv = (SymbolicVariable)a.Clone();
+
+            // if the divided term is more than on term
+            // x^2/(y-x)  ==>  
+            if (b.AddedTerms.Count > 0)
+            {
+              
+                //multiply divided term by this value
+                sv.DividedTerm = sv.DividedTerm * b;
+            
+                return sv;
+            }
+
+
             SymbolicVariable subB = (SymbolicVariable)b.Clone();
+
+            SymbolicVariable total = default(SymbolicVariable);
+
+            int subIndex = 0;
 
             subB._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
             // or to make sure nothing bad happens {my idiot design :S)
 
-            int subIndex = 0;
-
-            SymbolicVariable total = default(SymbolicVariable);
-
-            SymbolicVariable sv = (SymbolicVariable)a.Clone();
             if (a.VariableEquals(subB))
             {
                 sv.Coeffecient = sv.Coeffecient / subB.Coeffecient;
@@ -812,7 +844,7 @@ namespace SymbolicAlgebra
                 //   this new term is a sub term in b and will be added to all terms of a.
                 subB = b.AddedTerms.ElementAt(subIndex).Value;
 
-                if (total != null) total = total + sv + (a / subB);
+                if (total != null) total = total  + (a / subB);
                 else total = sv + (a / subB);
 
                 subIndex = subIndex + 1;  //increase 
@@ -876,6 +908,9 @@ namespace SymbolicAlgebra
                 clone.FusedVariables.Add(fv.Key, fv.Value);
 
             }
+
+            if(this._DividedTerm!=null) 
+                clone._DividedTerm = (SymbolicVariable)this._DividedTerm.Clone();
 
 
             return clone;
