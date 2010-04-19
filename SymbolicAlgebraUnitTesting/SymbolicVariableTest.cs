@@ -97,7 +97,6 @@ namespace SymbolicAlgebraUnitTesting
         public void OperationsTest()
         {
 
-
             var pr = (Four / Two) * y * y * y / x;   //2*y^3/x
 
             Assert.AreEqual(pr.ToString(), "2*y^3/x");
@@ -189,11 +188,10 @@ namespace SymbolicAlgebraUnitTesting
 
             // dividing by one term
             var rx = a / x;
+            Assert.AreEqual(actual: rx.ToString(), expected: "1+y/x");
+
             var ry = a / y;
-
-            Assert.AreEqual(rx.ToString(), "1+y/x");
-
-            Assert.AreEqual(ry.ToString(), "x/y+1");
+            Assert.AreEqual(actual: ry.ToString(), expected: "x/y+1");
 
 
             // dividing one term by three terms
@@ -204,6 +202,19 @@ namespace SymbolicAlgebraUnitTesting
 
         }
 
+        [TestMethod]
+        public void ZeroTest()
+        {
+            var r = x - x;
+
+            Assert.AreEqual(r.IsZero, true);
+
+            r = x * y - (y * x) + One;
+            Assert.AreEqual(r.IsZero, false);
+
+            r = r - One;
+            Assert.AreEqual(r.IsZero, true);
+        }
 
 
         [TestMethod]
@@ -214,11 +225,67 @@ namespace SymbolicAlgebraUnitTesting
 
             var co = x - y;
             var ee = co.Power(3);
-            Assert.AreEqual(ee.ToString(), "x^3-3*y*x^2+3*y^2*x-y^3");
+            Assert.AreEqual(actual: ee.ToString(), expected: "x^3-3*y*x^2+3*y^2*x-y^3");
 
             var re = ee / x.Power(3);
 
-            Assert.AreEqual(re.ToString(), "1-3*y/x+3*y^2/x^2-y^3/x^3");
+            Assert.AreEqual(actual: re.ToString(), expected: "1-3*y/x+3*y^2/x^2-y^3/x^3");
+
+        }
+
+        [TestMethod]
+        public void SymbolicPowerTest()
+        {
+
+            var x3 = x ^ Three;
+            Assert.AreEqual(actual: x3.ToString(), expected: "x^3");
+
+
+            var r = Three ^ x;
+            Assert.AreEqual(actual: r.ToString(), expected:"3^x");
+
+            var xx = x * x;
+            var xx3 = Three * xx;
+
+            var xx3y = xx3 ^ y;
+
+            Assert.AreEqual(actual: xx3y.ToString(), expected: "3^y*x^(2*y)");
+
+            var cplx = x * y * z * Four * y * z * z;
+
+            Assert.AreEqual("4*x*y^2*z^3", cplx.ToString());
+
+            var vpls = cplx ^ Two;
+
+            Assert.AreEqual("16*x^2*y^4*z^6", vpls.ToString());
+
+
+            // testing coeffecient part with   symbol part
+
+            var cx = x * Seven;
+            Assert.AreEqual("7*x", cx.ToString());
+
+            var cx2y = cx ^ (Two * y);
+            Assert.AreEqual("7^(2*y)*x^(2*y)", cx2y.ToString());
+
+
+        }
+
+        /// <summary>
+        /// Test the multiplication of two powered termed
+        /// </summary>
+        [TestMethod]
+        public void SymbolicPowerMulDivTest()
+        {
+
+            var lx = x ^ y;
+
+            var hx = x ^ Three;
+
+            var hlx = hx * lx;
+
+            Assert.AreEqual("x^(3*y)", hlx.ToString());
+
 
         }
     }

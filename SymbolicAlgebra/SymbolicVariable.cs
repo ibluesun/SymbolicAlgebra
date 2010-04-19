@@ -17,35 +17,98 @@ namespace SymbolicAlgebra
         public double Coeffecient { private set; get; }
 
 
-
-        private string _VariableName;
+        private string _Symbol;
 
         /// <summary>
         /// the symbol name   a*x^2 I mean {x}
         /// Note: name will not contain any spaces
         /// </summary>
-        public string VariableName 
+        public string Symbol 
         {
             private set
             {
-                _VariableName = string.Empty; // remove trailing and begining spaces.
+                _Symbol = string.Empty; // remove trailing and begining spaces.
                 foreach (var vc in value)
                 {
                     if (!char.IsWhiteSpace(vc))
-                        _VariableName += vc;
+                        _Symbol += vc;
                 }
             }
             get
             {
-                return _VariableName;
+                return _Symbol;
             }
         }
 
 
         /// <summary>
+        /// This power term is only for the variable part of the instance.
+        /// </summary>
+        SymbolicVariable _SymbolPowerTerm;
+
+        /// <summary>
+        /// 2^(x+y)  (x+y) is the power term
+        /// </summary>
+        public SymbolicVariable SymbolPowerTerm
+        {
+            get
+            {
+                return _SymbolPowerTerm;
+            }
+        }
+
+
+
+
+        private double _SymbolPower = 1;
+
+        /// <summary>
         /// The symbolic power a*x^2  I mean {2}
         /// </summary>
-        public double SymbolPower { private set; get; }
+        public double SymbolPower 
+        {
+            private set
+            {
+                _SymbolPower = value;
+            }
+            get
+            {
+                return _SymbolPower;   
+            }
+        }
+
+        /*
+         * in the case of coeffecient symbol power will be fused directly to the coeffecient part
+         * I mean 2*x to power two  will equal to 4*x^2 
+         * however when raise to power y the result will be 2^y*x^y 
+         * and the CoeffecientPowerTerm will appear.
+         */
+
+        private SymbolicVariable _CoeffecientPowerTerm;
+
+        public SymbolicVariable CoeffecientPowerTerm
+        {
+            get
+            {
+                return _CoeffecientPowerTerm;
+            }
+        }
+
+        public string CoeffecientPowerText
+        {
+            get
+            {
+                if (_CoeffecientPowerTerm != null)
+                {
+                    return _CoeffecientPowerTerm.ToString();
+                }
+                else
+                {
+                    // always return one 
+                    return "1";
+                }
+            }
+        }
 
 
         /// <summary>
@@ -59,19 +122,18 @@ namespace SymbolicAlgebra
             //try the numbers first
             if (double.TryParse(variable, out coe))
             {
-                VariableName = string.Empty;
+                Symbol = string.Empty;
                 Coeffecient = coe;
                 SymbolPower = 0;
             }
             else
             {
                 // not number then take the whole string as a symbol
-                VariableName = variable;
+                Symbol = variable;
                 Coeffecient = 1;
                 SymbolPower = 1;
             }
         }
-
 
 
         /* 
@@ -98,7 +160,7 @@ namespace SymbolicAlgebra
         /// <summary>
         /// a*x^2*y^3*z^7  I mean {y^3, and z^7}
         /// </summary>
-        private Dictionary<string, double> _FusedVariables;
+        private Dictionary<string, double> _FusedSymbols;
 
         /// <summary>
         /// Extra terms that couldn't be added to the current term.
@@ -133,12 +195,12 @@ namespace SymbolicAlgebra
         /// <summary>
         /// Multiplied terms in the term other that original symbol letter.
         /// </summary>
-        public Dictionary<string, double> FusedVariables
+        public Dictionary<string, double> FusedSymbols
         {
             get
             {
-                if (_FusedVariables == null) _FusedVariables = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-                return _FusedVariables;
+                if (_FusedSymbols == null) _FusedSymbols = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+                return _FusedSymbols;
             }
         }
 
@@ -150,8 +212,8 @@ namespace SymbolicAlgebra
         {
             
             string result = string.Empty;
-            double power = FusedVariables.ElementAt(i).Value;
-            string variableName = FusedVariables.ElementAt(i).Key;
+            double power = FusedSymbols.ElementAt(i).Value;
+            string variableName = FusedSymbols.ElementAt(i).Key;
 
             if ( power != 0)
             {
@@ -172,8 +234,8 @@ namespace SymbolicAlgebra
         {
 
             string result = string.Empty;
-            double power = FusedVariables.ElementAt(i).Value;
-            string variableName = FusedVariables.ElementAt(i).Key;
+            double power = FusedSymbols.ElementAt(i).Value;
+            string variableName = FusedSymbols.ElementAt(i).Key;
 
             if (power != 0)
             {
@@ -193,7 +255,7 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         private double GetFusedPower(int i)
         {
-            return FusedVariables.ElementAt(i).Value;
+            return FusedSymbols.ElementAt(i).Value;
         }
 
 
@@ -209,11 +271,11 @@ namespace SymbolicAlgebra
                 if (SymbolPower != 0)
                 {
                     // variable exist 
-                    if (SymbolPower != 1) result = VariableName + "^" + SymbolPower.ToString(CultureInfo.InvariantCulture);
-                    else result = VariableName;
+                    if (SymbolPower != 1) result = Symbol + "^" + SymbolPower.ToString(CultureInfo.InvariantCulture);
+                    else result = Symbol;
                 }
 
-                for (int i = 0; i < FusedVariables.Count; i++)
+                for (int i = 0; i < FusedSymbols.Count; i++)
                 {
 
                     double pp = GetFusedPower(i);
@@ -239,26 +301,70 @@ namespace SymbolicAlgebra
         }
 
         /// <summary>
+        /// Gets the power part of this term
+        /// return empty text when power = 0 or 1 or -1
+        /// </summary>
+        public string SymbolPowerText
+        {
+            get
+            {
+                if (_SymbolPowerTerm != null)
+                {
+                    return _SymbolPowerTerm.ToString();
+                }
+                else
+                {
+                    if (SymbolPower != 0)
+                    {
+                        // variable exist 
+                        if (Math.Abs(SymbolPower) != 1)
+                        {
+                            return SymbolPower.ToString(CultureInfo.InvariantCulture);
+                        }
+                        else return string.Empty;
+                    }
+                    else return string.Empty;
+                }
+            }
+        }
+
+        /// <summary>
         /// for showing purposed only.
         /// not to be used in keys.
         /// used internally.
+        /// Shows variables symbols with their powers
         /// </summary>
         private  string FormattedSymbolicValue
         {
             get
             {
                 string result = string.Empty;
-                if (SymbolPower != 0)
+
+                if (!string.IsNullOrEmpty(Symbol))
                 {
-                    // variable exist 
-                    if (Math.Abs(SymbolPower) != 1)
+                    // include the power of instance 
+                    if (string.IsNullOrEmpty(SymbolPowerText))
                     {
-                        result = VariableName + "^" + SymbolPower.ToString(CultureInfo.InvariantCulture);
+                        if (_SymbolPower == 0)
+                            result = "1";
+                        else
+                            result = Symbol;
                     }
-                    else result = VariableName;
+                    else
+                    {
+                        // add parenthesis if the text more than one charachter
+                        if (SymbolPowerText.Length > 1)
+                        {
+                            result = Symbol + "^(" + SymbolPowerText + ")";
+                        }
+                        else
+                        {
+                            result = Symbol + "^" + SymbolPowerText;
+                        }
+                    }
                 }
 
-                for (int i = 0; i < FusedVariables.Count; i++)
+                for (int i = 0; i < FusedSymbols.Count; i++)
                 {
 
                     double pp = GetFusedPower(i);
@@ -285,7 +391,7 @@ namespace SymbolicAlgebra
 
 
         /// <summary>
-        /// returns the whole symbolic
+        /// returns the whole symbolic variable   symobl part with coeffecient part
         /// </summary>
         private string SymbolTextValue
         {
@@ -303,33 +409,55 @@ namespace SymbolicAlgebra
                 if (Coeffecient != 1)
                 {
                     string rr = Coeffecient.ToString(CultureInfo.InvariantCulture);
-                    if (SymbolPower != 0)
+                    if (_CoeffecientPowerTerm != null)
                     {
-
-                        if (SymbolPower < 0)
+                        // coeffecient part  like 3^x  {remember coeffecient may be raised to symbol}
+                        if (CoeffecientPowerTerm.IsMultiValue)
                         {
-                            
-                            result = rr + "/" + result;
+                            rr = rr + "^(" + CoeffecientPowerText + ")";
                         }
                         else
                         {
-                            if (rr == "-1")
-                                result = "-" + result;
-                            else
-                                result = rr + "*" + result;
+                            rr = rr + "^" + CoeffecientPowerText;  
                         }
+
+                        if (!string.IsNullOrEmpty(result))
+                            result = rr + "*" + result;
+                        else
+                            result = rr;
                         
                     }
                     else
                     {
-                        if (FusedVariables.Count > 0)
+                        // in case there are no power term.
+                        if (SymbolPower != 0)
                         {
-                            //
-                            result = rr + result;
+
+                            if (SymbolPower < 0)
+                            {
+
+                                result = rr + "/" + result;
+                            }
+                            else
+                            {
+                                if (rr == "-1")
+                                    result = "-" + result;
+                                else
+                                    result = rr + "*" + result;
+                            }
+
                         }
                         else
                         {
-                            result = rr;
+                            if (FusedSymbols.Count > 0)
+                            {
+                                //
+                                result = rr + result;
+                            }
+                            else
+                            {
+                                result = rr;
+                            }
                         }
                     }
                 }
@@ -338,7 +466,11 @@ namespace SymbolicAlgebra
             }
         }
 
-
+        /// <summary>
+        /// Returns the text of the whole instance terms.
+        /// serve as the final point.
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
 
@@ -364,11 +496,17 @@ namespace SymbolicAlgebra
         }
 
 
-        
-        public bool VariableEquals(SymbolicVariable sv)
+        /// <summary>
+        /// Compare the symbol of current instance to the symbol of parameter instance
+        /// either in primary symbol part and in fused symbols.
+        /// No compare occure on the added terms part.
+        /// </summary>
+        /// <param name="sv"></param>
+        /// <returns></returns>
+        public bool SymbolsEquals(SymbolicVariable sv)
         {
 
-            if (this.FusedVariables.Count > 0 || sv.FusedVariables.Count > 0)
+            if (this.FusedSymbols.Count > 0 || sv.FusedSymbols.Count > 0)
             {
                 // the trick is to make sure that the same variables are exist in this instance and the target instance.
                 //
@@ -385,27 +523,27 @@ namespace SymbolicAlgebra
                 Dictionary<string,double> vvs = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
 
                 //variable name of this instance    THE VARIABLE NAME which is x or y or xy  
-                if (!string.IsNullOrEmpty(this.VariableName))
+                if (!string.IsNullOrEmpty(this.Symbol))
                 {
-                    vvs.Add(this.VariableName, SymbolPower);
+                    vvs.Add(this.Symbol, SymbolPower);
                 }
 
                 // variable part of the target instance
-                if (!string.IsNullOrEmpty(sv.VariableName))
+                if (!string.IsNullOrEmpty(sv.Symbol))
                 {
-                    if (vvs.ContainsKey(sv.VariableName)) vvs[sv.VariableName] -= sv.SymbolPower;
-                    else vvs.Add(sv.VariableName,-1 * sv.SymbolPower);
+                    if (vvs.ContainsKey(sv.Symbol)) vvs[sv.Symbol] -= sv.SymbolPower;
+                    else vvs.Add(sv.Symbol,-1 * sv.SymbolPower);
                 }
 
                 //fused variables of this instance
-                foreach (var cv in this.FusedVariables)
+                foreach (var cv in this.FusedSymbols)
                 {
                     if (vvs.ContainsKey(cv.Key)) vvs[cv.Key] += cv.Value;
                     else vvs.Add(cv.Key, cv.Value);
                 }
 
                 // fused variables of the target instance.
-                foreach (var tv in sv.FusedVariables)
+                foreach (var tv in sv.FusedSymbols)
                 {
                     if (vvs.ContainsKey(tv.Key)) vvs[tv.Key] -= tv.Value;
                     else vvs.Add(tv.Key, tv.Value);
@@ -421,7 +559,7 @@ namespace SymbolicAlgebra
             }
             else
             {
-                if (this.VariableName.Equals(sv.VariableName, StringComparison.OrdinalIgnoreCase))
+                if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase))
                 {
                     if (this.SymbolPower == sv.SymbolPower)
                     {
@@ -438,7 +576,7 @@ namespace SymbolicAlgebra
 
         public bool Equals(SymbolicVariable sv)
         {
-            if (this.VariableName.Equals(sv.VariableName, StringComparison.OrdinalIgnoreCase))
+            if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase))
             {
                 if (this.SymbolPower == sv.SymbolPower)
                 {
@@ -467,414 +605,18 @@ namespace SymbolicAlgebra
 
         public override int GetHashCode()
         {
-            return Coeffecient.GetHashCode() + VariableName.GetHashCode() + SymbolPower.GetHashCode();
+            return Coeffecient.GetHashCode() + Symbol.GetHashCode() + SymbolPower.GetHashCode();
         }
-
-
-
- 
-
-
-
-        public static SymbolicVariable operator +(SymbolicVariable a, SymbolicVariable b)
-        {
-
-            SymbolicVariable subB = (SymbolicVariable)b.Clone();
-            int sub = -1;
-
-            SymbolicVariable sv = (SymbolicVariable)a.Clone();
-            NewPart:
-            
-
-            // compare the first or primary part of this instance to the primary part of other instance.
-            // if they are the same sum their coefficients.
-            bool consumed = false;
-
-            if (a.VariableEquals(subB))
-            {
-                sv.Coeffecient = a.Coeffecient + subB.Coeffecient;
-                consumed = true;
-            }
-              
-            //so the equality doesn't exits or this instance have other terms also
-
-            // there are two cases now 
-            //  1- the symbolic can be added to one of the existing terms primary and others in addedvariables (which will be perfect)
-            //  2- there are no compatible term so we have to add it to the addedvariables of this instance.
-            
-
-            //try to add to the rest terms
-            foreach (var av in a.AddedTerms)
-            {
-                if (av.Value.VariableEquals(subB))
-                {
-                    var iv = (SymbolicVariable)a.AddedTerms[av.Key].Clone();
-                    iv.Coeffecient = iv.Coeffecient + subB.Coeffecient;
-                    sv.AddedTerms[av.Key] = iv;
-                    consumed = true;
-                }
-            }
-
-            if (!consumed)
-            {
-                // add it to the positive variables.
-
-                SymbolicVariable pv;
-
-                sv.AddedTerms.TryGetValue(subB.SymbolBaseValue, out pv);
-
-                if (pv == null)
-                {
-                    pv = (SymbolicVariable)subB.Clone();
-                    sv.AddedTerms.Add(pv.SymbolBaseValue, pv);
-                }
-                else
-                {
-                    //exist before add it to this variable.
-                    sv.AddedTerms[subB.SymbolBaseValue] += subB;
-                }
-            }
-
-            if (b.AddedTerms.Count > 0)
-            {
-                sub = sub + 1;  //increase 
-                if (sub < b.AddedTerms.Count)
-                {
-                    // there are still terms to be consumed 
-                    //   this new term is a sub term in b and will be added to all terms of a.
-                    subB = b.AddedTerms.ElementAt(sub).Value;
-                    goto NewPart;
-                }
-            }
-
-            AdjustZeroPowerTerms(sv);
-            AdjustZeroCoeffecientTerms(sv);
-
-
-            return sv;
-
-        }
-
-        public static SymbolicVariable operator -(SymbolicVariable a, SymbolicVariable b)
-        {
-
-            SymbolicVariable subB = (SymbolicVariable)b.Clone();
-            int sub = -1;
-
-            SymbolicVariable sv = (SymbolicVariable)a.Clone();
-        NewPart:
-            
-            bool consumed = false;
-
-            if (a.VariableEquals(subB))
-            {
-                sv.Coeffecient = a.Coeffecient - subB.Coeffecient;
-                consumed = true;
-            }
-
-            //so the equality doesn't exits or this instance have other terms also
-
-            // there are two cases now 
-            //  1- the symbolic can be added to one of the existing terms (which will be perfect)
-            //  2- there are no compatible term so we have to add it to the addedvariables of this instance.
-
-
-            foreach (var av in a.AddedTerms)
-            {
-                if (av.Value.VariableEquals(subB))
-                {
-                    var iv = (SymbolicVariable)a.AddedTerms[av.Key].Clone();
-                    iv.Coeffecient = iv.Coeffecient - subB.Coeffecient;
-                    sv.AddedTerms[av.Key] = iv;
-                    consumed = true;
-                }
-            }
-
-
-            if (!consumed)
-            {
-                // add it to the positive variables.
-
-                SymbolicVariable pv;
-
-                sv.AddedTerms.TryGetValue(subB.SymbolBaseValue, out pv);
-
-                if (pv == null)
-                {
-                    pv = (SymbolicVariable)subB.Clone();
-                    pv.Coeffecient *= -1;
-
-                    sv.AddedTerms.Add(pv.SymbolBaseValue, pv);
-                }
-                else
-                {
-                    //exist before add it to this variable.
-
-                    sv.AddedTerms[subB.SymbolBaseValue] -= subB;
-                }
-            }
-
-            if (b.AddedTerms.Count > 0)
-            {
-                sub = sub + 1;  //increase 
-                if (sub < b.AddedTerms.Count)
-                {
-                    // there are still terms to be consumed 
-                    //   this new term is a sub term in b and will be added to all terms of a.
-                    subB = b.AddedTerms.ElementAt(sub).Value;
-                    goto NewPart;
-                }
-            }
-
-
-            AdjustZeroPowerTerms(sv);
-            AdjustZeroCoeffecientTerms(sv);
-
-
-            return sv;
-        }
-
-
-        public static SymbolicVariable operator *(SymbolicVariable a, SymbolicVariable b)
-        {
-            SymbolicVariable subB = (SymbolicVariable)b.Clone();
-            
-            subB._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
-            // or to make sure nothing bad happens {my idiot design :S)
-
-            int subIndex = 0;
-
-            SymbolicVariable total = default(SymbolicVariable);
-
-            SymbolicVariable sv = (SymbolicVariable)a.Clone();
-            if (a.VariableEquals(subB))
-            {
-                sv.Coeffecient = sv.Coeffecient * subB.Coeffecient;
-                sv.SymbolPower = sv.SymbolPower + subB.SymbolPower;
-
-                //fuse the fusedvariables in b into sv
-                foreach (var bfv in subB.FusedVariables)
-                {
-                    if (sv.FusedVariables.ContainsKey(bfv.Key))
-                        sv.FusedVariables[bfv.Key] += bfv.Value;
-                    else
-                        sv.FusedVariables.Add(bfv.Key, bfv.Value);
-                }
-
-            }
-            else
-            {
-
-                if (string.IsNullOrEmpty(sv.VariableName))
-                {
-                    // the instance have an empty primary variable so we should add it 
-                    sv.VariableName = subB.VariableName;
-                    sv.SymbolPower = subB.SymbolPower;
-
-                    //fuse the fusedvariables in b into sv
-                    foreach (var bfv in subB.FusedVariables)
-                    {
-                        if (sv.FusedVariables.ContainsKey(bfv.Key))
-                            sv.FusedVariables[bfv.Key] += bfv.Value;
-                        else
-                            sv.FusedVariables.Add(bfv.Key, bfv.Value);
-
-                    }
-                }
-                else
-                {
-                    if(sv.VariableName.Equals(subB.VariableName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        sv.SymbolPower += subB.SymbolPower;
-                    }
-                    else if (sv.FusedVariables.ContainsKey(subB.VariableName))
-                    {
-                        sv.FusedVariables[subB.VariableName] += subB.SymbolPower;
-                    }
-                    else
-                    {
-                        sv.FusedVariables.Add(subB.VariableName, subB.SymbolPower);
-                    }
-                }
-
-                sv.Coeffecient = a.Coeffecient * subB.Coeffecient;
-
-            } 
-
-
-            //here is a code to continue with other parts of a when multiplying them
-            if (sv.AddedTerms.Count > 0)
-            {
-                Dictionary<string, SymbolicVariable> newAddedVariables = new Dictionary<string, SymbolicVariable>(StringComparer.OrdinalIgnoreCase);
-                foreach (var vv in sv.AddedTerms)
-                {                    
-                    var newv = vv.Value * subB;
-
-                    newAddedVariables.Add(newv.SymbolBaseValue, newv);
-                }
-                sv._AddedTerms = newAddedVariables;
-
-            }
-
-            np:
-            if (subIndex < b.AddedTerms.Count)
-            {
-                // we should multiply other parts also 
-                // then add it to the current instance
-
-                // there are still terms to be consumed 
-                //   this new term is a sub term in b and will be added to all terms of a.
-                subB = b.AddedTerms.ElementAt(subIndex).Value;
-
-                if (total != null) total = total + (a * subB);
-                else total = sv + (a * subB);
-
-                subIndex = subIndex + 1;  //increase 
-                goto np;
-            }
-            else
-            {
-                if (total == null) total = sv;
-            }
-
-            AdjustZeroPowerTerms(total);
-            AdjustZeroCoeffecientTerms(total);
-
-            return total;
-        }
-
-        public static SymbolicVariable operator /(SymbolicVariable a, SymbolicVariable b)
-        {
-
-            SymbolicVariable sv = (SymbolicVariable)a.Clone();
-
-            // if the divided term is more than on term
-            // x^2/(y-x)  ==>  
-            if (b.AddedTerms.Count > 0)
-            {
-              
-                //multiply divided term by this value
-                sv.DividedTerm = sv.DividedTerm * b;
-            
-                return sv;
-            }
-
-
-            SymbolicVariable subB = (SymbolicVariable)b.Clone();
-
-            SymbolicVariable total = default(SymbolicVariable);
-
-            int subIndex = 0;
-
-            subB._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
-            // or to make sure nothing bad happens {my idiot design :S)
-
-            if (a.VariableEquals(subB))
-            {
-                sv.Coeffecient = sv.Coeffecient / subB.Coeffecient;
-                sv.SymbolPower = sv.SymbolPower - subB.SymbolPower;
-
-                //fuse the fusedvariables in b into sv
-                foreach (var bfv in subB.FusedVariables)
-                {
-                    if (sv.FusedVariables.ContainsKey(bfv.Key))
-                        sv.FusedVariables[bfv.Key] -= bfv.Value;
-                    else
-                        sv.FusedVariables.Add(bfv.Key, -1 * bfv.Value);
-                }
-            }
-            else
-            {
-
-                if (string.IsNullOrEmpty(sv.VariableName))
-                {
-                    // the instance have an empty primary variable so we should add it 
-                    sv.VariableName = subB.VariableName;
-                    sv.SymbolPower = -1 * subB.SymbolPower;
-
-                    //fuse the fusedvariables in b into sv
-                    foreach (var bfv in subB.FusedVariables)
-                    {
-                        if (sv.FusedVariables.ContainsKey(bfv.Key))
-                            sv.FusedVariables[bfv.Key] -= bfv.Value;
-                        else
-                            sv.FusedVariables.Add(bfv.Key, -1 * bfv.Value);
-                    }
-
-                }
-                else
-                {
-                    if (sv.VariableName.Equals(subB.VariableName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        sv.SymbolPower -= subB.SymbolPower;
-                    }
-                    else if (sv.FusedVariables.ContainsKey(subB.VariableName))
-                    {
-                        sv.FusedVariables[subB.VariableName] -= subB.SymbolPower;
-                    }
-                    else
-                    {
-                        sv.FusedVariables.Add(subB.VariableName, -1 * subB.SymbolPower);
-                    }
-                }
-
-                sv.Coeffecient = a.Coeffecient / subB.Coeffecient;
-
-            }
-
-            if (sv.AddedTerms.Count > 0)
-            {
-                Dictionary<string, SymbolicVariable> newAddedVariables = new Dictionary<string, SymbolicVariable>(StringComparer.OrdinalIgnoreCase);
-                foreach (var vv in sv.AddedTerms)
-                {
-                    var newv = vv.Value / subB;
-                    newAddedVariables.Add(newv.SymbolBaseValue, newv);
-
-                }
-                sv._AddedTerms = newAddedVariables;
-            }
-
-        np:
-            if (subIndex < b.AddedTerms.Count)
-            {
-                // we should multiply other parts also 
-                // then add it to the current instance
-
-                // there are still terms to be consumed 
-                //   this new term is a sub term in b and will be added to all terms of a.
-                subB = b.AddedTerms.ElementAt(subIndex).Value;
-
-                if (total != null) total = total  + (a / subB);
-                else total = sv + (a / subB);
-
-                subIndex = subIndex + 1;  //increase 
-                goto np;
-            }
-            else
-            {
-                if (total == null) total = sv;
-            }
-
-
-            AdjustZeroPowerTerms(total);
-            AdjustZeroCoeffecientTerms(total);
-
-            return total; //RemoveZeroTerms(total);
-        }
-
-
-
 
         private static void AdjustZeroPowerTerms(SymbolicVariable svar)
         {
-            for (int i = svar.FusedVariables.Count - 1; i >= 0; i--)
+            for (int i = svar.FusedSymbols.Count - 1; i >= 0; i--)
             {
-                if (svar.FusedVariables.ElementAt(i).Value == 0)
-                    svar.FusedVariables.Remove(svar.FusedVariables.ElementAt(i).Key);
+                if (svar.FusedSymbols.ElementAt(i).Value == 0)
+                    svar.FusedSymbols.Remove(svar.FusedSymbols.ElementAt(i).Key);
             }
 
             foreach (var r in svar.AddedTerms.Values) AdjustZeroPowerTerms(r);
-
         }
 
         private static void AdjustZeroCoeffecientTerms(SymbolicVariable svar)
@@ -884,28 +626,93 @@ namespace SymbolicAlgebra
                 if (svar.AddedTerms.ElementAt(i).Value.Coeffecient == 0)
                     svar.AddedTerms.Remove(svar.AddedTerms.ElementAt(i).Key);
             }
-
         }
 
 
+        /// <summary>
+        /// Test if the whole term equals zero or not.
+        /// </summary>
+        public bool IsZero
+        {
+            get
+            {
+                if (this.ToString() == "0") return true;
+                
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tells if this instance is only one term.
+        /// </summary>
+        public bool IsOneTerm
+        {
+            get
+            {
+                if (_AddedTerms != null)
+                {
+                    if (_AddedTerms.Count > 0)
+                        return false;
+                }
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// tells if the this term is having coeffecient as number only.
+        /// </summary>
+        public bool IsThisTermCoeffecientOnly
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(this.SymbolBaseValue))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
 
 
+        /// <summary>
+        /// Indicates that there are more than coeffecient
+        /// i.e. Coeffecient and variable and or multi fused variables
+        /// </summary>
+        public bool IsMultiValue
+        {
+            get
+            {
+                if (_AddedTerms.Count > 0) return true;
+                if (Math.Abs(Coeffecient) != 1)
+                {
+                    if (!string.IsNullOrEmpty(Symbol)) return true;
+                }
+
+                return false;
+            }
+        }
 
         #region ICloneable Members
 
         public object Clone()
         {
-            SymbolicVariable clone = new SymbolicVariable(this.VariableName);
+            SymbolicVariable clone = new SymbolicVariable(this.Symbol);
             clone.Coeffecient = this.Coeffecient;
-            clone.SymbolPower = this.SymbolPower;
+            clone._SymbolPower = this._SymbolPower;
+
+            if (this._SymbolPowerTerm != null)
+                clone._SymbolPowerTerm = (SymbolicVariable)this._SymbolPowerTerm.Clone();
+
+            if (this._CoeffecientPowerTerm != null)
+                clone._CoeffecientPowerTerm = (SymbolicVariable)this._CoeffecientPowerTerm.Clone();
 
             foreach (var av in AddedTerms)
             {
                 clone.AddedTerms.Add(av.Key, av.Value);
             }
-            foreach (var fv in FusedVariables)
+            foreach (var fv in FusedSymbols)
             {
-                clone.FusedVariables.Add(fv.Key, fv.Value);
+                clone.FusedSymbols.Add(fv.Key, fv.Value);
 
             }
 
