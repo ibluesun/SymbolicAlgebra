@@ -1,0 +1,19 @@
+﻿Architecture Document
+------------------------
+
+Written By Ahmed Sadek (Ahmed.Sadek@Lostparticles.net)
+
+SymbolicVariable   Class  to express a term
+
+ax^p   where  a:Coeffecient
+			  x:Symbol
+			  p: power
+
+contains 
+   1) Coeffecient Part   	(native double value)
+   2) Symbol             	(any valid text)
+   3) SymbolPower        	(Power of the symbol )
+   4) SymbolPowerTerm    	(SymbolicVariable instance [override the SymbolPower when used])
+                         	This is for the usage of raising power to symbols and not native values.
+   5) CoeffecientPowerTerm  (SymbolicVariable instance of Coeffecient Part)
+
