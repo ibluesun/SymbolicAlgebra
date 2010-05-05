@@ -107,5 +107,12 @@ namespace SymbolicAlgebra
             return SymbolicPower(a, b);
         }
 
+
+        public static SymbolicVariable Pow(SymbolicVariable a, SymbolicVariable b)
+        {
+            return SymbolicPower(a, b);
+        }
+
+
     }
 }
