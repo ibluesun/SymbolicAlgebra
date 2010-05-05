@@ -57,7 +57,18 @@ namespace SymbolicAlgebra
                 {
                     if (sv.Symbol.Equals(subB.Symbol, StringComparison.OrdinalIgnoreCase))
                     {
-                        sv.SymbolPower += subB.SymbolPower;
+                        if (sv._SymbolPowerTerm != null || subB._SymbolPowerTerm != null)
+                        {
+                            // make sure the object of symbol power term have values if they don't
+                            if (sv._SymbolPowerTerm == null) sv._SymbolPowerTerm = new SymbolicVariable(sv.SymbolPowerText);
+                            if (subB._SymbolPowerTerm == null) subB._SymbolPowerTerm = new SymbolicVariable(subB.SymbolPowerText);
+
+                            sv._SymbolPowerTerm += subB._SymbolPowerTerm;
+                        }
+                        else
+                        {
+                            sv.SymbolPower += subB.SymbolPower;
+                        }
                     }
                     else if (sv.FusedSymbols.ContainsKey(subB.Symbol))
                     {

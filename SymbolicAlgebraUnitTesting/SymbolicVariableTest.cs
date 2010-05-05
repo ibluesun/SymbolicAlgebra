@@ -284,7 +284,7 @@ namespace SymbolicAlgebraUnitTesting
 
             var hlx = hx * lx;
 
-            Assert.AreEqual("x^(3*y)", hlx.ToString());
+            Assert.AreEqual("x^(3+y)", hlx.ToString());
 
 
         }
