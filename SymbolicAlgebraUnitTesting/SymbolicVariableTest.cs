@@ -87,11 +87,12 @@ namespace SymbolicAlgebraUnitTesting
         SymbolicVariable Ten = new SymbolicVariable("10");
 
         SymbolicVariable Eleven = new SymbolicVariable("11");
+        SymbolicVariable Twelve = new SymbolicVariable("12");
 
         #endregion
 
         /// <summary>
-        ///A test for Add
+        ///A test for Adds
         ///</summary>
         [TestMethod()]
         public void OperationsTest()
@@ -220,6 +221,12 @@ namespace SymbolicAlgebraUnitTesting
         [TestMethod]
         public void PowerTest()
         {
+            var x_5 = (x + y).Power(-5);
+            Assert.AreEqual(expected: "1/(x^5+5*y*x^4+10*y^2*x^3+10*y^3*x^2+5*y^4*x+y^5)", actual: x_5.ToString());
+
+            var x0 = x.Power(0);
+            Assert.AreEqual(expected: "1", actual: x0.ToString());
+
             var r = x.Power(5);
             Assert.AreEqual(r.ToString(), "x^5");
 
@@ -236,6 +243,8 @@ namespace SymbolicAlgebraUnitTesting
         [TestMethod]
         public void SymbolicPowerTest()
         {
+            var x0 = x ^ Zero;
+            Assert.AreEqual(expected: "1", actual: x0.ToString());
 
             var x3 = x ^ Three;
             Assert.AreEqual(actual: x3.ToString(), expected: "x^3");

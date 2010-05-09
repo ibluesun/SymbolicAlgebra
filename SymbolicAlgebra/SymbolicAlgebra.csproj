@@ -47,6 +47,7 @@
     <Compile Include="SymbolicVariable.cs" />
     <Compile Include="SymbolicVariable_Calc.cs" />
     <Compile Include="SymbolicVariable_DivideOperation.cs" />
+    <Compile Include="SymbolicVariable_Helper.cs" />
     <Compile Include="SymbolicVariable_MultiplyOperation.cs" />
     <Compile Include="SymbolicVariable_Operations.cs" />
     <Compile Include="SymbolicVariable_Operators.cs" />
