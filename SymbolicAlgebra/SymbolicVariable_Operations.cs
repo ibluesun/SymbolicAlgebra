@@ -1,4 +1,5 @@
-﻿namespace SymbolicAlgebra
+﻿using System;
+namespace SymbolicAlgebra
 {
     public partial class SymbolicVariable
     {
@@ -23,13 +24,20 @@
         /// <returns></returns>
         public SymbolicVariable Power(int power)
         {
+            if (power == 0) return SymbolicVariable._One;
+
             SymbolicVariable total = (SymbolicVariable)this.Clone();
-            while (power > 1)
+            int pw = Math.Abs(power);
+            while (pw > 1)
             {
                 total = total * this;
-                power--;
+                pw--;
             }
 
+            if (power < 0)
+            {
+                total = SymbolicVariable._One / total;
+            }
 
             return total;
         }
