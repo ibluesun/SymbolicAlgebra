@@ -77,6 +77,8 @@ namespace SymbolicAlgebra
                     else
                     {
                         sv.FusedSymbols.Add(subB.Symbol, subB.SymbolPower);
+                        foreach (var fsv in subB.FusedSymbols)
+                            sv.FusedSymbols.Add(fsv.Key, fsv.Value);
                     }
                 }
 

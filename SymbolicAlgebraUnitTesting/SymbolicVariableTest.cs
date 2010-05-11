@@ -4,8 +4,7 @@ using System;
 
 namespace SymbolicAlgebraUnitTesting
 {
-    
-    
+
     /// <summary>
     ///This is a test class for SymbolicVariableTest and is intended
     ///to contain all SymbolicVariableTest Unit Tests
@@ -17,8 +16,8 @@ namespace SymbolicAlgebraUnitTesting
         private TestContext testContextInstance;
 
         /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
+        /// Gets or sets the test context which provides
+        /// Information about and functionality for the current test run.
         ///</summary>
         public TestContext TestContext
         {
@@ -268,7 +267,6 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual("16*x^2*y^4*z^6", vpls.ToString());
 
-
             // testing coeffecient part with   symbol part
 
             var cx = x * Seven;
@@ -294,7 +292,28 @@ namespace SymbolicAlgebraUnitTesting
             var hlx = hx * lx;
 
             Assert.AreEqual("x^(3+y)", hlx.ToString());
+        }
 
+        [TestMethod]
+        public void IssuesTesting()
+        {
+            // Issue 1 when multiplying x * u^2-2*v*u+v^2  the middle term was -2*x*v because only 'v' from middle term attached to fused variables
+            //   fixed with adding all fused variables from middle term.
+
+            var a = x;
+
+            var b = new SymbolicVariable("u") - new SymbolicVariable("v");
+
+            var c = b.Power(2);
+
+            var r = a * c;
+
+            Assert.AreEqual(r.ToString(), "x*u^2-2*x*v*u+x*v^2");
+
+            // Issue 2 when dividing x / u^2-2*v*u+v^2  the number changed.
+            r = 1 / c;
+
+            Assert.AreEqual(r.ToString(), "1/(u^2-2*v*u+v^2)");
 
         }
     }
