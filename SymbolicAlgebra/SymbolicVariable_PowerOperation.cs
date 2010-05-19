@@ -31,7 +31,7 @@ namespace SymbolicAlgebra
                     an._SymbolPower = an._SymbolPower * power;
                 }
 
-                //coeffecient power term
+                //Coeffecient power term: 2^(x+2)  the x+2 is the coeffecient power term expressed in symbolic variable
                 if (an._CoeffecientPowerTerm != null)
                 {
                     an._CoeffecientPowerTerm = an._CoeffecientPowerTerm * power;
@@ -46,7 +46,8 @@ namespace SymbolicAlgebra
 
                 for (int i = 0; i < FusedSymbols.Count; i++ )
                 {
-                    FusedSymbols[FusedSymbols.ElementAt(i).Key] = FusedSymbols.ElementAt(i).Value * power;
+                   
+                        FusedSymbols[FusedSymbols.ElementAt(i).Key] = FusedSymbols.ElementAt(i).Value * power ;
                     
                 }
 
@@ -78,6 +79,22 @@ namespace SymbolicAlgebra
                 else
                 {
                     an._CoeffecientPowerTerm = an._CoeffecientPowerTerm * b;
+                }
+
+                // raised the fused symbols 
+
+                for (int i = 0; i < FusedSymbols.Count; i++)
+                {
+                    var fusedItem = FusedSymbols[FusedSymbols.ElementAt(i).Key];
+                    if (fusedItem.SymbolicVariable == null)
+                    {
+                        fusedItem.SymbolicVariable = b * fusedItem.NumericalVariable;
+                        fusedItem.NumericalVariable = 1;  // set it to one because it has gone to the symbolic part
+                    }
+                    else
+                        fusedItem.SymbolicVariable = fusedItem.SymbolicVariable * b;
+
+                    FusedSymbols[FusedSymbols.ElementAt(i).Key] = fusedItem;
                 }
 
                 if (an._AddedTerms != null)

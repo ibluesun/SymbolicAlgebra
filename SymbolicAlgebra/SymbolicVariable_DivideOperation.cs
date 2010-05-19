@@ -10,6 +10,7 @@ namespace SymbolicAlgebra
 
         public static SymbolicVariable operator /(SymbolicVariable a, SymbolicVariable b)
         {
+            if (a == null || b == null) return null;
 
             SymbolicVariable sv = (SymbolicVariable)a.Clone();
 
@@ -45,7 +46,7 @@ namespace SymbolicAlgebra
                     if (sv.FusedSymbols.ContainsKey(bfv.Key))
                         sv.FusedSymbols[bfv.Key] -= bfv.Value;
                     else
-                        sv.FusedSymbols.Add(bfv.Key, -1 * bfv.Value);
+                        sv.FusedSymbols.Add(bfv.Key,  bfv.Value * -1);
                 }
             }
             else
@@ -62,7 +63,7 @@ namespace SymbolicAlgebra
                         if (sv.FusedSymbols.ContainsKey(bfv.Key))
                             sv.FusedSymbols[bfv.Key] -= bfv.Value;
                         else
-                            sv.FusedSymbols.Add(bfv.Key, -1 * bfv.Value);
+                            sv.FusedSymbols.Add(bfv.Key,  bfv.Value * -1);
                     }
 
                 }
@@ -70,7 +71,19 @@ namespace SymbolicAlgebra
                 {
                     if (sv.Symbol.Equals(subB.Symbol, StringComparison.OrdinalIgnoreCase))
                     {
-                        sv.SymbolPower -= subB.SymbolPower;
+                        if (sv._SymbolPowerTerm != null || subB._SymbolPowerTerm != null)
+                        {
+                            // make sure the object of symbol power term have values if they don't
+                            if (sv._SymbolPowerTerm == null) sv._SymbolPowerTerm = new SymbolicVariable(sv.SymbolPowerText);
+                            if (subB._SymbolPowerTerm == null) subB._SymbolPowerTerm = new SymbolicVariable(subB.SymbolPowerText);
+
+                            sv._SymbolPowerTerm -= subB._SymbolPowerTerm;
+                        }
+                        else
+                        {
+                            sv.SymbolPower -= subB.SymbolPower;
+                        }
+                        
                     }
                     else if (sv.FusedSymbols.ContainsKey(subB.Symbol))
                     {
@@ -78,7 +91,12 @@ namespace SymbolicAlgebra
                     }
                     else
                     {
-                        sv.FusedSymbols.Add(subB.Symbol, -1 * subB.SymbolPower);
+                        HybridVariable nhv = new HybridVariable { NumericalVariable = -1 * subB.SymbolPower };
+                        sv.FusedSymbols.Add(subB.Symbol, nhv);
+
+                        //foreach (var fsv in subB.FusedSymbols)
+                        //    sv.FusedSymbols.Add(fsv.Key, -1 * fsv.Value);
+
                     }
                 }
 

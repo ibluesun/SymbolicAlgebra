@@ -278,6 +278,48 @@ namespace SymbolicAlgebraUnitTesting
 
         }
 
+        [TestMethod]
+        public void MultiTermSymbolicPowerTest()
+        {
+            var xpy = x ^ y;
+
+            var xp2 = x ^ Two;
+
+            var xp2y = xp2 * xpy;
+
+            Assert.AreEqual("x^(2+y)", xp2y.ToString());
+
+            var xp2_y = xp2 / xpy;
+
+            Assert.AreEqual("x^(2-y)", xp2_y.ToString());
+
+            var xy = x * y;
+
+            var xy2 = xy ^ Two;
+
+            Assert.AreEqual("x^2*y^2", xy2.ToString());
+
+            var t = new SymbolicVariable("t");
+            var xyt = xy ^ t;
+
+            Assert.AreEqual("x^t*y^t", xyt.ToString());
+
+            var xy2t = xy2 ^ t;
+            Assert.AreEqual("x^(2*t)*y^(2*t)", xy2t.ToString());
+
+            var xxy2t = xy2t * x;
+            Assert.AreEqual("x^(2*t+1)*y^(2*t)", xxy2t.ToString());
+
+            var xe = xxy2t + (3 * t * z);
+            Assert.AreEqual("x^(2*t+1)*y^(2*t)+3*t*z", xe.ToString());
+            
+            var p = new SymbolicVariable("p");
+
+            var xe2 = xe.Power(2);
+            Assert.AreEqual("x^(4*t+2)*y^(4*t)+6*t*x^(2*t+1)*y^(2*t)*z+9*t^2*z^2", xe.ToString());
+
+        }
+
         /// <summary>
         /// Test the multiplication of two powered termed
         /// </summary>

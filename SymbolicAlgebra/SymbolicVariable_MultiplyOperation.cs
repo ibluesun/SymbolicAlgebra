@@ -9,6 +9,8 @@ namespace SymbolicAlgebra
     {
         public static SymbolicVariable operator *(SymbolicVariable a, SymbolicVariable b)
         {
+            if (a == null || b == null) return null;
+
             SymbolicVariable subB = (SymbolicVariable)b.Clone();
 
             subB._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
@@ -22,7 +24,14 @@ namespace SymbolicAlgebra
             if (a.SymbolsEquals(subB))
             {
                 sv.Coeffecient = sv.Coeffecient * subB.Coeffecient;
-                sv.SymbolPower = sv.SymbolPower + subB.SymbolPower;
+                if (a.SymbolPowerTerm != null || subB.SymbolPowerTerm != null)
+                {
+                    sv._SymbolPowerTerm = a.SymbolPowerTerm + subB.SymbolPowerTerm;
+                }
+                else
+                {
+                    sv.SymbolPower = sv.SymbolPower + subB.SymbolPower;
+                }
 
                 //fuse the fusedvariables in b into sv
                 foreach (var bfv in subB.FusedSymbols)
@@ -76,7 +85,7 @@ namespace SymbolicAlgebra
                     }
                     else
                     {
-                        sv.FusedSymbols.Add(subB.Symbol, subB.SymbolPower);
+                        sv.FusedSymbols.Add(subB.Symbol, new HybridVariable { NumericalVariable = subB.SymbolPower });
                         foreach (var fsv in subB.FusedSymbols)
                             sv.FusedSymbols.Add(fsv.Key, fsv.Value);
                     }

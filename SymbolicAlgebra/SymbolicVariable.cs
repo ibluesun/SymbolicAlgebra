@@ -160,7 +160,7 @@ namespace SymbolicAlgebra
         /// <summary>
         /// a*x^2*y^3*z^7  I mean {y^3, and z^7}
         /// </summary>
-        private Dictionary<string, double> _FusedSymbols;
+        private Dictionary<string, HybridVariable> _FusedSymbols;
 
         /// <summary>
         /// Extra terms that couldn't be added to the current term.
@@ -195,14 +195,15 @@ namespace SymbolicAlgebra
         /// <summary>
         /// Multiplied terms in the term other that original symbol letter.
         /// </summary>
-        public Dictionary<string, double> FusedSymbols
+        public Dictionary<string, HybridVariable> FusedSymbols
         {
             get
             {
-                if (_FusedSymbols == null) _FusedSymbols = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+                if (_FusedSymbols == null) _FusedSymbols = new Dictionary<string, HybridVariable>(StringComparer.OrdinalIgnoreCase);
                 return _FusedSymbols;
             }
         }
+
 
 
         /// <summary>
@@ -212,15 +213,26 @@ namespace SymbolicAlgebra
         {
             
             string result = string.Empty;
-            double power = FusedSymbols.ElementAt(i).Value;
-            string variableName = FusedSymbols.ElementAt(i).Key;
+            
+            double power = FusedSymbols.ElementAt(i).Value.NumericalVariable;
+            SymbolicVariable powerTerm = FusedSymbols.ElementAt(i).Value.SymbolicVariable;
 
-            if ( power != 0)
+            string variableName = FusedSymbols.ElementAt(i).Key;
+            if (powerTerm != null)
+            {
+                string powerTermText = powerTerm.ToString();
+                if (powerTermText.Length > 1)
+                    result = variableName + "^(" + powerTermText + ")";
+                else
+                    result = variableName + "^" + powerTermText;
+            }
+            else if (power != 0)
             {
                 // variable exist 
                 if (power != 1) result = variableName + "^" + power.ToString(CultureInfo.InvariantCulture);
                 else result = variableName;
             }
+            
 
             return result;    
         }
@@ -234,10 +246,21 @@ namespace SymbolicAlgebra
         {
 
             string result = string.Empty;
-            double power = FusedSymbols.ElementAt(i).Value;
+
+            double power = FusedSymbols.ElementAt(i).Value.NumericalVariable;
+            SymbolicVariable powerTerm = FusedSymbols.ElementAt(i).Value.SymbolicVariable;
+
             string variableName = FusedSymbols.ElementAt(i).Key;
 
-            if (power != 0)
+            if (powerTerm != null)
+            {
+                string powerTermText = powerTerm.ToString();
+                if (powerTermText.Length > 1)
+                    result = variableName + "^(" + powerTermText + ")";
+                else
+                    result = variableName + "^" + powerTermText;
+            }
+            else if (power != 0)
             {
                 // variable exist 
                 if (Math.Abs(power) != 1) result = variableName + "^" + Math.Abs(power).ToString(CultureInfo.InvariantCulture);
@@ -255,7 +278,7 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         private double GetFusedPower(int i)
         {
-            return FusedSymbols.ElementAt(i).Value;
+            return FusedSymbols.ElementAt(i).Value.NumericalVariable;
         }
 
 
@@ -520,19 +543,28 @@ namespace SymbolicAlgebra
                 //  test every variable to see its zero value
                 //  any item that has zero value will break the equality and we should return a false result.
 
-                Dictionary<string,double> vvs = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+                Dictionary<string, HybridVariable> vvs = new Dictionary<string, HybridVariable>(StringComparer.OrdinalIgnoreCase);
 
                 //variable name of this instance    THE VARIABLE NAME which is x or y or xy  
                 if (!string.IsNullOrEmpty(this.Symbol))
                 {
-                    vvs.Add(this.Symbol, SymbolPower);
+                    HybridVariable hv = new HybridVariable { NumericalVariable = SymbolPower, SymbolicVariable = SymbolPowerTerm };
+                    vvs.Add(this.Symbol, hv);
                 }
 
                 // variable part of the target instance
                 if (!string.IsNullOrEmpty(sv.Symbol))
                 {
-                    if (vvs.ContainsKey(sv.Symbol)) vvs[sv.Symbol] -= sv.SymbolPower;
-                    else vvs.Add(sv.Symbol,-1 * sv.SymbolPower);
+                    HybridVariable hv = new HybridVariable { NumericalVariable = sv.SymbolPower, SymbolicVariable = sv.SymbolPowerTerm };
+
+                    if (vvs.ContainsKey(sv.Symbol))
+                    {
+                        vvs[sv.Symbol] -= hv;
+                    }
+                    else
+                    {
+                        vvs.Add(sv.Symbol, hv * -1);
+                    }
                 }
 
                 //fused variables of this instance
@@ -551,7 +583,7 @@ namespace SymbolicAlgebra
 
                 foreach (var rv in vvs)
                 {
-                    if (rv.Value != 0) return false;
+                    if (!rv.Value.IsZero) return false;
                 }
 
                 return true;
@@ -612,7 +644,7 @@ namespace SymbolicAlgebra
         {
             for (int i = svar.FusedSymbols.Count - 1; i >= 0; i--)
             {
-                if (svar.FusedSymbols.ElementAt(i).Value == 0)
+                if (svar.FusedSymbols.ElementAt(i).Value.IsZero)
                     svar.FusedSymbols.Remove(svar.FusedSymbols.ElementAt(i).Key);
             }
 
