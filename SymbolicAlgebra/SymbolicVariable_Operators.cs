@@ -10,6 +10,7 @@ namespace SymbolicAlgebra
 
         public static SymbolicVariable operator +(SymbolicVariable a, SymbolicVariable b)
         {
+            if (a == null || b == null) return null;
 
             SymbolicVariable subB = (SymbolicVariable)b.Clone();
             int sub = -1;
@@ -89,6 +90,7 @@ namespace SymbolicAlgebra
 
         public static SymbolicVariable operator -(SymbolicVariable a, SymbolicVariable b)
         {
+            if (a == null || b == null) return null;
 
             SymbolicVariable subB = (SymbolicVariable)b.Clone();
             int sub = -1;
