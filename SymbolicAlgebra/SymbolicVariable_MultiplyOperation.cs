@@ -69,8 +69,21 @@ namespace SymbolicAlgebra
                         if (sv._SymbolPowerTerm != null || subB._SymbolPowerTerm != null)
                         {
                             // make sure the object of symbol power term have values if they don't
-                            if (sv._SymbolPowerTerm == null) sv._SymbolPowerTerm = new SymbolicVariable(sv.SymbolPowerText);
-                            if (subB._SymbolPowerTerm == null) subB._SymbolPowerTerm = new SymbolicVariable(subB.SymbolPowerText);
+                            if (sv._SymbolPowerTerm == null)
+                            {
+                                // transfer the numerical power into symbolic variable mode
+                                sv._SymbolPowerTerm = new SymbolicVariable(sv.SymbolPower.ToString());
+
+                                // also revert the original symbol power into 1  for validation after this
+                                sv.SymbolPower = 1;
+                            }
+
+                            if (subB._SymbolPowerTerm == null)
+                            {
+                                subB._SymbolPowerTerm = new SymbolicVariable(subB.SymbolPower.ToString());
+
+                                subB.SymbolPower = 1;
+                            }
 
                             sv._SymbolPowerTerm += subB._SymbolPowerTerm;
                         }
@@ -85,7 +98,7 @@ namespace SymbolicAlgebra
                     }
                     else
                     {
-                        sv.FusedSymbols.Add(subB.Symbol, new HybridVariable { NumericalVariable = subB.SymbolPower });
+                        sv.FusedSymbols.Add(subB.Symbol, new HybridVariable { NumericalVariable = subB.SymbolPower, SymbolicVariable= subB.SymbolPowerTerm });
                         foreach (var fsv in subB.FusedSymbols)
                             sv.FusedSymbols.Add(fsv.Key, fsv.Value);
                     }
