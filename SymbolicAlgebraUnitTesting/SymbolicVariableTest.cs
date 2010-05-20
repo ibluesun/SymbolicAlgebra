@@ -310,13 +310,17 @@ namespace SymbolicAlgebraUnitTesting
             var xxy2t = xy2t * x;
             Assert.AreEqual("x^(2*t+1)*y^(2*t)", xxy2t.ToString());
 
+
+            var xxy2t2 = xxy2t.Power(2);
+            Assert.AreEqual("x^(4*t+2)*y^(4*t)", xxy2t2.ToString());
+
+
             var xe = xxy2t + (3 * t * z);
             Assert.AreEqual("x^(2*t+1)*y^(2*t)+3*t*z", xe.ToString());
-            
-            var p = new SymbolicVariable("p");
+
 
             var xe2 = xe.Power(2);
-            Assert.AreEqual("x^(4*t+2)*y^(4*t)+6*t*x^(2*t+1)*y^(2*t)*z+9*t^2*z^2", xe.ToString());
+            Assert.AreEqual("x^(4*t+2)*y^(4*t)+6*t*z*x^(2*t+1)*y^(2*t)+9*t^2*z^2", xe2.ToString());
 
         }
 
@@ -356,6 +360,32 @@ namespace SymbolicAlgebraUnitTesting
             r = 1 / c;
 
             Assert.AreEqual(r.ToString(), "1/(u^2-2*v*u+v^2)");
+
+
+
+           
+
+        }
+
+        [TestMethod]
+        public void MiscTesting()
+        {
+            
+            var t = new SymbolicVariable("t");
+            var po = Two * t + One;
+
+            Assert.AreEqual("2*t+1", po.ToString());
+            
+            var po2 = po + po;
+            Assert.AreEqual("4*t+2", po2.ToString());
+
+            var xp = x ^ po;
+            var xp2 = xp * xp;
+            Assert.AreEqual("x^(4*t+2)", xp2.ToString());
+
+
+            var xp2v2 = xp.Power(2);
+            Assert.AreEqual("x^(4*t+2)", xp2v2.ToString());
 
         }
     }
