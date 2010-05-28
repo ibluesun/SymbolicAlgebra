@@ -187,7 +187,7 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual(r.ToString(), "x+y/(x-y)");
 
             // dividing by one term
-            var rx = a / x;
+            var rx = a / x;   
             Assert.AreEqual(actual: rx.ToString(), expected: "1+y/x");
 
             var ry = a / y;
@@ -281,15 +281,15 @@ namespace SymbolicAlgebraUnitTesting
         [TestMethod]
         public void MultiTermSymbolicPowerTest()
         {
-            var xpy = x ^ y;
+            var xpy = x ^ y; 
 
             var xp2 = x ^ Two;
 
-            var xp2y = xp2 * xpy;
+            var xp2y = xp2 * xpy;  // x^2 * x^y == x^(2+y)
 
             Assert.AreEqual("x^(2+y)", xp2y.ToString());
 
-            var xp2_y = xp2 / xpy;
+            var xp2_y = xp2 / xpy;    // x^2 / x^y == x^(2-y)
 
             Assert.AreEqual("x^(2-y)", xp2_y.ToString());
 
@@ -361,10 +361,6 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual(r.ToString(), "1/(u^2-2*v*u+v^2)");
 
-
-
-           
-
         }
 
         [TestMethod]
@@ -386,6 +382,73 @@ namespace SymbolicAlgebraUnitTesting
 
             var xp2v2 = xp.Power(2);
             Assert.AreEqual("x^(4*t+2)", xp2v2.ToString());
+
+        }
+
+        [TestMethod]
+        public void Issues2Testing()
+        {
+            #region main issue in division
+            var a = -1 * Eight * x.Power(2) * y.Power(2);
+            var b = Four * x.Power(3) * y;
+
+            var c = b.Power(2) / a;
+
+            Assert.AreEqual("-2*x^4", c.ToString());
+            #endregion
+
+            #region same issue in multiplication
+            var u = Two * x * y;
+            var v = Four * x.Power(2) * y.Power(3);
+
+            var uv = u * v;
+            Assert.AreEqual("8*x^3*y^4", uv.ToString());
+
+            #region testing with different orders of symbols with the same value terms
+            u = Two * y * x;
+            v = Four * x.Power(2) * y.Power(3);
+
+            uv = u * v;
+            Assert.AreEqual("8*y^4*x^3", uv.ToString());
+
+
+            u = Three * y * x * z;
+            v = Five * y.Power(2) * x.Power(3) * z.Power(7);
+            uv = u * v;
+
+            Assert.AreEqual("15*y^3*x^4*z^8", uv.ToString());
+
+            u = Three * z * x * y;
+            v = Five * y.Power(2) * z.Power(3) * x.Power(7);
+            uv = u * v;
+
+            Assert.AreEqual("15*z^4*x^8*y^3", uv.ToString());
+            #endregion
+            #endregion
+
+
+            #region division to the same value term with different orders
+            var l = Eight * z.Power(3) * x.Power(2) * y.Power(5);
+            var m = Two * x * y.Power(3) * z.Power(7);
+            var lm = l / m;
+            Assert.AreEqual("4/z^4*x*y^2", lm.ToString());
+
+            #endregion
+
+        }
+
+        [TestMethod]
+        public void IssuesRaisedFromIssues2Testing()
+        {
+            var a = Eight * x.Power(2);
+            var b = Four * x.Power(4);
+            var ab = a / b;
+            Assert.AreEqual("2/x^2", ab.ToString());
+
+
+            var rx = (x + y) / x.Power(2);   // x+y/x^2  ==  x/x^2 + y/x^2 == 1/x + y/x^2
+
+            Assert.AreEqual(actual: rx.ToString(), expected: "1/x+y/x^2");
 
         }
     }

@@ -64,6 +64,11 @@ namespace SymbolicAlgebra
 
         /// <summary>
         /// The symbolic power a*x^2  I mean {2}
+        /// Although when the SymbolPowerTerm used this property will not included in calculations any more
+        /// however it will indicate the current term sign and should be reset to 1 or -1
+        ///     1 means +ve
+        ///     -1 means -ve
+        /// so it has a functionality after all
         /// </summary>
         public double SymbolPower 
         {
@@ -357,136 +362,161 @@ namespace SymbolicAlgebra
         /// used internally.
         /// Shows variables symbols with their powers
         /// </summary>
-        private  string FormattedSymbolicValue
+        private  string GetFormattedSymbolicValue()
         {
-            get
+            
+            string result = string.Empty;
+
+            if (!string.IsNullOrEmpty(Symbol))
             {
-                string result = string.Empty;
-
-                if (!string.IsNullOrEmpty(Symbol))
+                // include the power of instance 
+                if (string.IsNullOrEmpty(SymbolPowerText))
                 {
-                    // include the power of instance 
-                    if (string.IsNullOrEmpty(SymbolPowerText))
-                    {
-                        if (_SymbolPower == 0)
-                            result = "1";
-                        else
-                            result = Symbol;
-                    }
+                    if (_SymbolPower == 0)
+                        result = "1";
                     else
+                        result = Symbol;
+                }
+                else
+                {
+                    // add parenthesis if the text more than one charachter
+
+                    if (SymbolPower >= 0)
                     {
-                        // add parenthesis if the text more than one charachter
                         if (SymbolPowerText.Length > 1)
-                        {
                             result = Symbol + "^(" + SymbolPowerText + ")";
-                        }
                         else
-                        {
                             result = Symbol + "^" + SymbolPowerText;
-                        }
-                    }
-                }
-
-                for (int i = 0; i < FusedSymbols.Count; i++)
-                {
-
-                    double pp = GetFusedPower(i);
-
-                    if (string.IsNullOrEmpty(result))
-                    {
-                        if (pp >= 0)
-                            result += GetSymbolBaseValue(i);
-                        else
-                            result += "1/" + GetSymbolAbsoluteBaseValue(i);
                     }
                     else
                     {
-                        if (pp >= 0)
-                            result += "*" + GetSymbolBaseValue(i);
+                        if (_SymbolPowerTerm == null)
+                            result = Symbol + "^" + Math.Abs(SymbolPower).ToString(CultureInfo.InvariantCulture);
                         else
-                            result += "/" + GetSymbolAbsoluteBaseValue(i);
+                        {
+                            if (SymbolPowerText.Length > 1)
+                                result = Symbol + "^(" + SymbolPowerText + ")";
+                            else
+                                result = Symbol + "^" + SymbolPowerText;
+                        }
                     }
                 }
-
-                return result;
             }
+
+            for (int i = 0; i < FusedSymbols.Count; i++)
+            {
+
+                double pp = GetFusedPower(i);
+
+                if (string.IsNullOrEmpty(result))
+                {
+                    if (pp >= 0)
+                        result += GetSymbolBaseValue(i);
+                    else
+                        result += "1/" + GetSymbolAbsoluteBaseValue(i);
+                }
+                else
+                {
+                    if (pp >= 0)
+                        result += "*" + GetSymbolBaseValue(i);
+                    else
+                        result += "/" + GetSymbolAbsoluteBaseValue(i);
+                }
+            }
+
+            return result;
         }
 
 
         /// <summary>
-        /// returns the whole symbolic variable   symobl part with coeffecient part
+        /// Returns the whole symbolic variable   symobl part with coeffecient part
         /// </summary>
-        private string SymbolTextValue
+        private string FormSymbolTextValue()
         {
-            get
+            string result = GetFormattedSymbolicValue();
+
+            if (Coeffecient == 0) return "0";
+
+            if (Coeffecient == 1)
             {
-                string result = FormattedSymbolicValue;
-
-                if (Coeffecient == 0) return "0";
-
-                if (Coeffecient == 1)
+                if (string.IsNullOrEmpty(result)) result = "1";
+                else
                 {
-                    if (string.IsNullOrEmpty(result)) result = "1";
+                    if (SymbolPower < 0) result = "1/" + result;
                 }
+            }
 
-                if (Coeffecient != 1)
+            if (Coeffecient != 1)
+            {
+                string rr = Coeffecient.ToString(CultureInfo.InvariantCulture);
+                if (_CoeffecientPowerTerm != null)
                 {
-                    string rr = Coeffecient.ToString(CultureInfo.InvariantCulture);
-                    if (_CoeffecientPowerTerm != null)
-                    {
-                        // coeffecient part  like 3^x  {remember coeffecient may be raised to symbol}
-                        if (CoeffecientPowerTerm.IsMultiValue)
-                        {
-                            rr = rr + "^(" + CoeffecientPowerText + ")";
-                        }
-                        else
-                        {
-                            rr = rr + "^" + CoeffecientPowerText;  
-                        }
+                    // coeffecient part  like 3^x  {remember coeffecient may be raised to symbol}
+                    if (CoeffecientPowerTerm.IsMultiValue)
+                        rr = rr + "^(" + CoeffecientPowerText + ")";
+                    else
+                        rr = rr + "^" + CoeffecientPowerText;  
 
-                        if (!string.IsNullOrEmpty(result))
-                            result = rr + "*" + result;
+                    if (!string.IsNullOrEmpty(result))
+                        result = rr + "*" + result;
+                    else
+                        result = rr;
+                }
+                else
+                {
+                    // in case there are no power term.
+                    if (SymbolPower != 0)
+                    {
+                        if (SymbolPower < 0)
+                            result = rr + "/" + result;
                         else
-                            result = rr;
-                        
+                        {
+                            if (rr == "-1")
+                                result = "-" + result;
+                            else
+                                result = rr + "*" + result;
+                        }
                     }
                     else
                     {
-                        // in case there are no power term.
-                        if (SymbolPower != 0)
+                        if (FusedSymbols.Count > 0)
                         {
-
-                            if (SymbolPower < 0)
-                            {
-
-                                result = rr + "/" + result;
-                            }
-                            else
-                            {
-                                if (rr == "-1")
-                                    result = "-" + result;
-                                else
-                                    result = rr + "*" + result;
-                            }
-
+                            result = rr + result;
                         }
                         else
                         {
-                            if (FusedSymbols.Count > 0)
-                            {
-                                //
-                                result = rr + result;
-                            }
-                            else
-                            {
-                                result = rr;
-                            }
+                            result = rr;
                         }
                     }
                 }
-
-                return result;
             }
+
+            return result;
+            
+        }
+
+        public string FinalText()
+        {
+            string result = FormSymbolTextValue();
+
+            if (AddedTerms.Count > 0)
+            {
+                foreach (var sv in AddedTerms.Values)
+                {
+                    if (sv.Coeffecient != 0)
+                    {
+                        if (sv.FormSymbolTextValue().StartsWith("-"))
+                            result += sv.FormSymbolTextValue();
+                        else
+                            result += "+" + sv.FormSymbolTextValue();
+                    }
+                }
+            }
+
+            if (DividedTerm.FormSymbolTextValue() != "1") result = result + "/(" + DividedTerm.ToString() + ")";
+
+            return result;
+
         }
 
         /// <summary>
@@ -496,26 +526,8 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public override string ToString()
         {
-
-            string result = SymbolTextValue;
-
-            if (AddedTerms.Count > 0)
-            {
-                foreach (var sv in AddedTerms.Values)
-                {
-                    if (sv.Coeffecient != 0)
-                    {
-                        if (sv.SymbolTextValue.StartsWith("-"))
-                            result += sv.SymbolTextValue;
-                        else
-                            result += "+" + sv.SymbolTextValue;
-                    }
-                }
-            }
-
-            if (DividedTerm.SymbolTextValue != "1") result = result + "/(" + DividedTerm.ToString() + ")";
-
-            return result;
+            string final = FinalText();
+            return final;
         }
 
 
@@ -724,6 +736,22 @@ namespace SymbolicAlgebra
             }
         }
 
+        public bool IsNegative
+        {
+            get
+            {
+                if (this.CoeffecientPowerTerm == null)
+                {
+                    if (this.Coeffecient < 0) return true;
+                    else return false;
+                }
+                else
+                {
+                    return false;   //coeffecient may be raised
+                }
+            }
+        }
+
         #region ICloneable Members
 
         public object Clone()
@@ -742,15 +770,14 @@ namespace SymbolicAlgebra
             {
                 clone.AddedTerms.Add(av.Key, av.Value);
             }
+
             foreach (var fv in FusedSymbols)
             {
                 clone.FusedSymbols.Add(fv.Key, fv.Value);
-
             }
 
             if(this._DividedTerm!=null) 
                 clone._DividedTerm = (SymbolicVariable)this._DividedTerm.Clone();
-
 
             return clone;
         }
