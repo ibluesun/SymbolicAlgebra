@@ -69,6 +69,12 @@ namespace SymbolicAlgebraUnitTesting
 
         SymbolicVariable z = new SymbolicVariable("z");
 
+        SymbolicVariable t = new SymbolicVariable("t");
+
+        SymbolicVariable u = new SymbolicVariable("u");
+        SymbolicVariable v = new SymbolicVariable("v");
+        SymbolicVariable w = new SymbolicVariable("w");
+
         SymbolicVariable vv = new SymbolicVariable("vv");
 
         SymbolicVariable vs = new SymbolicVariable("vs");
@@ -242,20 +248,20 @@ namespace SymbolicAlgebraUnitTesting
         [TestMethod]
         public void SymbolicPowerTest()
         {
-            var x0 = x ^ Zero;
+            var x0 = x.RaiseToSymbolicPower(Zero);
             Assert.AreEqual(expected: "1", actual: x0.ToString());
 
-            var x3 = x ^ Three;
+            var x3 = x.RaiseToSymbolicPower(Three);
             Assert.AreEqual(actual: x3.ToString(), expected: "x^3");
 
 
-            var r = Three ^ x;
+            var r = Three.RaiseToSymbolicPower(x);
             Assert.AreEqual(actual: r.ToString(), expected:"3^x");
 
             var xx = x * x;
             var xx3 = Three * xx;
 
-            var xx3y = xx3 ^ y;
+            var xx3y = xx3.RaiseToSymbolicPower(y);
 
             Assert.AreEqual(actual: xx3y.ToString(), expected: "3^y*x^(2*y)");
 
@@ -263,7 +269,7 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual("4*x*y^2*z^3", cplx.ToString());
 
-            var vpls = cplx ^ Two;
+            var vpls = cplx.RaiseToSymbolicPower(Two);
 
             Assert.AreEqual("16*x^2*y^4*z^6", vpls.ToString());
 
@@ -272,18 +278,17 @@ namespace SymbolicAlgebraUnitTesting
             var cx = x * Seven;
             Assert.AreEqual("7*x", cx.ToString());
 
-            var cx2y = cx ^ (Two * y);
+            var cx2y = cx.RaiseToSymbolicPower((Two * y));
             Assert.AreEqual("7^(2*y)*x^(2*y)", cx2y.ToString());
-
 
         }
 
         [TestMethod]
         public void MultiTermSymbolicPowerTest()
         {
-            var xpy = x ^ y; 
+            var xpy = x.RaiseToSymbolicPower(y); 
 
-            var xp2 = x ^ Two;
+            var xp2 = x.RaiseToSymbolicPower(Two);
 
             var xp2y = xp2 * xpy;  // x^2 * x^y == x^(2+y)
 
@@ -295,16 +300,16 @@ namespace SymbolicAlgebraUnitTesting
 
             var xy = x * y;
 
-            var xy2 = xy ^ Two;
+            var xy2 = xy.RaiseToSymbolicPower(Two);
 
             Assert.AreEqual("x^2*y^2", xy2.ToString());
 
             var t = new SymbolicVariable("t");
-            var xyt = xy ^ t;
+            var xyt = xy.RaiseToSymbolicPower(t);
 
             Assert.AreEqual("x^t*y^t", xyt.ToString());
 
-            var xy2t = xy2 ^ t;
+            var xy2t = xy2.RaiseToSymbolicPower(t);
             Assert.AreEqual("x^(2*t)*y^(2*t)", xy2t.ToString());
 
             var xxy2t = xy2t * x;
@@ -331,9 +336,9 @@ namespace SymbolicAlgebraUnitTesting
         public void SymbolicPowerMulDivTest()
         {
 
-            var lx = x ^ y;
+            var lx = x.RaiseToSymbolicPower(y);
 
-            var hx = x ^ Three;
+            var hx = x.RaiseToSymbolicPower(Three);
 
             var hlx = hx * lx;
 
@@ -375,7 +380,7 @@ namespace SymbolicAlgebraUnitTesting
             var po2 = po + po;
             Assert.AreEqual("4*t+2", po2.ToString());
 
-            var xp = x ^ po;
+            var xp = x.RaiseToSymbolicPower(po);
             var xp2 = xp * xp;
             Assert.AreEqual("x^(4*t+2)", xp2.ToString());
 
@@ -450,6 +455,33 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual(actual: rx.ToString(), expected: "1/x+y/x^2");
 
+        }
+
+        [TestMethod]
+        public void Issues3Testing()
+        {
+            // x^(2*t+1)*y^(2*t)+3*t*z   in power three :S  not the same as maxima my reference program.
+
+            var aa = x.RaiseToSymbolicPower(2 * t + One) * y.RaiseToSymbolicPower(2 * t) + 3 * t * z;
+
+            var aa2 = aa.Power(2);
+
+            string ex2 = "x^(4*t+2)*y^(4*t)+6*t*z*x^(2*t+1)*y^(2*t)+9*t^2*z^2";
+
+            Assert.AreEqual(ex2, aa2.ToString());
+
+            var aaa = aa * aa2;
+
+            string maxima =
+            "x^(6*t+3)*y^(6*t)+9*t*z*x^(4*t+2)*y^(4*t)+27*t^2*z^2*x^(2*t+1)*y^(2*t)+27*t^3*z^3";
+            Assert.AreEqual(maxima, aaa.ToString());
+
+            var aal = aa2 * aa;
+            Assert.AreEqual(maxima, aal.ToString());
+
+
+            var aa3 = aa.Power(3);
+            Assert.AreEqual(maxima, aa3.ToString());
         }
     }
 }

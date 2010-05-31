@@ -29,15 +29,13 @@ namespace SymbolicAlgebra
 
             SymbolicVariable TargetSubTerm = (SymbolicVariable)b.Clone();
 
-            SymbolicVariable total = default(SymbolicVariable);
-
-            int subIndex = 0;
 
             TargetSubTerm._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
             // or to make sure nothing bad happens {my idiot design :S)
 
             if (a.SymbolsEquals(TargetSubTerm))
             {
+                #region symbols are equal (I mean 2*x^3 = 2*X^3)
                 SourceTerm.Coeffecient = SourceTerm.Coeffecient / TargetSubTerm.Coeffecient;
                 SourceTerm.SymbolPower = SourceTerm.SymbolPower - TargetSubTerm.SymbolPower;
 
@@ -49,14 +47,18 @@ namespace SymbolicAlgebra
                     else
                         SourceTerm.FusedSymbols.Add(bfv.Key,  bfv.Value * -1);
                 }
+                #endregion
             }
             else
             {
+                #region Symbols are different
                 if (string.IsNullOrEmpty(SourceTerm.Symbol))
                 {
+                    #region First Case: Source primary symbol doesn't exist
                     // the instance have an empty primary variable so we should add it 
                     SourceTerm.Symbol = TargetSubTerm.Symbol;
                     SourceTerm.SymbolPower = -1 * TargetSubTerm.SymbolPower;
+                    if (TargetSubTerm.SymbolPowerTerm != null) SourceTerm._SymbolPowerTerm = -1 * (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone();
 
                     //fuse the fusedvariables in b into sv
                     foreach (var bfv in TargetSubTerm.FusedSymbols)
@@ -66,13 +68,13 @@ namespace SymbolicAlgebra
                         else
                             SourceTerm.FusedSymbols.Add(bfv.Key,  bfv.Value * -1);
                     }
-
+                    #endregion
                 }
                 else
                 {
                     if (SourceTerm.Symbol.Equals(TargetSubTerm.Symbol, StringComparison.OrdinalIgnoreCase))
                     {
-                        #region primary symbol in both source and target exist and the same
+                        #region Second Case: Primary symbol in both source and target exist and equal
                         if (SourceTerm._SymbolPowerTerm != null || TargetSubTerm._SymbolPowerTerm != null)
                         {
                             // make sure the object of symbol power term have values if they don't
@@ -100,18 +102,23 @@ namespace SymbolicAlgebra
                         else
                         {
                             SourceTerm.SymbolPower -= TargetSubTerm.SymbolPower;
+                        }
 
-                            // also subtract the fused variables
-                            foreach (var fv in TargetSubTerm.FusedSymbols)
-                            {
-                                SourceTerm.FusedSymbols[fv.Key] -= TargetSubTerm.FusedSymbols[fv.Key];
-                            }
+                        // also subtract the fused variables
+                        foreach (var fv in TargetSubTerm.FusedSymbols)
+                        {
+                            if (SourceTerm.FusedSymbols.ContainsKey(fv.Key))
+                                SourceTerm.FusedSymbols[fv.Key] -= fv.Value;
+                            else
+                                SourceTerm.FusedSymbols.Add(fv.Key, fv.Value * -1);
                         }
                         #endregion
 
                     }
                     else if (SourceTerm.FusedSymbols.ContainsKey(TargetSubTerm.Symbol))
                     {
+                        #region Third Case: Target primary symbol exist in source fused variables
+
                         SourceTerm.FusedSymbols[TargetSubTerm.Symbol] -= TargetSubTerm.SymbolPower;
 
                         // however primary symbol in source still the same so we need to add it to the value in target (if applicable)
@@ -151,21 +158,65 @@ namespace SymbolicAlgebra
                                 else
                                 {
                                     // 2 no matching at all which needs to add the symbol in target into the fused symbols in source.
-                                    SourceTerm.FusedSymbols.Add(tfs.Key, tfs.Value);
+                                    SourceTerm.FusedSymbols.Add(tfs.Key, tfs.Value * -1);
                                 }
                             }
                         }
-
+                        #endregion
                     }
                     else
                     {
-                        HybridVariable nhv = new HybridVariable { NumericalVariable = -1 * TargetSubTerm.SymbolPower };
-                        SourceTerm.FusedSymbols.Add(TargetSubTerm.Symbol, nhv);
+                        #region Fourth Case: Target primary symbol doesn't exist in Source Primary Symbol nor Source Fused symbols
+
+                        // Add Target primary symbol to the fused symbols in source
+                        SourceTerm.FusedSymbols.Add(
+                            TargetSubTerm.Symbol,
+                            new HybridVariable
+                            {
+                                NumericalVariable = -1 * TargetSubTerm.SymbolPower,
+                                SymbolicVariable = TargetSubTerm.SymbolPowerTerm == null ? null : -1 * (SymbolicVariable)TargetSubTerm.SymbolPowerTerm
+                            });
+
+                        // But the primary symbol of source may exist in the target fused variables.
+
+                        foreach (var fsv in TargetSubTerm.FusedSymbols)
+                        {
+                            if (SourceTerm.FusedSymbols.ContainsKey(fsv.Key))
+                                SourceTerm.FusedSymbols[fsv.Key] -= fsv.Value;
+                            else
+                            {
+                                // 1- if symbol is the same as priamry source 
+                                if (SourceTerm.Symbol.Equals(fsv.Key, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (fsv.Value.SymbolicVariable != null)
+                                    {
+                                        if (SourceTerm._SymbolPowerTerm != null)
+                                            SourceTerm._SymbolPowerTerm -= fsv.Value.SymbolicVariable;
+                                        else
+                                        {
+                                            // sum the value in the numerical part to the value in symbolic part
+                                            SourceTerm._SymbolPowerTerm = 
+                                                new SymbolicVariable(SourceTerm._SymbolPower.ToString(CultureInfo.InvariantCulture)) - fsv.Value.SymbolicVariable;
+                                            // reset the value in numerical part
+                                            SourceTerm._SymbolPower = -1;
+                                        }
+                                    }
+                                    else
+                                        SourceTerm._SymbolPower -= fsv.Value.NumericalVariable;
+
+                                }
+                                else
+                                {
+                                    SourceTerm.FusedSymbols.Add(fsv.Key, fsv.Value * -1);
+                                }
+                            }
+                        }
+                        #endregion
                     }
                 }
 
                 SourceTerm.Coeffecient = a.Coeffecient / TargetSubTerm.Coeffecient;
-
+                #endregion
             }
 
             if (SourceTerm.AddedTerms.Count > 0)
@@ -180,8 +231,10 @@ namespace SymbolicAlgebra
                 SourceTerm._AddedTerms = newAddedVariables;
             }
 
-        np:
-            if (subIndex < b.AddedTerms.Count)
+            int subIndex = 0;
+            SymbolicVariable total = SourceTerm;
+
+            while (subIndex < b.AddedTerms.Count)
             {
                 // we should multiply other parts also 
                 // then add it to the current instance
@@ -190,15 +243,8 @@ namespace SymbolicAlgebra
                 //   this new term is a sub term in b and will be added to all terms of a.
                 TargetSubTerm = b.AddedTerms.ElementAt(subIndex).Value;
 
-                if (total != null) total = total + (a / TargetSubTerm);
-                else total = SourceTerm + (a / TargetSubTerm);
-
-                subIndex = subIndex + 1;  //increase 
-                goto np;
-            }
-            else
-            {
-                if (total == null) total = SourceTerm;
+                total = total + (a / TargetSubTerm);
+                subIndex = subIndex + 1;  //increase     
             }
 
 
