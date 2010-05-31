@@ -8,60 +8,62 @@ namespace SymbolicAlgebra
     public partial class SymbolicVariable : ICloneable
     {
 
-        public void RaiseToSymbolicPower(SymbolicVariable b)
+        public SymbolicVariable RaiseToSymbolicPower(SymbolicVariable b)
         {
-            var an = this;
+            var an = (SymbolicVariable)this.Clone();
 
             //if the value is only having coeffecient then there is no need to instantiate the powerterm
 
             if (b.IsOneTerm & b.IsThisTermCoeffecientOnly)
             {
+                #region number only 
+
                 // hold every term and multiply its power with this value.
                 double power = b.Coeffecient;
 
                 // symbol power term
 
                 // now check if the current powerterm exist or not
-                if (an._SymbolPowerTerm != null)
+                if (_SymbolPowerTerm != null)
                 {
-                    an._SymbolPowerTerm = an._SymbolPowerTerm * power;
+                    an._SymbolPowerTerm = _SymbolPowerTerm * power;
                 }
                 else
                 {
-                    an._SymbolPower = an._SymbolPower * power;
+                    an._SymbolPower = _SymbolPower * power;
                 }
 
                 //Coeffecient power term: 2^(x+2)  the x+2 is the coeffecient power term expressed in symbolic variable
-                if (an._CoeffecientPowerTerm != null)
+                if (_CoeffecientPowerTerm != null)
                 {
-                    an._CoeffecientPowerTerm = an._CoeffecientPowerTerm * power;
+                    an._CoeffecientPowerTerm = _CoeffecientPowerTerm * power;
                 }
                 else
                 {
                     // change the coeffecient directly because it is only number
-                    an.Coeffecient = Math.Pow(an.Coeffecient, power);
+                    an.Coeffecient = Math.Pow(Coeffecient, power);
                 }
 
                 // raised the fused symbols 
 
                 for (int i = 0; i < FusedSymbols.Count; i++ )
-                {
-                   
-                        FusedSymbols[FusedSymbols.ElementAt(i).Key] = FusedSymbols.ElementAt(i).Value * power ;
-                    
-                }
+                    an.FusedSymbols[FusedSymbols.ElementAt(i).Key] = FusedSymbols.ElementAt(i).Value * power;
 
-                if (an._AddedTerms != null)
+                an._AddedTerms = null;
+                if (_AddedTerms != null)
                 {
-                    foreach (var term in an._AddedTerms.Values)
+                    foreach (var term in _AddedTerms.Values)
                     {
-                        term.RaiseToSymbolicPower(term.SymbolPowerTerm * power);
+                        var tpw = term.RaiseToSymbolicPower(term.SymbolPowerTerm * power);
+                        an._AddedTerms.Add(tpw.SymbolBaseValue, tpw);
                     }
                 }
+                #endregion
 
             }
             else
             {
+                #region full symbolic variable
                 // if all conditions failed then this value is a complex value
                 if (an._SymbolPowerTerm == null)
                 {
@@ -74,7 +76,7 @@ namespace SymbolicAlgebra
 
                 if (an._CoeffecientPowerTerm == null)
                 {
-                    an._CoeffecientPowerTerm = b;
+                    if(Math.Abs(an.Coeffecient) != 1) an._CoeffecientPowerTerm = b;
                 }
                 else
                 {
@@ -94,16 +96,23 @@ namespace SymbolicAlgebra
                     else
                         fusedItem.SymbolicVariable = fusedItem.SymbolicVariable * b;
 
-                    FusedSymbols[FusedSymbols.ElementAt(i).Key] = fusedItem;
+                    an.FusedSymbols[FusedSymbols.ElementAt(i).Key] = fusedItem;
                 }
 
-                if (an._AddedTerms != null)
+                an._AddedTerms = null;
+                if (_AddedTerms != null)
                 {
                     // fill the extra added terms
-                    foreach (var term in an._AddedTerms.Values)
-                        term.RaiseToSymbolicPower(term.SymbolPowerTerm * b);
+                    foreach (var term in _AddedTerms.Values)
+                    {
+                        var tpw = term.RaiseToSymbolicPower(term.SymbolPowerTerm * b);
+                        an.AddedTerms.Add(tpw.SymbolBaseValue, tpw);
+                    }
                 }
+                #endregion
             }
+
+            return an;
         }
 
         /// <summary>
@@ -114,22 +123,12 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public static SymbolicVariable SymbolicPower(SymbolicVariable a, SymbolicVariable b)
         {
-            var an = (SymbolicVariable)a.Clone(); // clone the base value
-            an.RaiseToSymbolicPower(b);
-            return an;
+            return a.RaiseToSymbolicPower(b);
         }
-
-        public static SymbolicVariable operator ^(SymbolicVariable a, SymbolicVariable b)
-        {
-            return SymbolicPower(a, b);
-        }
-
 
         public static SymbolicVariable Pow(SymbolicVariable a, SymbolicVariable b)
         {
             return SymbolicPower(a, b);
         }
-
-
     }
 }

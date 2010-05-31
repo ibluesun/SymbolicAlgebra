@@ -75,24 +75,25 @@ namespace SymbolicAlgebra
         {
             get
             {
-                if (NumericalVariable == 0)
+                if (SymbolicVariable != null)
                 {
-                    if (SymbolicVariable != null)
-                    {
-                        if (SymbolicVariable.Coeffecient == 0)
-                        {
-                            bool zz = true;
-                            foreach (SymbolicVariable vv in SymbolicVariable.AddedTerms.Values)
-                                if (vv.Coeffecient != 0) zz = false;
+                    //if (SymbolicVariable.Coeffecient == 0)
+                    //{
+                    //    bool zz = true;
+                    //    foreach (SymbolicVariable vv in SymbolicVariable.AddedTerms.Values)
+                    //        if (vv.Coeffecient != 0) zz = false;
 
-                            return zz;
+                    //    return zz;
 
-                        }
-                    }
+                    //}
+                    return SymbolicVariable.IsZero;
+                }
+                else if (NumericalVariable == 0)
+                {
                     return true;
                 }
-
-                return false;
+                else
+                    return false;
             }
 
         }
