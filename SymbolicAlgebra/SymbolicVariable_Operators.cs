@@ -59,7 +59,21 @@ namespace SymbolicAlgebra
                 if (pv == null)
                 {
                     pv = (SymbolicVariable)subB.Clone();
+
+                    var SubTerms = pv._AddedTerms; // store them for later use.
+                    pv._AddedTerms = null;
+
+                    // then add the original term
                     sv.AddedTerms.Add(pv.SymbolBaseValue, pv);
+
+                    if (SubTerms != null)
+                    {
+                        //then add the value added terms if exist
+                        foreach (var at in pv.AddedTerms)
+                        {
+                            sv.AddedTerms.Add(at.Value.SymbolBaseValue, at.Value);
+                        }
+                    }
                 }
                 else
                 {
@@ -138,7 +152,21 @@ namespace SymbolicAlgebra
                     pv = (SymbolicVariable)subB.Clone();
                     pv.Coeffecient *= -1;
 
+                    var SubTerms = pv._AddedTerms; // store them for later use.
+                    pv._AddedTerms = null;
+                    
                     sv.AddedTerms.Add(pv.SymbolBaseValue, pv);
+
+                    if (SubTerms != null)
+                    {
+                        //then add the value added terms if exist
+                        foreach (var at in pv.AddedTerms)
+                        {
+                            at.Value.Coeffecient *= -1;
+                            sv.AddedTerms.Add(at.Value.SymbolBaseValue, at.Value);
+                        }
+                    }
+
                 }
                 else
                 {
