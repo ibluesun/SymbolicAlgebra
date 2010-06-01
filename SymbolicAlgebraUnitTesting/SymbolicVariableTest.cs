@@ -483,5 +483,28 @@ namespace SymbolicAlgebraUnitTesting
             var aa3 = aa.Power(3);
             Assert.AreEqual(maxima, aa3.ToString());
         }
+
+        [TestMethod]
+        public void Issues4Testing()
+        {
+            var a = new SymbolicVariable("-10") * y + new SymbolicVariable("50");
+            var b = new SymbolicVariable("-1") * a;
+
+            var big = x * y + x;
+
+            var err1 = big + b;
+
+            foreach (var at in err1.AddedTerms)
+                if (at.Value.AddedTerms.Count > 0) throw new Exception("No more than sub terms required");
+
+            var err2 = big - b;
+
+            foreach (var at in err2.AddedTerms)
+                if (at.Value.AddedTerms.Count > 0) throw new Exception("No more than sub terms required");
+
+            Assert.AreEqual(1, 1);
+
+
+        }
     }
 }
