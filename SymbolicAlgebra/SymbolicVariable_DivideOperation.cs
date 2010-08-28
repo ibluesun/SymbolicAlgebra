@@ -33,7 +33,7 @@ namespace SymbolicAlgebra
             TargetSubTerm._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
             // or to make sure nothing bad happens {my idiot design :S)
 
-            if (a.SymbolsEquals(TargetSubTerm))
+            if (a.BaseEquals(TargetSubTerm))
             {
                 #region symbols are equal (I mean 2*x^3 = 2*X^3)
                 SourceTerm.Coeffecient = SourceTerm.Coeffecient / TargetSubTerm.Coeffecient;
@@ -249,7 +249,7 @@ namespace SymbolicAlgebra
 
 
             AdjustZeroPowerTerms(total);
-            AdjustZeroCoeffecientTerms(total);
+            AdjustZeroCoeffecientTerms(ref total);
 
             return total; 
         }
