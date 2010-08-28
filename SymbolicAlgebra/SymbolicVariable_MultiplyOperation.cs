@@ -24,7 +24,7 @@ namespace SymbolicAlgebra
             // or to make sure nothing bad happens {my idiot design :S)
 
             SymbolicVariable SourceTerm = (SymbolicVariable)a.Clone();
-            if (a.SymbolsEquals(TargetSubTerm))
+            if (a.BaseEquals(TargetSubTerm))
             {
                 #region symbols are equal (I mean 2*x^3 = 2*X^3)  
                 SourceTerm.Coeffecient = SourceTerm.Coeffecient * TargetSubTerm.Coeffecient;
@@ -272,7 +272,7 @@ namespace SymbolicAlgebra
             }
 
             AdjustZeroPowerTerms(total);
-            AdjustZeroCoeffecientTerms(total);
+            AdjustZeroCoeffecientTerms(ref total);
 
             return total;
         }

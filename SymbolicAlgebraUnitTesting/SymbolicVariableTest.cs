@@ -506,5 +506,37 @@ namespace SymbolicAlgebraUnitTesting
 
 
         }
+
+
+
+        [TestMethod]
+        public void RemovingZeroTerms()
+        {
+            var a = x + y + z;
+            var b = -1 * x + y + z;
+
+            var tot = a + b;
+
+            Assert.AreEqual(tot.ToString(), "2*y+2*z");
+
+        }
+
+
+        [TestMethod]
+        public void Issue5Testing()
+        {
+            SymbolicVariable d = new SymbolicVariable("d");
+            SymbolicVariable r = new SymbolicVariable("r");
+
+            var a = d.RaiseToSymbolicPower(r);
+            var b = d.RaiseToSymbolicPower(2*r);
+
+            var p = x + x.Power(5);
+
+            var c = a + b;
+
+            Assert.AreEqual(c.ToString(), "d^r+d^(2*r)");
+
+        }
     }
 }

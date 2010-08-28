@@ -23,7 +23,7 @@ namespace SymbolicAlgebra
             // if they are the same sum their coefficients.
             bool consumed = false;
 
-            if (a.SymbolsEquals(subB))
+            if (a.BaseEquals(subB))
             {
                 sv.Coeffecient = a.Coeffecient + subB.Coeffecient;
                 consumed = true;
@@ -33,13 +33,13 @@ namespace SymbolicAlgebra
 
             // there are two cases now 
             //  1- the symbolic can be added to one of the existing terms primary and others in addedvariables (which will be perfect)
-            //  2- there are no compatible term so we have to add it to the addedvariables of this instance.
+            //  2- there are no compatible term so we have to add it to the AddedTerms of this instance.
             
 
             //try to add to the rest terms
             foreach (var av in a.AddedTerms)
             {
-                if (av.Value.SymbolsEquals(subB))
+                if (av.Value.BaseEquals(subB))
                 {
                     var iv = (SymbolicVariable)a.AddedTerms[av.Key].Clone();
                     iv.Coeffecient = iv.Coeffecient + subB.Coeffecient;
@@ -95,9 +95,7 @@ namespace SymbolicAlgebra
             }
 
             AdjustZeroPowerTerms(sv);
-            AdjustZeroCoeffecientTerms(sv);
-
-
+            AdjustZeroCoeffecientTerms(ref sv);
             return sv;
 
         }
@@ -114,7 +112,7 @@ namespace SymbolicAlgebra
             
             bool consumed = false;
 
-            if (a.SymbolsEquals(subB))
+            if (a.BaseEquals(subB))
             {
                 sv.Coeffecient = a.Coeffecient - subB.Coeffecient;
                 consumed = true;
@@ -129,7 +127,7 @@ namespace SymbolicAlgebra
 
             foreach (var av in a.AddedTerms)
             {
-                if (av.Value.SymbolsEquals(subB))
+                if (av.Value.BaseEquals(subB))
                 {
                     var iv = (SymbolicVariable)a.AddedTerms[av.Key].Clone();
                     iv.Coeffecient = iv.Coeffecient - subB.Coeffecient;
@@ -190,7 +188,7 @@ namespace SymbolicAlgebra
 
 
             AdjustZeroPowerTerms(sv);
-            AdjustZeroCoeffecientTerms(sv);
+            AdjustZeroCoeffecientTerms(ref sv);
 
 
             return sv;

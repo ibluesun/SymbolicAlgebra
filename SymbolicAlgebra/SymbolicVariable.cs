@@ -538,7 +538,7 @@ namespace SymbolicAlgebra
         /// </summary>
         /// <param name="sv"></param>
         /// <returns></returns>
-        public bool SymbolsEquals(SymbolicVariable sv)
+        public bool BaseEquals(SymbolicVariable sv)
         {
 
             if (this.FusedSymbols.Count > 0 || sv.FusedSymbols.Count > 0)
@@ -597,19 +597,16 @@ namespace SymbolicAlgebra
                 {
                     if (!rv.Value.IsZero) return false;
                 }
-
                 return true;
-
             }
             else
             {
                 if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (this.SymbolPower == sv.SymbolPower)
+                    if (this.SymbolPowerText.Equals(sv.SymbolPowerText, StringComparison.OrdinalIgnoreCase))
                     {
 
                         return true;
-
                     }
                 }
             }
@@ -663,12 +660,39 @@ namespace SymbolicAlgebra
             foreach (var r in svar.AddedTerms.Values) AdjustZeroPowerTerms(r);
         }
 
-        private static void AdjustZeroCoeffecientTerms(SymbolicVariable svar)
+
+        /// <summary>
+        /// Removes the terms with coeffiecient of zero.
+        /// </summary>
+        /// <param name="svar"></param>
+        private static void AdjustZeroCoeffecientTerms(ref SymbolicVariable svar)
         {
+            // check the added terms for zero coefficients and remove if necessary.
             for (int i = svar.AddedTerms.Count - 1; i >= 0; i--)
             {
                 if (svar.AddedTerms.ElementAt(i).Value.Coeffecient == 0)
                     svar.AddedTerms.Remove(svar.AddedTerms.ElementAt(i).Key);
+            }
+
+            // then check the priamry term.
+            if (svar.Coeffecient == 0)
+            {
+                if (svar.AddedTerms.Count > 0)
+                {
+                    // The AddedTerms are collection from one level like this
+                    //  PrimaryTerm
+                    //      |--  AddedTerms  1, 2, 3, .., n
+                    //  so we need the first term to be the AddedTerm and rest of terms to be in the same collection
+
+                    SymbolicVariable priamry = svar.AddedTerms.ElementAt(0).Value;
+                    svar.AddedTerms.Remove(svar.AddedTerms.ElementAt(0).Key);
+
+                    Dictionary<string, SymbolicVariable> NewAddedTerms = svar.AddedTerms;
+
+                    priamry._AddedTerms = NewAddedTerms;
+
+                    svar = priamry;
+                }
             }
         }
 
