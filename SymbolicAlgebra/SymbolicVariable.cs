@@ -776,6 +776,45 @@ namespace SymbolicAlgebra
             }
         }
 
+        /// <summary>
+        /// returns all the symbols involved in this object
+        /// </summary>
+        public string[] InvolvedSymbols
+        {
+            get
+            {
+                List<string> symbols = new List<string>();
+                symbols.Add(this.Symbol);
+
+                foreach (string fs in FusedSymbols.Keys)
+                {
+                    if (!symbols.Contains(fs, StringComparer.OrdinalIgnoreCase))
+                        symbols.Add(fs);
+                }
+
+                if (this.SymbolPowerTerm != null)
+                {
+                    foreach (string ss in this.SymbolPowerTerm.InvolvedSymbols)
+                    {
+                        if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                            symbols.Add(ss);
+                    }
+                    
+                }
+
+                foreach (SymbolicVariable term in this.AddedTerms.Values)
+                {
+                    foreach (string ss in term.InvolvedSymbols)
+                    {
+                        if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                            symbols.Add(ss);
+                    }
+                }
+
+                return symbols.ToArray();
+            }
+        }
+
         #region ICloneable Members
 
         public object Clone()

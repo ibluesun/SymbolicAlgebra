@@ -77,6 +77,7 @@ namespace SymbolicAlgebra
                 if (an._CoeffecientPowerTerm == null)
                 {
                     if(Math.Abs(an.Coeffecient) != 1) an._CoeffecientPowerTerm = b;
+                    // because 1^(Any Thing) equals == 1 :)
                 }
                 else
                 {
@@ -105,7 +106,12 @@ namespace SymbolicAlgebra
                     // fill the extra added terms
                     foreach (var term in _AddedTerms.Values)
                     {
-                        var tpw = term.RaiseToSymbolicPower(term.SymbolPowerTerm * b);
+                        SymbolicVariable tpw;
+                        if (term.SymbolPowerTerm != null)
+                            tpw = term.RaiseToSymbolicPower(term.SymbolPowerTerm * b);
+                        else
+                            tpw = term.RaiseToSymbolicPower(term.SymbolPower * b);
+
                         an.AddedTerms.Add(tpw.SymbolBaseValue, tpw);
                     }
                 }
