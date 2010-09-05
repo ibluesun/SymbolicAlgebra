@@ -388,6 +388,8 @@ namespace SymbolicAlgebraUnitTesting
             var xp2v2 = xp.Power(2);
             Assert.AreEqual("x^(4*t+2)", xp2v2.ToString());
 
+
+
         }
 
         [TestMethod]
@@ -536,6 +538,37 @@ namespace SymbolicAlgebraUnitTesting
             var c = a + b;
 
             Assert.AreEqual(c.ToString(), "d^r+d^(2*r)");
+
+
+
+            
+            
+
+        }
+
+        /// <summary>
+        ///A test for InvolvedSymbols
+        ///</summary>
+        [TestMethod()]
+        public void InvolvedSymbolsTest()
+        {
+            var v = x * y;
+            string[] actual = {"x","y"};
+
+            Assert.AreEqual(actual[0], v.InvolvedSymbols[0]);
+
+            var b = 2 * u * w + v + w;
+
+            var v2 = (x + y + z).RaiseToSymbolicPower(b);
+
+            // this was issue and fixed and its validation here
+            Assert.AreEqual("x^(2*u*w+x*y+w)+y^(2*u*w+x*y+w)+z^(2*u*w+x*y+w)", v2.ToString());
+
+            Assert.AreEqual("x", v2.InvolvedSymbols[0]);
+            Assert.AreEqual("u", v2.InvolvedSymbols[1]);
+            Assert.AreEqual("w", v2.InvolvedSymbols[2]);
+            Assert.AreEqual("y", v2.InvolvedSymbols[3]);
+            Assert.AreEqual("z", v2.InvolvedSymbols[4]);
 
         }
     }
