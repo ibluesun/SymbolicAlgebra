@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="HybridVariable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SymbolicException.cs" />
     <Compile Include="SymbolicVariable.cs" />
     <Compile Include="SymbolicVariable_Calc.cs" />
     <Compile Include="SymbolicVariable_DivideOperation.cs" />

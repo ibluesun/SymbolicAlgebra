@@ -14,7 +14,7 @@ namespace SymbolicAlgebra
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns></returns>
-        public static SymbolicVariable operator *(SymbolicVariable a, SymbolicVariable b)
+        public static SymbolicVariable Multiply(SymbolicVariable a, SymbolicVariable b)
         {
             if (a == null || b == null) return null;
 
@@ -26,7 +26,7 @@ namespace SymbolicAlgebra
             SymbolicVariable SourceTerm = (SymbolicVariable)a.Clone();
             if (a.BaseEquals(TargetSubTerm))
             {
-                #region symbols are equal (I mean 2*x^3 = 2*X^3)  
+                #region Symbols are Equal (I mean 2*x^3 = 2*X^3)  
                 SourceTerm.Coeffecient = SourceTerm.Coeffecient * TargetSubTerm.Coeffecient;
                 if (a.SymbolPowerTerm != null || TargetSubTerm.SymbolPowerTerm != null)
                 {
@@ -49,7 +49,7 @@ namespace SymbolicAlgebra
             }
             else
             {
-                #region symbols are different
+                #region Symbols are Different
                 if (string.IsNullOrEmpty(SourceTerm.Symbol))
                 {
                     #region First Case: Source primary symbol doesn't exist
@@ -59,8 +59,8 @@ namespace SymbolicAlgebra
                     // 
 
                     // the instance have an empty primary variable so we should add it 
-                    SourceTerm._Symbol = TargetSubTerm.Symbol;
-                    SourceTerm._SymbolPower = TargetSubTerm.SymbolPower;
+                    SourceTerm.Symbol = TargetSubTerm.Symbol;
+                    SourceTerm.SymbolPower = TargetSubTerm.SymbolPower;
                     if (TargetSubTerm.SymbolPowerTerm != null) SourceTerm._SymbolPowerTerm = (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone();
 
                     //fuse the fused variables in target into source
@@ -181,11 +181,11 @@ namespace SymbolicAlgebra
 
                         // Add Target primary symbol to the fused symbols in source
                         SourceTerm.FusedSymbols.Add(
-                            TargetSubTerm.Symbol, 
-                            new HybridVariable 
-                            { 
-                                NumericalVariable = TargetSubTerm.SymbolPower, 
-                                SymbolicVariable= TargetSubTerm.SymbolPowerTerm ==null ? null : (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone() 
+                            TargetSubTerm.Symbol,
+                            new HybridVariable
+                            {
+                                NumericalVariable = TargetSubTerm.SymbolPower,
+                                SymbolicVariable = TargetSubTerm.SymbolPowerTerm == null ? null : (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone()
                             });
 
                         // But the primary symbol of source may exist in the target fused variables.
@@ -225,17 +225,9 @@ namespace SymbolicAlgebra
                     }
                 }
 
-                //if (SourceTerm.CoeffecientPowerTerm != null || TargetSubTerm.CoeffecientPowerTerm != null)
-                //{
-                //    throw new NotImplementedException("Multiplieng two coeffecients with symbolic variable as power is not yet implemented");
-                //}
-                //else
-                {
-                    SourceTerm.Coeffecient = a.Coeffecient * TargetSubTerm.Coeffecient;
-                }
+                SourceTerm.Coeffecient = a.Coeffecient * TargetSubTerm.Coeffecient;
                 #endregion
             }
-
 
             //here is a code to continue with other parts of a when multiplying them
             if (SourceTerm.AddedTerms.Count > 0)
@@ -243,7 +235,7 @@ namespace SymbolicAlgebra
                 Dictionary<string, SymbolicVariable> newAddedVariables = new Dictionary<string, SymbolicVariable>(StringComparer.OrdinalIgnoreCase);
                 foreach (var vv in SourceTerm.AddedTerms)
                 {
-                    var newv = vv.Value * TargetSubTerm;
+                    var newv = Multiply(vv.Value, TargetSubTerm);
 
                     newAddedVariables.Add(newv.SymbolBaseValue, newv);
                 }
@@ -251,7 +243,6 @@ namespace SymbolicAlgebra
             }
 
             // now source term which is the first parameter cloned, have the new calculated value.
-
             int subIndex = 0;
             SymbolicVariable total = SourceTerm;
 
@@ -264,14 +255,15 @@ namespace SymbolicAlgebra
                 //   this new term is a sub term in b and will be added to all terms of a.
                 TargetSubTerm = b.AddedTerms.ElementAt(subIndex).Value;
 
-                var TargetTermSubTotal = a * TargetSubTerm;
-                total = total + TargetTermSubTotal;
-                
+                var TargetTermSubTotal = Multiply(a, TargetSubTerm);
+                total = Add(total, TargetTermSubTotal);
 
                 subIndex = subIndex + 1;  //increase 
             }
 
+            
             AdjustZeroPowerTerms(total);
+
             AdjustZeroCoeffecientTerms(ref total);
 
             return total;

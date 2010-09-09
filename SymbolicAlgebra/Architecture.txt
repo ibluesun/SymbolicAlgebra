@@ -17,3 +17,10 @@ contains
                          	This is for the usage of raising power to symbols and not native values.
    5) CoeffecientPowerTerm  (SymbolicVariable instance of Coeffecient Part)
 
+
+Definitions:
+Multi Term:  Symbolic variables that contains plus or minus  other symbolic variables
+          i.e.    x+2*y-5*z
+
+
+

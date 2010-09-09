@@ -10,7 +10,6 @@ namespace SymbolicAlgebra
     public partial class SymbolicVariable : ICloneable
     {
 
-
         /// <summary>
         /// The  number multiplied by the symbol  a*x^2  I mean {a}
         /// </summary>
@@ -27,16 +26,31 @@ namespace SymbolicAlgebra
         {
             private set
             {
-                _Symbol = string.Empty; // remove trailing and begining spaces.
-                foreach (var vc in value)
+                if (_BaseVariable == null)
                 {
-                    if (!char.IsWhiteSpace(vc))
-                        _Symbol += vc;
+                    _Symbol = string.Empty; // remove trailing and begining spaces.
+                    foreach (var vc in value)
+                    {
+                        if (!char.IsWhiteSpace(vc))
+                            _Symbol += vc;
+                    }
+                }
+                else
+                {
+                    throw new SymbolicException("Symbol is the base value of symbolic variable and cannot be changed.");
                 }
             }
             get
             {
-                return _Symbol;
+                if (_BaseVariable == null)
+                {
+                    // Default implentation
+                    return _Symbol;
+                }
+                else
+                {
+                    return "(" + _BaseVariable.ToString() + ")";
+                }
             }
         }
 
@@ -141,6 +155,35 @@ namespace SymbolicAlgebra
         }
 
 
+        /// <summary>
+        /// When using this field, the symbol property will be altered to use it.
+        /// </summary>
+        SymbolicVariable _BaseVariable;
+        public SymbolicVariable BaseVariable
+        {
+            get
+            {
+                return _BaseVariable;
+            }
+            internal set
+            {
+                _BaseVariable = value;
+            }
+        }
+
+        /// <summary>
+        /// Create a symbolic variable with another symbolic variable as a base.
+        /// </summary>
+        /// <param name="baseVariable"></param>
+        public SymbolicVariable(SymbolicVariable baseVariable)
+        {
+            _BaseVariable = baseVariable;
+            Coeffecient = 1;
+            SymbolPower = 1;
+        }
+
+
+
         /* 
          * when adding or subtracting symbolic variables that are not the same variable like the current 
          * I would like to store these variables inside the current instance.
@@ -160,6 +203,7 @@ namespace SymbolicAlgebra
         /// Terms that couldn't be divide on this term like  x/(x^2-y^5)
         /// </summary>
         SymbolicVariable _DividedTerm;
+
 
 
         /// <summary>
@@ -296,11 +340,19 @@ namespace SymbolicAlgebra
             get
             {
                 string result = string.Empty;
-                if (SymbolPower != 0)
+
+                if (_SymbolPowerTerm != null)
                 {
-                    // variable exist 
-                    if (SymbolPower != 1) result = Symbol + "^" + SymbolPower.ToString(CultureInfo.InvariantCulture);
-                    else result = Symbol;
+                    result = Symbol + "^(" + SymbolPowerText + ")";
+                }
+                else
+                {
+                    if (SymbolPower != 0)
+                    {
+                        // variable exist 
+                        if (SymbolPower != 1) result = Symbol + "^" + SymbolPower.ToString(CultureInfo.InvariantCulture);
+                        else result = Symbol;
+                    }
                 }
 
                 for (int i = 0; i < FusedSymbols.Count; i++)
@@ -514,9 +566,7 @@ namespace SymbolicAlgebra
             }
 
             if (DividedTerm.FormSymbolTextValue() != "1") result = result + "/(" + DividedTerm.ToString() + ")";
-
             return result;
-
         }
 
         /// <summary>
@@ -528,6 +578,47 @@ namespace SymbolicAlgebra
         {
             string final = FinalText();
             return final;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ix"></param>
+        /// <returns></returns>
+        public SymbolicVariable this[int ix]
+        {
+            get
+            {
+                if (ix > 0)
+                {
+                    if (_AddedTerms == null) throw new IndexOutOfRangeException();
+                    return _AddedTerms.Values.ElementAt(ix - 1);
+                }
+                else if (ix < 0) throw new IndexOutOfRangeException();
+                else
+                {
+                    // ix ==== 0
+
+                    var c = (SymbolicVariable)this.Clone();
+                    c._AddedTerms = null;
+                    return c;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Return number of terms in this instance.
+        /// </summary>
+        public int TermsCount
+        {
+            get
+            {
+                if (_AddedTerms == null) return 1;
+                else
+                    return 1 + _AddedTerms.Count;
+            }
         }
 
 
@@ -603,27 +694,63 @@ namespace SymbolicAlgebra
             {
                 if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (this.SymbolPowerText.Equals(sv.SymbolPowerText, StringComparison.OrdinalIgnoreCase))
+                    if (this._SymbolPowerTerm != null && sv._SymbolPowerTerm != null)
                     {
-
-                        return true;
+                        if (_SymbolPowerTerm.Equals(sv._SymbolPowerTerm)) return true;
                     }
+                    else
+                    {
+                        // one of the terms is  null or the both are numbers.
+
+                        if (this.SymbolPowerText.Equals(sv.SymbolPowerText, StringComparison.OrdinalIgnoreCase))
+                            return true;   
+                    }
+
                 }
             }
             return false;
         }
 
 
-
+        /// <summary>
+        /// Tells if this instance equal the other instance.
+        /// </summary>
+        /// <param name="sv"></param>
+        /// <returns></returns>
         public bool Equals(SymbolicVariable sv)
         {
-            if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase))
+            if (this.IsMultiValue && sv.IsMultiValue)
             {
-                if (this.SymbolPower == sv.SymbolPower)
+                // make sure added terms are equal in count.
+                if (this._AddedTerms.Count == sv._AddedTerms.Count)
                 {
-                    if (this.Coeffecient == sv.Coeffecient)
+                    //ok there are another tests to be done.
+                    int EqualTerms = 0;
+
+                    int count = this.TermsCount;
+
+                    for (int ix = 0; ix < count; ix++)
                     {
-                        return true;
+                        for (int iy = 0; iy < count; iy++)
+                        {
+                            if (this[ix].Equals(sv[iy])) EqualTerms++;
+                        }
+                    }
+
+                    if (EqualTerms == count) return true;
+                    else return false;   //whether it was more or less.
+                }
+            }
+            else
+            {
+                if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (this.SymbolPower == sv.SymbolPower)
+                    {
+                        if (this.Coeffecient == sv.Coeffecient)
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -750,6 +877,7 @@ namespace SymbolicAlgebra
         {
             get
             {
+                if(_AddedTerms==null) return false;
                 if (_AddedTerms.Count > 0) return true;
                 if (Math.Abs(Coeffecient) != 1)
                 {
@@ -784,7 +912,15 @@ namespace SymbolicAlgebra
             get
             {
                 List<string> symbols = new List<string>();
-                symbols.Add(this.Symbol);
+
+                if (_BaseVariable == null)
+                {
+                    symbols.Add(this.Symbol);
+                }
+                else
+                {
+                    symbols.AddRange(this._BaseVariable.InvolvedSymbols);
+                }
 
                 foreach (string fs in FusedSymbols.Keys)
                 {
@@ -828,6 +964,9 @@ namespace SymbolicAlgebra
 
             if (this._CoeffecientPowerTerm != null)
                 clone._CoeffecientPowerTerm = (SymbolicVariable)this._CoeffecientPowerTerm.Clone();
+
+            if (this._BaseVariable != null)
+                clone._BaseVariable = (SymbolicVariable)this._BaseVariable.Clone();
 
             foreach (var av in AddedTerms)
             {

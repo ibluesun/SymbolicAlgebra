@@ -30,13 +30,13 @@ namespace SymbolicAlgebra
             int pw = Math.Abs(power);
             while (pw > 1)
             {
-                total = total * this;
+                total = SymbolicVariable.Multiply(total, this);
                 pw--;
             }
 
             if (power < 0)
             {
-                total = SymbolicVariable._One / total;
+                total = SymbolicVariable.Divide(SymbolicVariable._One, total);
             }
 
             return total;
@@ -49,24 +49,24 @@ namespace SymbolicAlgebra
             return a.Power(power);
         }
 
-        public static SymbolicVariable Add(SymbolicVariable a, SymbolicVariable b)
+        public static SymbolicVariable  operator +(SymbolicVariable a, SymbolicVariable b)
         {
-            return a + b;
+            return SymbolicVariable.Add(a, b);
         }
 
-        public static SymbolicVariable Subtract(SymbolicVariable a, SymbolicVariable b)
+        public static SymbolicVariable operator -(SymbolicVariable a, SymbolicVariable b)
         {
-            return a - b;
+            return SymbolicVariable.Subtract(a, b);
         }
 
-        public static SymbolicVariable Multiply(SymbolicVariable a, SymbolicVariable b)
+        public static SymbolicVariable operator *(SymbolicVariable a, SymbolicVariable b)
         {
-            return a * b;
+            return SymbolicVariable.Multiply(a, b);
         }
 
-        public static SymbolicVariable Divide(SymbolicVariable a, SymbolicVariable b)
+        public static SymbolicVariable operator /(SymbolicVariable a, SymbolicVariable b)
         {
-            return a / b;
+            return SymbolicVariable.Divide(a, b);
         }
     }
 }
