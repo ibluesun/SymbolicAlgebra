@@ -9,7 +9,7 @@ namespace SymbolicAlgebra
     public partial class SymbolicVariable : ICloneable
     {
 
-        public static SymbolicVariable operator /(SymbolicVariable a, SymbolicVariable b)
+        public static SymbolicVariable Divide(SymbolicVariable a, SymbolicVariable b)
         {
             if (a == null || b == null) return null;
 

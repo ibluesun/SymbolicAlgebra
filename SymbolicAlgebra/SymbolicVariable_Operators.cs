@@ -8,7 +8,13 @@ namespace SymbolicAlgebra
     public partial class SymbolicVariable : ICloneable
     {
 
-        public static SymbolicVariable operator +(SymbolicVariable a, SymbolicVariable b)
+        /// <summary>
+        /// Add to symbolic variables.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static SymbolicVariable Add(SymbolicVariable a, SymbolicVariable b)
         {
             if (a == null || b == null) return null;
 
@@ -78,7 +84,7 @@ namespace SymbolicAlgebra
                 else
                 {
                     //exist before add it to this variable.
-                    sv.AddedTerms[subB.SymbolBaseValue] += subB;
+                    sv.AddedTerms[subB.SymbolBaseValue] = Add(sv.AddedTerms[subB.SymbolBaseValue], subB);
                 }
             }
 
@@ -100,7 +106,14 @@ namespace SymbolicAlgebra
 
         }
 
-        public static SymbolicVariable operator -(SymbolicVariable a, SymbolicVariable b)
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static SymbolicVariable Subtract(SymbolicVariable a, SymbolicVariable b)
         {
             if (a == null || b == null) return null;
 
@@ -170,7 +183,7 @@ namespace SymbolicAlgebra
                 {
                     //exist before add it to this variable.
 
-                    sv.AddedTerms[subB.SymbolBaseValue] -= subB;
+                    sv.AddedTerms[subB.SymbolBaseValue] = Subtract(sv.AddedTerms[subB.SymbolBaseValue], subB);
                 }
             }
 

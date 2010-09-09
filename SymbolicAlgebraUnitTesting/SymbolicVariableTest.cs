@@ -538,10 +538,6 @@ namespace SymbolicAlgebraUnitTesting
             var c = a + b;
 
             Assert.AreEqual(c.ToString(), "d^r+d^(2*r)");
-
-
-
-            
             
 
         }
@@ -552,24 +548,63 @@ namespace SymbolicAlgebraUnitTesting
         [TestMethod()]
         public void InvolvedSymbolsTest()
         {
-            var v = x * y;
-            string[] actual = {"x","y"};
-
-            Assert.AreEqual(actual[0], v.InvolvedSymbols[0]);
 
             var b = 2 * u * w + v + w;
 
-            var v2 = (x + y + z).RaiseToSymbolicPower(b);
+            var tv1 = x.RaiseToSymbolicPower(b);
+
+            Assert.AreEqual("x^(2*u*w+v+w)", tv1.ToString());
+
+            var tv2 = (x + y + z).RaiseToSymbolicPower(b);
 
             // this was issue and fixed and its validation here
-            Assert.AreEqual("x^(2*u*w+x*y+w)+y^(2*u*w+x*y+w)+z^(2*u*w+x*y+w)", v2.ToString());
+            Assert.AreEqual("(x+y+z)^(2*u*w+v+w)", tv2.ToString());
 
-            Assert.AreEqual("x", v2.InvolvedSymbols[0]);
-            Assert.AreEqual("u", v2.InvolvedSymbols[1]);
-            Assert.AreEqual("w", v2.InvolvedSymbols[2]);
-            Assert.AreEqual("y", v2.InvolvedSymbols[3]);
-            Assert.AreEqual("z", v2.InvolvedSymbols[4]);
+            var tv3 = tv2.Power(2);
+            Assert.AreEqual("(x+y+z)^(4*u*w+2*v+2*w)", tv3.ToString());
+
+            var tv4 = tv2.RaiseToSymbolicPower(3 * x);
+            Assert.AreEqual("(x+y+z)^(6*u*w*x+3*v*x+3*w*x)", tv4.ToString());
+
+            string[] gg = tv4.InvolvedSymbols;
+
+
+            Assert.AreEqual("x", gg[0]);
+            Assert.AreEqual("y", gg[1]);
+            Assert.AreEqual("z", gg[2]);
+            Assert.AreEqual("u", gg[3]);
+            Assert.AreEqual("w", gg[4]);
+            Assert.AreEqual("v", gg[5]);
 
         }
+
+
+        [TestMethod]
+        public void ExtraPowerTesting()
+        {
+            var a = (x + y + z).RaiseToSymbolicPower(3 * x);
+
+            var b = (x + y + z).RaiseToSymbolicPower(y);
+
+            var a_b = a + b;
+
+            Assert.AreEqual("(x+y+z)^(3*x)+(x+y+z)^y", a_b.ToString());
+
+            var rs = y + 3 * x;
+            var ls = 3 * x + y;
+
+            Assert.AreEqual(rs.Equals(ls), true);
+
+            var ot = x.RaiseToSymbolicPower(v) + x.RaiseToSymbolicPower(z) + x.RaiseToSymbolicPower(y);
+
+            Assert.AreEqual("x^v+x^z+x^y", ot.ToString());
+
+
+            var c = SymbolicVariable.Multiply(a_b, a_b);
+
+            Assert.AreEqual("(x+y+z)^(6*x)+2*(x+y+z)^(y+3*x)+(x+y+z)^(2*y)", c.ToString());
+
+        }
+
     }
 }

@@ -8,6 +8,11 @@ namespace SymbolicAlgebra
     public partial class SymbolicVariable : ICloneable
     {
 
+        /// <summary>
+        /// Raise to symbolic variable.
+        /// </summary>
+        /// <param name="b"></param>
+        /// <returns></returns>
         public SymbolicVariable RaiseToSymbolicPower(SymbolicVariable b)
         {
             var an = (SymbolicVariable)this.Clone();
@@ -64,57 +69,60 @@ namespace SymbolicAlgebra
             else
             {
                 #region full symbolic variable
-                // if all conditions failed then this value is a complex value
-                if (an._SymbolPowerTerm == null)
-                {
-                    an._SymbolPowerTerm = an.SymbolPower * b;
-                }
-                else
-                {
-                    an._SymbolPowerTerm = an._SymbolPowerTerm * b;
-                }
+                // the power is symbolic variable 
 
-                if (an._CoeffecientPowerTerm == null)
+                // check if the base is one term
+                if (this.IsOneTerm)
                 {
-                    if(Math.Abs(an.Coeffecient) != 1) an._CoeffecientPowerTerm = b;
-                    // because 1^(Any Thing) equals == 1 :)
-                }
-                else
-                {
-                    an._CoeffecientPowerTerm = an._CoeffecientPowerTerm * b;
-                }
-
-                // raised the fused symbols 
-
-                for (int i = 0; i < FusedSymbols.Count; i++)
-                {
-                    var fusedItem = FusedSymbols[FusedSymbols.ElementAt(i).Key];
-                    if (fusedItem.SymbolicVariable == null)
+                    if (an._SymbolPowerTerm == null)
                     {
-                        fusedItem.SymbolicVariable = b * fusedItem.NumericalVariable;
-                        fusedItem.NumericalVariable = 1;  // set it to one because it has gone to the symbolic part
+                        an._SymbolPowerTerm = an.SymbolPower * b;
                     }
                     else
-                        fusedItem.SymbolicVariable = fusedItem.SymbolicVariable * b;
-
-                    an.FusedSymbols[FusedSymbols.ElementAt(i).Key] = fusedItem;
-                }
-
-                an._AddedTerms = null;
-                if (_AddedTerms != null)
-                {
-                    // fill the extra added terms
-                    foreach (var term in _AddedTerms.Values)
                     {
-                        SymbolicVariable tpw;
-                        if (term.SymbolPowerTerm != null)
-                            tpw = term.RaiseToSymbolicPower(term.SymbolPowerTerm * b);
-                        else
-                            tpw = term.RaiseToSymbolicPower(term.SymbolPower * b);
+                        an._SymbolPowerTerm = an._SymbolPowerTerm * b;
+                    }
 
-                        an.AddedTerms.Add(tpw.SymbolBaseValue, tpw);
+                    if (an._CoeffecientPowerTerm == null)
+                    {
+                        if (Math.Abs(an.Coeffecient) != 1) an._CoeffecientPowerTerm = b;
+                        // because 1^(Any Thing) equals == 1 :)
+                    }
+                    else
+                    {
+                        an._CoeffecientPowerTerm = an._CoeffecientPowerTerm * b;
+                    }
+
+                    // raised the fused symbols 
+
+                    for (int i = 0; i < FusedSymbols.Count; i++)
+                    {
+                        var fusedItem = FusedSymbols[FusedSymbols.ElementAt(i).Key];
+                        if (fusedItem.SymbolicVariable == null)
+                        {
+                            fusedItem.SymbolicVariable = b * fusedItem.NumericalVariable;
+                            fusedItem.NumericalVariable = 1;  // set it to one because it has gone to the symbolic part
+                        }
+                        else
+                            fusedItem.SymbolicVariable = fusedItem.SymbolicVariable * b;
+
+                        an.FusedSymbols[FusedSymbols.ElementAt(i).Key] = fusedItem;
                     }
                 }
+                else
+                {
+                    // (x+y)^(3*x)
+                    // to implement this 
+                    // the whole symbolic variable should have Symbolic Term.
+                    SymbolicVariable thisBase = new SymbolicVariable(this);
+                    if (this._SymbolPowerTerm != null)
+                        thisBase._SymbolPowerTerm = this._SymbolPowerTerm * b;
+                    else
+                        thisBase._SymbolPowerTerm = b;
+
+                    return thisBase;
+                }
+
                 #endregion
             }
 
