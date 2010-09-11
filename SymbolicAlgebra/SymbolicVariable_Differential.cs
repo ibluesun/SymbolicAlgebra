@@ -22,7 +22,7 @@ namespace SymbolicAlgebra
                 if (sv._SymbolPowerTerm == null)
                 {
                     sv.Coeffecient *= sv._SymbolPower;
-                    sv._SymbolPower -= 1;
+                    sv.SymbolPower -= 1;
                 }
                 else
                 {

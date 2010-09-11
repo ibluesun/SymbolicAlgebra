@@ -653,6 +653,10 @@ namespace SymbolicAlgebraUnitTesting
             var dfive_x = Five.Differentiate("u");
             Assert.AreEqual("0", dfive_x.ToString());
 
+            var h = x.Power(3)+ x.RaiseToSymbolicPower(Two) + x; //x^2+x
+            var dh_x = h.Differentiate("x");
+
+            Assert.AreEqual("3*x^2+2*x+1", dh_x.ToString());
 
 
         }
