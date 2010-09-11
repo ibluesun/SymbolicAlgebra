@@ -49,6 +49,7 @@
     <Compile Include="SymbolicException.cs" />
     <Compile Include="SymbolicVariable.cs" />
     <Compile Include="SymbolicVariable_Calc.cs" />
+    <Compile Include="SymbolicVariable_Differential.cs" />
     <Compile Include="SymbolicVariable_DivideOperation.cs" />
     <Compile Include="SymbolicVariable_Helper.cs" />
     <Compile Include="SymbolicVariable_MultiplyOperation.cs" />

@@ -970,12 +970,12 @@ namespace SymbolicAlgebra
 
             foreach (var av in AddedTerms)
             {
-                clone.AddedTerms.Add(av.Key, av.Value);
+                clone.AddedTerms.Add(av.Key, (SymbolicVariable)av.Value.Clone());
             }
 
             foreach (var fv in FusedSymbols)
             {
-                clone.FusedSymbols.Add(fv.Key, fv.Value);
+                clone.FusedSymbols.Add(fv.Key, (HybridVariable)fv.Value.Clone());
             }
 
             if(this._DividedTerm!=null) 
