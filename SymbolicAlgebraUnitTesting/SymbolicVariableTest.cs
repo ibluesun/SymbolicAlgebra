@@ -452,11 +452,9 @@ namespace SymbolicAlgebraUnitTesting
             var ab = a / b;
             Assert.AreEqual("2/x^2", ab.ToString());
 
-
             var rx = (x + y) / x.Power(2);   // x+y/x^2  ==  x/x^2 + y/x^2 == 1/x + y/x^2
 
             Assert.AreEqual(actual: rx.ToString(), expected: "1/x+y/x^2");
-
         }
 
         [TestMethod]
@@ -576,6 +574,13 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("w", gg[4]);
             Assert.AreEqual("v", gg[5]);
 
+            var o = new SymbolicVariable("o");
+            var pp = o.RaiseToSymbolicPower(x);
+
+            string[] pp_p = pp.InvolvedSymbols;
+            Assert.AreEqual("o", pp_p[0]);
+            Assert.AreEqual("x", pp_p[1]);
+
         }
 
 
@@ -599,12 +604,57 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual("x^v+x^z+x^y", ot.ToString());
 
-
             var c = SymbolicVariable.Multiply(a_b, a_b);
 
             Assert.AreEqual("(x+y+z)^(6*x)+2*(x+y+z)^(y+3*x)+(x+y+z)^(2*y)", c.ToString());
 
         }
 
+
+        /// <summary>
+        ///A test for Diff
+        ///</summary>
+        [TestMethod()]
+        public void DiffTest()
+        {
+            var a = x.Power(2).Differentiate("x");
+            Assert.AreEqual("2*x", a.ToString());
+
+            var b = (x.Power(2) + x.Power(3) + x.Power(4)).Differentiate("x");
+            Assert.AreEqual("2*x+3*x^2+4*x^3", b.ToString());
+
+            var c = (x.Power(2) * y.Power(3) * z.Power(4));
+
+            var dc_z = c.Differentiate("z");
+
+            Assert.AreEqual("4*x^2*y^3*z^3", dc_z.ToString());
+
+            var d = (x.Power(3) * y.Power(-40))+(y.Power(3)*z.Power(-1));
+            var dd_y = d.Differentiate("y");
+            
+            Assert.AreEqual("-40*x^3/y^41+3*y^2/z", dd_y.ToString());
+
+            var e = x.RaiseToSymbolicPower(2*y);
+            var de_x = e.Differentiate("x");
+
+            Assert.AreEqual("2*x^(2*y-1)*y", de_x.ToString());
+
+            var f = Two * x.RaiseToSymbolicPower(3 * z) * y.RaiseToSymbolicPower(2 * z);
+            var df_x = f.Differentiate("y");
+
+            Assert.AreEqual("4*x^(3*z)*y^(2*z-1)*z", df_x.ToString());
+
+            var g = Two * y + 3 * x.RaiseToSymbolicPower(z) - 5 * x.RaiseToSymbolicPower(y - One);
+            var dg_x = g.Differentiate("x");
+
+            Assert.AreEqual("3*x^(z-1)*z-5*x^(y-2)*y+5*x^(y-2)", dg_x.ToString());
+
+            
+            var dfive_x = Five.Differentiate("u");
+            Assert.AreEqual("0", dfive_x.ToString());
+
+
+
+        }
     }
 }

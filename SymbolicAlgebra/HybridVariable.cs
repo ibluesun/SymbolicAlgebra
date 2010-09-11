@@ -5,8 +5,13 @@ using System.Text;
 
 namespace SymbolicAlgebra
 {
-    public struct HybridVariable
+    /// <summary>
+    /// Symbolic + Numerical  value
+    /// currently used in Fused Variables as the power term for the symbol in dictionary.
+    /// </summary>
+    public struct HybridVariable : ICloneable
     {
+        
         public SymbolicVariable SymbolicVariable;
         public double NumericalVariable;
 
@@ -97,5 +102,18 @@ namespace SymbolicAlgebra
             }
 
         }
+
+        #region ICloneable Members
+
+        public object Clone()
+        {
+            HybridVariable hv = new HybridVariable();
+            hv.NumericalVariable = this.NumericalVariable;
+            if (this.SymbolicVariable != null)
+                hv.SymbolicVariable = (SymbolicVariable)this.SymbolicVariable.Clone();
+            return hv;
+        }
+
+        #endregion
     }
 }
