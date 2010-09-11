@@ -89,6 +89,7 @@ namespace SymbolicAlgebra
             private set
             {
                 _SymbolPower = value;
+                if (_SymbolPower == 0) _Symbol = string.Empty;
             }
             get
             {
