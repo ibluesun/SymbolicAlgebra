@@ -89,7 +89,6 @@ namespace SymbolicAlgebra
             private set
             {
                 _SymbolPower = value;
-                if (_SymbolPower == 0) _Symbol = string.Empty;
             }
             get
             {
@@ -785,6 +784,30 @@ namespace SymbolicAlgebra
                     svar.FusedSymbols.Remove(svar.FusedSymbols.ElementAt(i).Key);
             }
 
+            if (svar._SymbolPower == 0)
+            {
+                // symbol should be reset or replace with one variable from the fused variables.
+                if (svar.FusedSymbols.Count > 0)
+                {
+                    var firstFused = svar.FusedSymbols.First();
+                    svar._Symbol = firstFused.Key;
+                    if (firstFused.Value.SymbolicVariable != null)
+                    {
+                        svar._SymbolPowerTerm = firstFused.Value.SymbolicVariable;
+                    }
+                    else
+                    {
+                        svar._SymbolPower = firstFused.Value.NumericalVariable;
+                    }
+
+                    //remove the first fused variable from the list.
+                    svar.FusedSymbols.Remove(firstFused.Key);
+                }
+                else
+                {
+                    svar._Symbol = "";
+                }
+            }
             foreach (var r in svar.AddedTerms.Values) AdjustZeroPowerTerms(r);
         }
 

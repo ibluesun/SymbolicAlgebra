@@ -648,7 +648,6 @@ namespace SymbolicAlgebraUnitTesting
             var dg_x = g.Differentiate("x");
 
             Assert.AreEqual("3*x^(z-1)*z-5*x^(y-2)*y+5*x^(y-2)", dg_x.ToString());
-
             
             var dfive_x = Five.Differentiate("u");
             Assert.AreEqual("0", dfive_x.ToString());
@@ -658,7 +657,13 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual("3*x^2+2*x+1", dh_x.ToString());
 
+            var i = 18 * x * y.Power(3);
+            var di_x = i.Differentiate("x");
+            Assert.AreEqual("18*y^3", di_x.ToString());
 
+            var j = 18 * x * y * z.Power(2);
+            var dj_y = j.Differentiate("y");
+            Assert.AreEqual("18*x*z^2", dj_y.ToString());
         }
     }
 }
