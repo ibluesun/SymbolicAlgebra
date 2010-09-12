@@ -22,7 +22,10 @@ namespace SymbolicAlgebra
                 if (sv._SymbolPowerTerm == null)
                 {
                     sv.Coeffecient *= sv._SymbolPower;
-                    sv.SymbolPower -= 1;
+                    sv._SymbolPower -= 1;
+
+                    if (sv._SymbolPower == 0) sv._Symbol = "";
+ 
                 }
                 else
                 {
@@ -89,6 +92,7 @@ namespace SymbolicAlgebra
 
             // see the first part.
             DiffTerm(ref result, parameter);
+
 
             Dictionary<string, SymbolicVariable> extraTerms = null;  // may be come from inner operations like deriving 5*x^(y-1)
             if (result._AddedTerms != null)
