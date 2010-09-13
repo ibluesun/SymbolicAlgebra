@@ -39,13 +39,16 @@ namespace SymbolicAlgebra
             {
                 // try in the fused variables
                 HybridVariable hv;
-                if (this._FusedSymbols.TryGetValue(parameter, out hv))
+                if (sv.FusedSymbols.TryGetValue(parameter, out hv))
                 {
                     if (hv.SymbolicVariable == null)
                     {
                         sv.Coeffecient *= hv.NumericalVariable;
                         hv.NumericalVariable -= 1;
-                        sv._FusedSymbols[parameter] = hv;
+                        if (hv.NumericalVariable == 0)
+                            sv._FusedSymbols.Remove(parameter);
+                        else
+                            sv._FusedSymbols[parameter] = hv;
                     }
                     else
                     {

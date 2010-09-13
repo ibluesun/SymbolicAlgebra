@@ -664,6 +664,13 @@ namespace SymbolicAlgebraUnitTesting
             var j = 18 * x * y * z.Power(2);
             var dj_y = j.Differentiate("y");
             Assert.AreEqual("18*x*z^2", dj_y.ToString());
+
+            var k = 18 * x.Power(2) + y.Power(3) * x + 2 * x * y;
+            var dk_y = k.Differentiate("y");
+
+            Assert.AreEqual("3*y^2*x+2*x", dk_y.ToString());
+
+
         }
     }
 }
