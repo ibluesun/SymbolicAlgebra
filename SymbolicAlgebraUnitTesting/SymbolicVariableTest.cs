@@ -581,6 +581,9 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("o", pp_p[0]);
             Assert.AreEqual("x", pp_p[1]);
 
+            var kk = Two;
+            var kk_i = kk.InvolvedSymbols;
+            Assert.AreEqual(0, kk_i.Length);
         }
 
 

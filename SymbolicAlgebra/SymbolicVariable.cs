@@ -939,7 +939,8 @@ namespace SymbolicAlgebra
 
                 if (_BaseVariable == null)
                 {
-                    symbols.Add(this.Symbol);
+
+                    if (!string.IsNullOrEmpty(this.Symbol)) symbols.Add(this.Symbol);
                 }
                 else
                 {
