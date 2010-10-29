@@ -42,9 +42,33 @@ namespace SymbolicAlgebra
             return total;
         }
 
+        public SymbolicVariable Power(double power)
+        {
+            if (Math.Floor(power) == power) return Power((int)power);
+
+            SymbolicVariable p = (SymbolicVariable)this.Clone();
+            if (p.IsOneTerm)
+            {
+                // raise the coeffecient and smbol
+                p.SymbolPower = power;
+                p.Coeffecient = Math.Pow(p.Coeffecient, power);
+            }
+            else
+            {
+                // multi term that we can't raise it to the double
+                return p.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
+            }
+
+            return p;
+        }
 
 
         public static SymbolicVariable Power(SymbolicVariable a, int power)
+        {
+            return a.Power(power);
+        }
+
+        public static SymbolicVariable Power(SymbolicVariable a, double power)
         {
             return a.Power(power);
         }
