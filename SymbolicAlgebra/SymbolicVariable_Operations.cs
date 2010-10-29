@@ -63,15 +63,16 @@ namespace SymbolicAlgebra
         }
 
 
-        public static SymbolicVariable Power(SymbolicVariable a, int power)
+        public static SymbolicVariable Pow(SymbolicVariable a, int power)
         {
             return a.Power(power);
         }
 
-        public static SymbolicVariable Power(SymbolicVariable a, double power)
+        public static SymbolicVariable Pow(SymbolicVariable a, double power)
         {
             return a.Power(power);
         }
+
 
         public static SymbolicVariable  operator +(SymbolicVariable a, SymbolicVariable b)
         {

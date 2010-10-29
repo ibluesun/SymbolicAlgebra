@@ -55,12 +55,20 @@ namespace SymbolicAlgebra
                     an.FusedSymbols[FusedSymbols.ElementAt(i).Key] = FusedSymbols.ElementAt(i).Value * power;
 
                 an._AddedTerms = null;
-                if (_AddedTerms != null)
+                if (this.AddedTerms.Count > 0)
                 {
                     foreach (var term in _AddedTerms.Values)
                     {
-                        var tpw = term.RaiseToSymbolicPower(term.SymbolPowerTerm * power);
-                        an._AddedTerms.Add(tpw.SymbolBaseValue, tpw);
+                        if (term.SymbolPowerTerm != null)
+                        {
+                            var tpw = term.RaiseToSymbolicPower(term.SymbolPowerTerm * power);
+                            an.AddedTerms.Add(tpw.SymbolBaseValue, tpw);
+                        }
+                        else
+                        {
+                            var tpw = term.RaiseToSymbolicPower(One * power);
+                            an.AddedTerms.Add(tpw.SymbolBaseValue, tpw);
+                        }
                     }
                 }
                 #endregion
