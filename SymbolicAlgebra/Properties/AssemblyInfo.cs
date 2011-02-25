@@ -6,12 +6,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Symbolic Algebra")]
-[assembly: AssemblyDescription("Attempt for another algebric expressions library")]
+[assembly: AssemblyDescription("Library for symbolic calculations")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Lost Particles Network http://www.lostparticles.net")]
 [assembly: AssemblyProduct("Symbolic Algebra")]
-[assembly: AssemblyCopyright("Copyright © Lost Particles 2010")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("Copyright © Lost Particles 2010-2011")]
+[assembly: AssemblyTrademark("Lost particles is an internet domain name owned by Ahmed Sadek")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.1.0.0")]
-[assembly: AssemblyFileVersion("0.1.0.0")]
+[assembly: AssemblyVersion("0.2.0.0")]
+[assembly: AssemblyFileVersion("0.2.0.0")]
