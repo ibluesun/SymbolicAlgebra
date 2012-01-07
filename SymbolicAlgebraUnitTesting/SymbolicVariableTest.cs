@@ -94,6 +94,14 @@ namespace SymbolicAlgebraUnitTesting
         SymbolicVariable Eleven = new SymbolicVariable("11");
         SymbolicVariable Twelve = new SymbolicVariable("12");
 
+
+        SymbolicVariable CosFunction = new SymbolicVariable("Cos(x)");
+        SymbolicVariable UxyFunction = new SymbolicVariable("U(x,y)");
+        SymbolicVariable VFuntion = new SymbolicVariable("m:V(m)");
+        SymbolicVariable EmptyFuntion = new SymbolicVariable("Empty()");
+
+
+
         #endregion
 
         /// <summary>
@@ -672,8 +680,92 @@ namespace SymbolicAlgebraUnitTesting
             var dk_y = k.Differentiate("y");
 
             Assert.AreEqual("3*y^2*x+2*x", dk_y.ToString());
+        }
 
+
+        [TestMethod]
+        public void ParseTest()
+        {
+            var s = SymbolicVariable.Parse("2*x+3*x");
+
+            Assert.AreEqual(5.0, s.Coeffecient);
+
+            var c = SymbolicVariable.Parse("2*x*y^3-3*x^2*y^2+6*x-3+5*x+6*x-4*y^x");
+
+            Assert.AreEqual("2*x*y^3-3*x^2*y^2+17*x-3-4*y^x", c.ToString());
+
+            var h = SymbolicVariable.Parse("3*(x+3*x)-4*y");
+            Assert.AreEqual("12*x-4*y", h.ToString());
+
+            var v = SymbolicVariable.Parse("sin(x)^2+cos(x)^2");
+
+            var g = SymbolicVariable.Parse("sin(x^2)+cos(x^3)");
 
         }
+
+
+
+        [TestMethod]
+        public void FuncDiffTest()
+        {
+            Assert.AreEqual(true, CosFunction.IsFunction);
+            Assert.AreEqual(false, x.IsFunction);
+            Assert.AreEqual(true, UxyFunction.IsFunction);
+
+            Assert.AreEqual(true, VFuntion.IsFunction);
+
+            Assert.AreEqual(true, EmptyFuntion.IsFunction);
+
+
+            
+        }
+
+        [TestMethod]
+        public void SpecialFunctionsDifftest()
+        {
+            var sin = new SymbolicVariable("sin(x)");
+            var cos = new SymbolicVariable("cos(x)");
+            var tan = new SymbolicVariable("tan(x)");
+            var sec = new SymbolicVariable("sec(x)");
+            var csc = new SymbolicVariable("csc(x)");
+            var cot = new SymbolicVariable("cot(x)");
+
+            Assert.AreEqual("cos(x)", sin.Differentiate("x").ToString());
+            Assert.AreEqual("-sin(x)", cos.Differentiate("x").ToString());
+            Assert.AreEqual("sec(x)^2", tan.Differentiate("x").ToString());
+            Assert.AreEqual("sec(x)*tan(x)", sec.Differentiate("x").ToString());
+            Assert.AreEqual("-csc(x)*cot(x)", csc.Differentiate("x").ToString());
+            Assert.AreEqual("-csc(x)^2", cot.Differentiate("x").ToString());
+
+            var sinh = new SymbolicVariable("sinh(x)");
+            var cosh = new SymbolicVariable("cosh(x)");
+            var tanh = new SymbolicVariable("tanh(x)");
+            var sech = new SymbolicVariable("sech(x)");
+            var csch = new SymbolicVariable("csch(x)");
+            var coth = new SymbolicVariable("coth(x)");
+
+            Assert.AreEqual("cosh(x)", sinh.Differentiate("x").ToString());
+            Assert.AreEqual("sinh(x)", cosh.Differentiate("x").ToString());
+            Assert.AreEqual("sech(x)^2", tanh.Differentiate("x").ToString());
+            Assert.AreEqual("-sech(x)*tanh(x)", sech.Differentiate("x").ToString());
+            Assert.AreEqual("-csch(x)*coth(x)", csch.Differentiate("x").ToString());
+            Assert.AreEqual("-csch(x)^2", coth.Differentiate("x").ToString());
+
+
+
+
+            var complexsin = SymbolicVariable.Parse("cos(x^2+x^2+x^2)");
+            Assert.AreEqual("cos(3*x^2)", complexsin.ToString());
+
+            Assert.AreEqual("-6*x*sin(3*x^2)", complexsin.Differentiate("x").ToString());
+
+
+            var log = new SymbolicVariable("log(x^6)");
+
+            Assert.AreEqual("6/x", log.Differentiate("x").ToString());
+
+        }
+    
     }
 }
+
