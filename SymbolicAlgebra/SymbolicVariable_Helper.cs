@@ -9,6 +9,7 @@ namespace SymbolicAlgebra
 {
     public partial class SymbolicVariable : ICloneable
     {
+        private static SymbolicVariable _NegativeOne = new SymbolicVariable("-1");
         private static SymbolicVariable _Zero = new SymbolicVariable("0");
         private static SymbolicVariable _One = new SymbolicVariable("1");
         private static SymbolicVariable _Two = new SymbolicVariable("2");
@@ -22,6 +23,11 @@ namespace SymbolicAlgebra
         private static SymbolicVariable _Ten = new SymbolicVariable("10");
         private static SymbolicVariable _Eleven = new SymbolicVariable("11");
         private static SymbolicVariable _Twelve = new SymbolicVariable("12");
+
+        public static SymbolicVariable NegativeOne
+        {
+            get { return SymbolicVariable._NegativeOne; }
+        }
 
         public static SymbolicVariable Zero
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 
 namespace SymbolicAlgebra
@@ -14,6 +15,9 @@ namespace SymbolicAlgebra
         /// The  number multiplied by the symbol  a*x^2  I mean {a}
         /// </summary>
         public double Coeffecient { private set; get; }
+
+
+        static Regex FunctionRegex = new Regex(@"^(?<function>[0-9a-zA-Z:]+)\((?<parameters>.*)\)$", RegexOptions.Compiled);
 
 
         private string _Symbol;
@@ -130,16 +134,33 @@ namespace SymbolicAlgebra
         }
 
 
+        private bool? _IsFunction;
+        SymbolicVariable[] FunctionParameters;
+        
+        string _FunctionName;
+
+        public string FunctionName
+        {
+            get
+            {
+                return _FunctionName;
+            }
+        }
+
+        
+
+
         /// <summary>
         /// The only constructor for the symbolic variable
         /// </summary>
-        /// <param name="variable"></param>
-        public SymbolicVariable(string variable)
+        /// <param name="expression">Could be number, string, or function form</param>
+        public SymbolicVariable(string token)
         {
+            string expression = token;
             double coe;
 
             //try the numbers first
-            if (double.TryParse(variable, out coe))
+            if (double.TryParse(expression, out coe))
             {
                 Symbol = string.Empty;
                 Coeffecient = coe;
@@ -148,9 +169,103 @@ namespace SymbolicAlgebra
             else
             {
                 // not number then take the whole string as a symbol
-                Symbol = variable;
+                Symbol = expression;
                 Coeffecient = 1;
                 SymbolPower = 1;
+            }
+
+            // test the function form thing
+
+            if (_IsFunction == null)
+            {
+                var m = FunctionRegex.Match(Symbol);
+
+                if (m.Success)
+                {
+                    _IsFunction = true;
+                    _FunctionName = m.Groups["function"].Value;
+
+
+                    Symbol = _FunctionName + "(";
+
+                    var parms = m.Groups["parameters"].Value;
+                    if (!string.IsNullOrEmpty(parms))
+                    {
+                        string[] pps = parms.Split(',');
+                        FunctionParameters = new SymbolicVariable[pps.Length];
+                        for (int i = 0; i < pps.Length; i++)
+                        {
+                            FunctionParameters[i] = Parse(pps[i]);
+                            Symbol += FunctionParameters[i].ToString() + ",";
+                        }
+                    }
+                    if (Symbol.EndsWith(",")) Symbol = Symbol.TrimEnd(',');
+                    Symbol += ")";
+                }
+                else
+                {
+                    _IsFunction = false;
+                }
+            }
+
+
+        }
+
+        /// <summary>
+        /// Change the function name of this symbolic variable instance.
+        /// </summary>
+        /// <param name="functionNames"></param>
+        private void SetFunctionName(string[] functionNames)
+        {
+            string f1 = functionNames[0];
+
+            Symbol = f1 + "(";
+
+            string iparms = string.Empty;
+
+            foreach (var p in FunctionParameters)
+            {
+                Symbol += p.ToString() + ",";
+                iparms += p.ToString() + ",";
+
+            }
+
+            if (Symbol.EndsWith(",")) 
+            {
+                Symbol = Symbol.TrimEnd(',');
+                iparms = iparms.TrimEnd(',');
+
+            }
+
+            Symbol += ")";
+
+            // use the fusedsymbols to add the extra functions.
+            if (functionNames.Length > 1)
+            {
+                for (int i = 1; i < functionNames.Length; i++)
+                {
+                    if (this.Symbol.Equals(functionNames[i] + "(" + iparms + ")", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        this.SymbolPower += 1;
+                    }
+                    else
+                    {
+
+                        if (FusedSymbols.ContainsKey(functionNames[i] + "(" + iparms + ")"))
+                        {
+                            var pp = FusedSymbols[functionNames[i] + "(" + iparms + ")"];
+                            pp.NumericalVariable += 1;
+                            FusedSymbols[functionNames[i] + "(" + iparms + ")"] = pp;
+                        }
+                        else
+                        {
+                            HybridVariable hfv = new HybridVariable();
+                            hfv.NumericalVariable = 1.0;
+
+                            FusedSymbols.Add(functionNames[i] + "(" + iparms + ")", hfv);
+                        }
+                    }
+                }
             }
         }
 
@@ -928,6 +1043,20 @@ namespace SymbolicAlgebra
             }
         }
 
+
+
+        /// <summary>
+        /// Match the term if it contains function on the form f() or e:f(y,x)
+        /// </summary>
+        public bool IsFunction
+        {
+            get
+            {
+                return _IsFunction.Value;
+            }
+        }
+
+
         /// <summary>
         /// returns all the symbols involved in this object
         /// </summary>
@@ -939,7 +1068,6 @@ namespace SymbolicAlgebra
 
                 if (_BaseVariable == null)
                 {
-
                     if (!string.IsNullOrEmpty(this.Symbol)) symbols.Add(this.Symbol);
                 }
                 else
@@ -960,7 +1088,6 @@ namespace SymbolicAlgebra
                         if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
                             symbols.Add(ss);
                     }
-                    
                 }
 
                 foreach (SymbolicVariable term in this.AddedTerms.Values)
@@ -971,7 +1098,6 @@ namespace SymbolicAlgebra
                             symbols.Add(ss);
                     }
                 }
-
                 return symbols.ToArray();
             }
         }

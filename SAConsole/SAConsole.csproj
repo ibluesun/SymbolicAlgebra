@@ -2,23 +2,24 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{08B658DC-9295-4098-BD45-37311FEA3AC6}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{572D3BE3-30D1-4F47-8282-AF7D956AE844}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SymbolicAlgebra</RootNamespace>
-    <AssemblyName>SymbolicAlgebra</AssemblyName>
+    <RootNamespace>SAConsole</RootNamespace>
+    <AssemblyName>SAConsole</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
     <SccProvider>SAK</SccProvider>
-    <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -27,7 +28,8 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -36,40 +38,29 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>SymbolicAlgebra.snk</AssemblyOriginatorKeyFile>
+    <ApplicationIcon>edu_mathematics.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FunctionDiff.cs" />
-    <Compile Include="HybridVariable.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SymbolicException.cs" />
-    <Compile Include="SymbolicVariable.cs" />
-    <Compile Include="SymbolicVariable_Calc.cs" />
-    <Compile Include="SymbolicVariable_Differential.cs" />
-    <Compile Include="SymbolicVariable_DivideOperation.cs" />
-    <Compile Include="SymbolicVariable_Helper.cs" />
-    <Compile Include="SymbolicVariable_MultiplyOperation.cs" />
-    <Compile Include="SymbolicVariable_Operations.cs" />
-    <Compile Include="SymbolicVariable_Operators.cs" />
-    <Compile Include="SymbolicVariable_Parser.cs" />
-    <Compile Include="SymbolicVariable_PowerOperation.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Architecture.txt" />
+    <ProjectReference Include="..\SymbolicAlgebra\SymbolicAlgebra.csproj">
+      <Project>{08B658DC-9295-4098-BD45-37311FEA3AC6}</Project>
+      <Name>SymbolicAlgebra</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SymbolicAlgebra.snk" />
+    <Content Include="edu_mathematics.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

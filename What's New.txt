@@ -1,0 +1,20 @@
+Symbolic Algebra [0.3]
+-----------------------
+
+- Console Application that parse the variables and give results for speed testing :)
+- Adding SymbolicVariable.Parse()  function  which includes +,-,/,* and pipe operator '|' that resemeble the differentiation 
+
+- library can now distinguish the function and its parameters (it makes any necessary calculation inside the parameters to clean the value)
+
+I mean if you wrote  sin(x+x) result will be sin(2*x)
+
+- Differentiation of special functions has been implemented 
+  Triogonometric functions and Hyperbolic
+
+  so that writing  sin(3*x^2)|x    produce   6*x*sin(3*x^2)
+
+This is actually a nice marvelous release.
+
+still missing
+triogonometric of power of 2 and more  like  sin(x)^2|x 
+also  differentiating of number raised to symbol   (4^x)|x

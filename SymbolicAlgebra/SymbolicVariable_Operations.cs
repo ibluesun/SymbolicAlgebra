@@ -5,19 +5,6 @@ namespace SymbolicAlgebra
     {
         
         /// <summary>
-        /// Notice that the any group of charachters you enter will be treated as a whole token.
-        /// This is like "Sin(x)" "R_Y" etc.
-        /// </summary>
-        /// <param name="symbol"></param>
-        /// <returns></returns>
-        public static SymbolicVariable Parse(string symbol)
-        {
-            return new SymbolicVariable(symbol);
-        }
-
-
-
-        /// <summary>
         /// Raise to specified power.
         /// </summary>
         /// <param name="power"></param>
@@ -49,8 +36,8 @@ namespace SymbolicAlgebra
             SymbolicVariable p = (SymbolicVariable)this.Clone();
             if (p.IsOneTerm)
             {
-                // raise the coeffecient and smbol
-                p.SymbolPower = power;
+                // raise the coeffecient and symbol
+                if (!string.IsNullOrEmpty(p.Symbol)) p.SymbolPower = power;
                 p.Coeffecient = Math.Pow(p.Coeffecient, power);
             }
             else
@@ -59,7 +46,7 @@ namespace SymbolicAlgebra
                 return p.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
             }
 
-            return p;
+            return  p;
         }
 
 

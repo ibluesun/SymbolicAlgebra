@@ -21,6 +21,7 @@ namespace SymbolicAlgebra
 
             if (b.IsOneTerm & b.IsThisTermCoeffecientOnly)
             {
+                /*
                 #region number only 
 
                 // hold every term and multiply its power with this value.
@@ -72,7 +73,8 @@ namespace SymbolicAlgebra
                     }
                 }
                 #endregion
-
+                */
+                an = an.Power(b.Coeffecient);
             }
             else
             {
@@ -150,6 +152,7 @@ namespace SymbolicAlgebra
 
         public static SymbolicVariable Pow(SymbolicVariable a, SymbolicVariable b)
         {
+            
             return SymbolicPower(a, b);
         }
     }

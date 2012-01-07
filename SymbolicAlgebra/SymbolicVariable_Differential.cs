@@ -23,9 +23,7 @@ namespace SymbolicAlgebra
                 {
                     sv.Coeffecient *= sv._SymbolPower;
                     sv._SymbolPower -= 1;
-
                     if (sv._SymbolPower == 0) sv._Symbol = "";
- 
                 }
                 else
                 {
@@ -63,19 +61,77 @@ namespace SymbolicAlgebra
                 }
                 else
                 {
-                    // the whole term will be converted to zero.
-                    // empty everything :)
-                    sv._SymbolPowerTerm = null;
-                    sv._CoeffecientPowerTerm = null;
-                    sv._SymbolPower = 1;
-                    sv.Coeffecient = 0;
-                    //sv._DividedTerm = null;
-                    sv._BaseVariable = null;
-                    sv._Symbol = string.Empty;
-                    if (sv._SymbolPowerTerm != null)
+                    if (sv.IsFunction)
                     {
-                        sv._FusedSymbols.Clear();
-                        sv._FusedSymbols = null;
+                        if (sv.FunctionName.Equals("log", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            if (sv.FunctionParameters.Length != 1) throw new SymbolicException("log function must have one parameter for differentiation to be done.");
+
+                            var pa = sv.FunctionParameters[0];
+                            if (pa.Symbol.Equals(parameter, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                if (pa.SymbolPowerTerm != null) throw new SymbolicException("differentiating log with a parameter that has a symbolic power term is not supported");
+
+                                sv = SymbolicVariable.Parse(pa.SymbolPower + "/" + pa.Symbol);
+                            }
+                            else
+                            {
+                                sv = Zero;
+                            }
+                            
+                        }
+                        else
+                        {
+                            bool IsNegativeResult;
+                            string[] newfuntions = FunctionDiff.Diff(sv, out IsNegativeResult);
+
+                            if (newfuntions != null)
+                            {
+                                //if(IsNegative)
+                                // get the parameters in the function and differentiate them
+                                if (sv.FunctionParameters.Length == 0)
+                                {
+                                    throw new SymbolicException("Special function without any parameters is not suitable for differentiation");
+                                }
+                                else if (sv.FunctionParameters.Length == 1)
+                                {
+                                    var pa = sv.FunctionParameters[0];
+                                    var presult = pa.Differentiate(parameter);
+                                    sv.SetFunctionName(newfuntions);
+                                    if (IsNegativeResult)
+                                        sv = presult * SymbolicAlgebra.SymbolicVariable.NegativeOne * sv;
+                                    else
+                                        sv = presult * sv;
+                                }
+                                else
+                                {
+                                    throw new SymbolicException("more than one parameter is not normal for this special function");
+                                }
+                            }
+                            else
+                            {
+                                // the function is not a special function like sin, cos, and log.
+                                // search for the function in the running context.
+                                throw new SymbolicException("This function is not a special function, and I haven't implemented storing user functions in the running context");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // the whole term will be converted to zero.
+                        // empty everything :)
+                        sv._SymbolPowerTerm = null;
+                        sv._CoeffecientPowerTerm = null;
+                        sv._SymbolPower = 1;
+                        sv.Coeffecient = 0;
+                        //sv._DividedTerm = null;
+                        sv._BaseVariable = null;
+                        sv._Symbol = string.Empty;
+                        if (sv._SymbolPowerTerm != null)
+                        {
+                            sv._FusedSymbols.Clear();
+                            sv._FusedSymbols = null;
+                        }
                     }
                 }
             }
