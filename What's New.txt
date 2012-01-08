@@ -1,3 +1,8 @@
+Symbolic Algebra [0.4]
+-----------------------
+
+- Corrected when differentiating special function raised to power  like  sin(x)^2  result in 2*cos(x)*sin(x)
+
 Symbolic Algebra [0.3]
 -----------------------
 

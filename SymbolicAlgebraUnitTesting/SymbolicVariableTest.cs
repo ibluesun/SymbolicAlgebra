@@ -765,6 +765,15 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("6/x", log.Differentiate("x").ToString());
 
         }
+
+        [TestMethod]
+        public void SpecialFunctionHigherPowerTest()
+        {
+            var sin = new SymbolicVariable("sin(x)");
+            var sin2y = sin.RaiseToSymbolicPower(SymbolicVariable.Parse("2-y"));
+            Assert.AreEqual("sin(x)^(2-y)", sin2y.ToString());
+            Assert.AreEqual("2*cos(x)*sin(x)^(1-y)-cos(x)*sin(x)^(1-y)*y", sin2y.Differentiate("x").ToString());
+        }
     
     }
 }
