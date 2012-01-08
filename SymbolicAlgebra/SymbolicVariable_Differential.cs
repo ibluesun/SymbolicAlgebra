@@ -63,45 +63,52 @@ namespace SymbolicAlgebra
                 {
                     if (sv.IsFunction)
                     {
-                        if (sv.FunctionName.Equals("log", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            if (sv.FunctionParameters.Length != 1) throw new SymbolicException("log function must have one parameter for differentiation to be done.");
+                        var fv = (SymbolicVariable)sv.Clone();
 
-                            var pa = sv.FunctionParameters[0];
+                        // remove the power term in this copied function term
+                        fv._SymbolPowerTerm = null;
+                        fv.SymbolPower = 1.0;
+
+                        if (fv.FunctionName.Equals("log", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            if (fv.FunctionParameters.Length != 1) throw new SymbolicException("log function must have one parameter for differentiation to be done.");
+
+                            var pa = fv.FunctionParameters[0];
                             if (pa.Symbol.Equals(parameter, StringComparison.InvariantCultureIgnoreCase))
                             {
                                 if (pa.SymbolPowerTerm != null) throw new SymbolicException("differentiating log with a parameter that has a symbolic power term is not supported");
 
-                                sv = SymbolicVariable.Parse(pa.SymbolPower + "/" + pa.Symbol);
+                                fv = SymbolicVariable.Parse(pa.SymbolPower + "/" + pa.Symbol);
                             }
                             else
                             {
-                                sv = Zero;
+                                fv = Zero;
                             }
                             
                         }
                         else
                         {
                             bool IsNegativeResult;
-                            string[] newfuntions = FunctionDiff.Diff(sv, out IsNegativeResult);
+                            string[] newfuntions = FunctionDiff.Diff(fv, out IsNegativeResult);
 
                             if (newfuntions != null)
                             {
                                 //if(IsNegative)
                                 // get the parameters in the function and differentiate them
-                                if (sv.FunctionParameters.Length == 0)
+                                if (fv.FunctionParameters.Length == 0)
                                 {
                                     throw new SymbolicException("Special function without any parameters is not suitable for differentiation");
                                 }
-                                else if (sv.FunctionParameters.Length == 1)
+                                else if (fv.FunctionParameters.Length == 1)
                                 {
-                                    var pa = sv.FunctionParameters[0];
+                                    var pa = fv.FunctionParameters[0];
                                     var presult = pa.Differentiate(parameter);
-                                    sv.SetFunctionName(newfuntions);
+                                    fv.SetFunctionName(newfuntions);
+
                                     if (IsNegativeResult)
-                                        sv = presult * SymbolicAlgebra.SymbolicVariable.NegativeOne * sv;
+                                        fv = presult * SymbolicAlgebra.SymbolicVariable.NegativeOne * fv;
                                     else
-                                        sv = presult * sv;
+                                        fv = presult * fv;
                                 }
                                 else
                                 {
@@ -115,6 +122,24 @@ namespace SymbolicAlgebra
                                 throw new SymbolicException("This function is not a special function, and I haven't implemented storing user functions in the running context");
                             }
                         }
+
+                        // second treat the function normally as if it is one big symbol
+                        if (sv._SymbolPowerTerm == null)
+                        {
+                            sv.Coeffecient *= sv._SymbolPower;
+                            sv._SymbolPower -= 1;
+                            if (sv._SymbolPower == 0) sv._Symbol = "";
+                        }
+                        else
+                        {
+                            // symbol power term exist
+                            SymbolicVariable oldPower = sv._SymbolPowerTerm;
+                            sv._SymbolPowerTerm = Subtract(sv._SymbolPowerTerm, One);
+                            sv = Multiply(sv, oldPower);
+                        }
+
+
+                        sv = fv * sv;
                     }
                     else
                     {
