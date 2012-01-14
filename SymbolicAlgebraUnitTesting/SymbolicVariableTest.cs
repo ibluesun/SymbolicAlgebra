@@ -413,15 +413,15 @@ namespace SymbolicAlgebraUnitTesting
             #endregion
 
             #region same issue in multiplication
-            var u = Two * x * y;
-            var v = Four * x.Power(2) * y.Power(3);
+            var u = Two * x * y;                        //2*x*y
+            var v = Four * x.Power(2) * y.Power(3);     //4*x^2*y^3
 
             var uv = u * v;
             Assert.AreEqual("8*x^3*y^4", uv.ToString());
 
             #region testing with different orders of symbols with the same value terms
-            u = Two * y * x;
-            v = Four * x.Power(2) * y.Power(3);
+            u = Two * y * x;                        // 2*y*x
+            v = Four * x.Power(2) * y.Power(3);     // 4*x^2*y^3
 
             uv = u * v;
             Assert.AreEqual("8*y^4*x^3", uv.ToString());
@@ -701,6 +701,9 @@ namespace SymbolicAlgebraUnitTesting
 
             var g = SymbolicVariable.Parse("sin(x^2)+cos(x^3)");
 
+            var ns = SymbolicVariable.Parse("-6^w");
+            Assert.AreEqual("-6^w", ns.ToString());
+
         }
 
 
@@ -752,8 +755,6 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("-csch(x)^2", coth.Differentiate("x").ToString());
 
 
-
-
             var complexsin = SymbolicVariable.Parse("cos(x^2+x^2+x^2)");
             Assert.AreEqual("cos(3*x^2)", complexsin.ToString());
 
@@ -774,7 +775,111 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("sin(x)^(2-y)", sin2y.ToString());
             Assert.AreEqual("2*cos(x)*sin(x)^(1-y)-cos(x)*sin(x)^(1-y)*y", sin2y.Differentiate("x").ToString());
         }
-    
+
+
+
+
+        [TestMethod]
+        public void Issues5Testing()
+        {
+            var p = SymbolicVariable.Multiply( One, SymbolicVariable.Parse("2^x"));
+
+            Assert.AreEqual("2^x", p.ToString());
+
+
+            var p2 = SymbolicVariable.Multiply(SymbolicVariable.Parse("2^x"), One);
+            Assert.AreEqual("2^x", p2.ToString());
+
+
+            var xx = SymbolicVariable.Parse("x^2");
+            var roro = SymbolicVariable.Multiply(p, xx);
+            Assert.AreEqual("x^2*2^x", roro.ToString());
+
+            var g = SymbolicVariable.Multiply(new SymbolicVariable("log(2)"), SymbolicVariable.Parse("2^x"));
+            Assert.AreEqual("log(2)*2^x", g.ToString());
+
+            g = SymbolicVariable.Multiply( g , SymbolicVariable.Parse("2^y"));
+            Assert.AreEqual("log(2)*2^(x+y)", g.ToString());
+
+            g = SymbolicVariable.Multiply(g, SymbolicVariable.Parse("3^y"));
+            Assert.AreEqual("log(2)*2^(x+y)*3^y", g.ToString());
+
+            g = SymbolicVariable.Multiply(g, SymbolicVariable.Parse("3^z"));
+            Assert.AreEqual("log(2)*2^(x+y)*3^(y+z)", g.ToString());
+
+        }
+
+
+        [TestMethod]
+        public void BaseMultiplicationTest()
+        {
+            var fp = SymbolicVariable.Parse("2^x");
+            var sp = SymbolicVariable.Parse("2^y");
+
+            var g = SymbolicVariable.Multiply(fp, sp);
+
+            Assert.AreEqual("2^(x+y)", g.ToString());
+
+
+            var fl = SymbolicVariable.Parse("3^x");
+            g = SymbolicVariable.Multiply(fp, fl);
+            Assert.AreEqual("2^x*3^x", g.ToString());
+
+            g = SymbolicVariable.Multiply(g, SymbolicVariable.Parse("3^y"));
+            Assert.AreEqual("2^x*3^(x+y)", g.ToString());
+
+            g = SymbolicVariable.Multiply(g, SymbolicVariable.Parse("2^z"));
+            Assert.AreEqual("2^(x+z)*3^(x+y)", g.ToString());
+
+
+            g = SymbolicVariable.Multiply(g, SymbolicVariable.Parse("2^v"));
+            Assert.AreEqual("2^(x+z+v)*3^(x+y)", g.ToString());
+
+            g = SymbolicVariable.Multiply(g, SymbolicVariable.Parse("3^u"));
+            Assert.AreEqual("2^(x+z+v)*3^(x+y+u)", g.ToString());
+
+            
+            var ns = SymbolicVariable.Parse("-6.6^w");
+            Assert.AreEqual("-6.6^w", ns.ToString());
+            g = SymbolicVariable.Multiply(g, ns);
+            Assert.AreEqual("2^(x+z+v)*3^(x+y+u)*-6.6^w", g.ToString());
+
+        }
+
+
+        [TestMethod]
+        public void Issues6Testing()
+        {
+            var px = SymbolicVariable.Parse("3^x");
+            var tw7 = SymbolicVariable.Parse("27");
+
+            var g = SymbolicVariable.Multiply(px, tw7);
+
+            Assert.AreEqual("3^(x+3)", g.ToString());
+
+            g = SymbolicVariable.Multiply(g, new SymbolicVariable("30"));
+            Assert.AreEqual("3^(x+3)*30", g.ToString());
+
+        }
+
+
+        [TestMethod]
+        public void BaseVariablePowerVariableDiffTest()
+        {
+            var p = SymbolicVariable.Parse("u^(x^2)");
+            var g= p.Differentiate("x");
+            Assert.AreEqual("2*log(u)*x*u^(x^2)", g.ToString());
+        }
+
+        [TestMethod]
+        public void Issues7Testing()
+        {
+            var s = new SymbolicVariable("---  4 5");
+            Assert.AreEqual("-45", s.ToString());
+
+            s = new SymbolicVariable("--- + sin (3- 4 + t * 9) + 4 - 5");
+            Assert.AreEqual("-sin(3-4+t*9)+4-5", s.ToString());
+        }
     }
 }
 

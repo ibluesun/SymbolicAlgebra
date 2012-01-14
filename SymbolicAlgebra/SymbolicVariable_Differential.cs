@@ -8,6 +8,7 @@ namespace SymbolicAlgebra
 {
     public partial class SymbolicVariable : ICloneable
     {
+        const string lnText = "log";
 
         /// <summary>
         /// Derive one pure term.
@@ -16,6 +17,18 @@ namespace SymbolicAlgebra
         /// <param name="parameter"></param>
         private void DiffTerm(ref SymbolicVariable sv, string parameter)
         {
+            bool symbolpowercontainParameter = false;
+            if (sv._SymbolPowerTerm != null)
+            {
+                if (sv._SymbolPowerTerm.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
+                    symbolpowercontainParameter = true;
+                else
+                {
+                    int prcount = sv._SymbolPowerTerm.FusedSymbols.Count(p => p.Key.Equals(parameter, StringComparison.OrdinalIgnoreCase));
+                    symbolpowercontainParameter = prcount > 0;
+                }
+            }
+
             // x^3*y^2*z^5    , diff to x;
             if (sv.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
             {
@@ -32,6 +45,12 @@ namespace SymbolicAlgebra
                     sv._SymbolPowerTerm = Subtract(sv._SymbolPowerTerm, One);
                     sv = Multiply(sv, oldPower);
                 }
+            }
+            else if (symbolpowercontainParameter)
+            {
+                var log = new SymbolicVariable(lnText + "(" + sv.Symbol + ")");
+                var dp = sv._SymbolPowerTerm.Differentiate(parameter);
+                sv = SymbolicVariable.Multiply(log, SymbolicVariable.Multiply(dp, sv));
             }
             else
             {
@@ -69,12 +88,12 @@ namespace SymbolicAlgebra
                         fv._SymbolPowerTerm = null;
                         fv.SymbolPower = 1.0;
 
-                        if (fv.FunctionName.Equals("log", StringComparison.InvariantCultureIgnoreCase))
+                        if (fv.FunctionName.Equals(lnText, StringComparison.OrdinalIgnoreCase))
                         {
                             if (fv.FunctionParameters.Length != 1) throw new SymbolicException("log function must have one parameter for differentiation to be done.");
 
                             var pa = fv.FunctionParameters[0];
-                            if (pa.Symbol.Equals(parameter, StringComparison.InvariantCultureIgnoreCase))
+                            if (pa.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
                             {
                                 if (pa.SymbolPowerTerm != null) throw new SymbolicException("differentiating log with a parameter that has a symbolic power term is not supported");
 
@@ -84,7 +103,7 @@ namespace SymbolicAlgebra
                             {
                                 fv = Zero;
                             }
-                            
+
                         }
                         else
                         {
@@ -140,6 +159,15 @@ namespace SymbolicAlgebra
 
 
                         sv = fv * sv;
+                    }
+                    else if (sv.IsCoeffecientOnly && sv._CoeffecientPowerTerm != null)
+                    {
+                        // hint: the coeffecient only term has power of 1 or symbolic power should exist in case of raise to symbolic power
+
+                        // get log(coeffeniect)
+                        var log = new SymbolicVariable(lnText + "(" + sv.Coeffecient.ToString() + ")");
+                        var dp = sv._CoeffecientPowerTerm.Differentiate(parameter);
+                        sv = SymbolicVariable.Multiply(log, SymbolicVariable.Multiply(dp, sv));
                     }
                     else
                     {

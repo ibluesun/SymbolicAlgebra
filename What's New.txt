@@ -1,7 +1,17 @@
+Symbolic Algebra [0.5]
+----------------------
+- Added the ability to multiplication of many coeffecients with different power terms
+	2^(x+z)*3^(x+y) * 2^v == 2^(x+z+v)*3^(x+y)
+
+- Added Ability to differentiate coeffecients with symbolic powers and variables with symbolic powers
+	u^(x^2)|x  == 2*log(u)*x*u^(x^2)
+	
+
+
 Symbolic Algebra [0.4]
 -----------------------
-
 - Corrected when differentiating special function raised to power  like  sin(x)^2  result in 2*cos(x)*sin(x)
+
 
 Symbolic Algebra [0.3]
 -----------------------

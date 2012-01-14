@@ -26,8 +26,12 @@ namespace SymbolicAlgebra
             SymbolicVariable SourceTerm = (SymbolicVariable)a.Clone();
             if (a.BaseEquals(TargetSubTerm))
             {
-                #region Symbols are Equal (I mean 2*x^3 = 2*X^3)  
-                SourceTerm.Coeffecient = SourceTerm.Coeffecient * TargetSubTerm.Coeffecient;
+                #region Symbols are Equal (I mean 2*x^3 = 2*X^3)
+                
+
+                MultiplyCoeffecients(ref SourceTerm, TargetSubTerm);
+
+                    
                 if (a.SymbolPowerTerm != null || TargetSubTerm.SymbolPowerTerm != null)
                 {
                     SourceTerm._SymbolPowerTerm = a.SymbolPowerTerm + TargetSubTerm.SymbolPowerTerm;
@@ -45,11 +49,13 @@ namespace SymbolicAlgebra
                     else
                         SourceTerm.FusedSymbols.Add(bfv.Key, bfv.Value);
                 }
+                
                 #endregion
             }
             else
             {
                 #region Symbols are Different
+                
                 if (string.IsNullOrEmpty(SourceTerm.Symbol))
                 {
                     #region First Case: Source primary symbol doesn't exist
@@ -61,7 +67,13 @@ namespace SymbolicAlgebra
                     // the instance have an empty primary variable so we should add it 
                     SourceTerm.Symbol = TargetSubTerm.Symbol;
                     SourceTerm.SymbolPower = TargetSubTerm.SymbolPower;
-                    if (TargetSubTerm.SymbolPowerTerm != null) SourceTerm._SymbolPowerTerm = (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone();
+                    if (TargetSubTerm.SymbolPowerTerm != null) 
+                        SourceTerm._SymbolPowerTerm = (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone();
+                    else 
+                        SourceTerm._SymbolPowerTerm = null;
+
+                    
+
 
                     //fuse the fused variables in target into source
                     foreach (var fv in TargetSubTerm.FusedSymbols)
@@ -75,6 +87,7 @@ namespace SymbolicAlgebra
                 }
                 else
                 {
+                    #region Testing against symbol of targetsubterm
                     if (SourceTerm.Symbol.Equals(TargetSubTerm.Symbol, StringComparison.OrdinalIgnoreCase))
                     {
                         #region Second Case: Primary symbol in both source and target exist and equal
@@ -115,6 +128,7 @@ namespace SymbolicAlgebra
                                 SourceTerm.FusedSymbols.Add(fv.Key, fv.Value);
                         }
                         #endregion
+
                     }
                     else if (SourceTerm.FusedSymbols.ContainsKey(TargetSubTerm.Symbol))
                     {
@@ -174,11 +188,11 @@ namespace SymbolicAlgebra
                             }
                         }
                         #endregion
+                    
                     }
                     else
                     {
                         #region Fourth Case: Target primary symbol doesn't exist in Source Primary Symbol nor Source Fused symbols
-
                         // Add Target primary symbol to the fused symbols in source
                         SourceTerm.FusedSymbols.Add(
                             TargetSubTerm.Symbol,
@@ -186,7 +200,8 @@ namespace SymbolicAlgebra
                             {
                                 NumericalVariable = TargetSubTerm.SymbolPower,
                                 SymbolicVariable = TargetSubTerm.SymbolPowerTerm == null ? null : (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone()
-                            });
+                            });                            
+                        
 
                         // But the primary symbol of source may exist in the target fused variables.
 
@@ -222,10 +237,15 @@ namespace SymbolicAlgebra
                             }
                         }
                         #endregion
+
+                    
                     }
+
+                    #endregion
                 }
 
-                SourceTerm.Coeffecient = a.Coeffecient * TargetSubTerm.Coeffecient;
+                MultiplyCoeffecients(ref SourceTerm, TargetSubTerm);
+
                 #endregion
             }
 
@@ -269,5 +289,139 @@ namespace SymbolicAlgebra
             return total;
         }
 
+        public struct CoeffecienttValue
+        {
+            public double ConstantValue;
+            public SymbolicVariable ConstantPower;
+            
+        }
+
+        public CoeffecienttValue[] Constants
+        {
+            get
+            {
+                var primary = new CoeffecienttValue
+                {
+                    ConstantValue = this.Coeffecient,
+                    ConstantPower = this.CoeffecientPowerTerm
+                };
+
+                CoeffecienttValue[] cvs = new CoeffecienttValue[this.FusedConstants.Count + 1];
+                cvs[0] = primary;
+
+                for (int i = 0; i < this.FusedConstants.Count; i++)
+                {
+                    var hb = FusedConstants.ElementAt(i);
+                    cvs[i + 1] = new CoeffecienttValue
+                    {
+                        
+                        ConstantValue = hb.Key,
+                        ConstantPower = hb.Value.SymbolicVariable
+                    };
+                }
+
+                return cvs;
+            }
+        }
+
+        /// <summary>
+        /// Multiply Coeffecients of second argument into first argument.
+        /// </summary>
+        /// <param name="SourceTerm"></param>
+        /// <param name="TargetSubTerm"></param>
+        private static void MultiplyCoeffecients(ref SymbolicVariable SourceTerm, SymbolicVariable TargetSubTerm)
+        {
+            // Note: I will try to avoid the primary coeffecient so it doesn't hold power
+            //      and only hold coeffecient itself.
+            foreach (var cst in TargetSubTerm.Constants)
+            {
+                
+                if (SourceTerm._CoeffecientPowerTerm == null && cst.ConstantPower == null)
+                {
+                    SourceTerm.Coeffecient *= cst.ConstantValue;
+                }
+                // there is a coeffecient power term needs to be injected into the source
+                else
+                {
+                    // no the coeffecient part is not empty so we will test if bases are equal
+                    // then make use of the fusedsymbols to add our constant
+
+                    if (SourceTerm.Coeffecient == cst.ConstantValue)
+                    {
+                        // sample: 2^x*2^y = 2^(x+y)
+                        SourceTerm._CoeffecientPowerTerm += cst.ConstantPower;
+                    }
+                    else
+                    {
+                        // sample: 2^(x+y)*log(2)*3^y * 3^z   can't be summed.
+                        HybridVariable SameCoeffecient;
+                        if (SourceTerm.FusedConstants.TryGetValue(cst.ConstantValue, out SameCoeffecient))
+                        {
+                            SameCoeffecient.SymbolicVariable += cst.ConstantPower;
+                            SourceTerm.FusedConstants[cst.ConstantValue] = SameCoeffecient;
+                        }
+                        else
+                        {
+                            // Add Target coefficient symbol to the fused symbols in source, with key as the coefficient number itself.
+                            if (cst.ConstantPower != null)
+                            {
+                                SourceTerm.FusedConstants.Add(
+                                    cst.ConstantValue,
+                                    new HybridVariable
+                                    {
+                                        NumericalVariable = 1, // power
+                                        SymbolicVariable = (SymbolicVariable)cst.ConstantPower.Clone()
+                                    });
+                            }
+                            else
+                            {
+                                // coeffecient we working with is number only
+                                // First Attempt: to try to get the power of this number with base of available coeffecients
+                                // if no base produced an integer power value then we add it into fused constants as it is.
+                                
+                                if (cst.ConstantValue == 1.0) continue;  // ONE doesn't change anything so we bypass it
+
+                                double? SucceededConstant = null;
+                                double ower = 0;
+                                foreach (var p in SourceTerm.Constants)
+                                {
+                                    ower = Math.Log(cst.ConstantValue, p.ConstantValue);
+                                    if (ower == Math.Floor(ower))
+                                    {
+                                        SucceededConstant = p.ConstantValue;
+                                        break;
+                                    }
+                                }
+
+                                if (SucceededConstant.HasValue)
+                                {
+                                    if (SourceTerm.Coeffecient == SucceededConstant.Value)
+                                    {
+                                        SourceTerm._CoeffecientPowerTerm += new SymbolicVariable(ower.ToString());
+                                    }
+                                    else
+                                    {
+                                        var rr = SourceTerm.FusedConstants[SucceededConstant.Value];
+
+                                        rr.SymbolicVariable += new SymbolicVariable(ower.ToString());
+                                        SourceTerm.FusedConstants[SucceededConstant.Value] = rr;
+                                    }
+
+                                }
+                                else
+                                {
+                                    SourceTerm.FusedConstants.Add(
+                                        cst.ConstantValue,
+                                        new HybridVariable
+                                        {
+                                            NumericalVariable = 1, // power
+                                        });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }    
     }
 }

@@ -28,11 +28,12 @@ namespace SymbolicAlgebra
         public static SymbolicVariable Parse(string expression)
         {
             char[] separators = {'^', '*', '/', '+', '-', '(', '|'};
+            char[] seps = {'^', '*', '/', '+', '-', '|'};
+
 
             expression = expression.Replace(" ", "");
 
-            if (expression.StartsWith("-") ||expression.StartsWith("+") ||expression.StartsWith("*") ) 
-                expression = "0" + expression;
+            //if (expression.StartsWith("-") ||expression.StartsWith("+")) expression = expression.Insert(1,"1*");
 
             // simple parsing 
             // obeys the rules of priorities
@@ -60,8 +61,11 @@ namespace SymbolicAlgebra
                     // include the normal parsing when we are not in parenthesis group
                     if (separators.Contains(expression[ix]))
                     {
-                        
-                        if (expression[ix] == '(')
+                        if ((expression[ix] == '-' || expression[ix] == '+') && ix == 0)
+                        {
+                            TokenBuilder.Append(expression[ix]);
+                        }
+                        else if (expression[ix] == '(')
                         {
                             PLevels.Push(1);
                             var bb = ix>0?separators.Contains(expression[ix-1]):true;
@@ -71,6 +75,10 @@ namespace SymbolicAlgebra
                                 FunctionContext = true;
                                 TokenBuilder.Append(expression[ix]);
                             }
+                        }
+                        else if (seps.Contains(expression[ix - 1]) && (expression[ix] == '-' || expression[ix] == '+'))
+                        {
+                            TokenBuilder.Append(expression[ix]);
                         }
                         else
                         {
