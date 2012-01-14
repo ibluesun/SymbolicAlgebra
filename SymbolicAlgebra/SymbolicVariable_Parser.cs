@@ -92,7 +92,7 @@ namespace SymbolicAlgebra
                             {
                                 ep.SymbolicExpression = new SymbolicVariable(TokenBuilder.ToString());
                             }
-                            TokenBuilder.Clear();
+                            TokenBuilder = new StringBuilder();
 
                             ep.Operation = expression[ix].ToString();
                             ep.Next = new ExprOp();
@@ -148,7 +148,7 @@ namespace SymbolicAlgebra
             {
                 ep.SymbolicExpression = new SymbolicVariable(TokenBuilder.ToString());
             }
-            TokenBuilder.Clear();
+            TokenBuilder = null;
 
 
             string[] Group = { "^"    /* Power for normal product '*' */

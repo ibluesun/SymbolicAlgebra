@@ -17,7 +17,7 @@ namespace SymbolicAlgebra
         public double Coeffecient { private set; get; }
 
 
-        static Regex FunctionRegex = new Regex(@"^(?<function>[0-9a-zA-Z:]+)\((?<parameters>.*)\)$", RegexOptions.Compiled);
+        static Regex FunctionRegex = new Regex(@"^(?<function>[0-9a-zA-Z:]+)\((?<parameters>.*)\)$");
 
 
         private string _Symbol;
@@ -175,10 +175,9 @@ namespace SymbolicAlgebra
                     }
                 }
             }
+            double rem = Math.IEEERemainder(minuscount, 2);
 
-            int rem;
-            Math.DivRem(minuscount, 2, out rem);
-            if (rem > 0) sb.Insert(0, '-');
+            if (rem != 0.0) sb.Insert(0, new char[] { '-' });
 
 
             string expression = sb.ToString();
