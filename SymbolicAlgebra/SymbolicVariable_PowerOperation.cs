@@ -19,61 +19,8 @@ namespace SymbolicAlgebra
 
             //if the value is only having coeffecient then there is no need to instantiate the powerterm
 
-            if (b.IsOneTerm & b.IsThisTermCoeffecientOnly)
+            if (b.IsOneTerm & b.IsCoeffecientOnly)
             {
-                /*
-                #region number only 
-
-                // hold every term and multiply its power with this value.
-                double power = b.Coeffecient;
-
-                // symbol power term
-
-                // now check if the current powerterm exist or not
-                if (_SymbolPowerTerm != null)
-                {
-                    an._SymbolPowerTerm = _SymbolPowerTerm * power;
-                }
-                else
-                {
-                    an._SymbolPower = _SymbolPower * power;
-                }
-
-                //Coeffecient power term: 2^(x+2)  the x+2 is the coeffecient power term expressed in symbolic variable
-                if (_CoeffecientPowerTerm != null)
-                {
-                    an._CoeffecientPowerTerm = _CoeffecientPowerTerm * power;
-                }
-                else
-                {
-                    // change the coeffecient directly because it is only number
-                    an.Coeffecient = Math.Pow(Coeffecient, power);
-                }
-
-                // raised the fused symbols 
-
-                for (int i = 0; i < FusedSymbols.Count; i++ )
-                    an.FusedSymbols[FusedSymbols.ElementAt(i).Key] = FusedSymbols.ElementAt(i).Value * power;
-
-                an._AddedTerms = null;
-                if (this.AddedTerms.Count > 0)
-                {
-                    foreach (var term in _AddedTerms.Values)
-                    {
-                        if (term.SymbolPowerTerm != null)
-                        {
-                            var tpw = term.RaiseToSymbolicPower(term.SymbolPowerTerm * power);
-                            an.AddedTerms.Add(tpw.SymbolBaseValue, tpw);
-                        }
-                        else
-                        {
-                            var tpw = term.RaiseToSymbolicPower(One * power);
-                            an.AddedTerms.Add(tpw.SymbolBaseValue, tpw);
-                        }
-                    }
-                }
-                #endregion
-                */
                 an = an.Power(b.Coeffecient);
             }
             else

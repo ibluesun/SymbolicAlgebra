@@ -156,7 +156,32 @@ namespace SymbolicAlgebra
         /// <param name="expression">Could be number, string, or function form</param>
         public SymbolicVariable(string token)
         {
-            string expression = token;
+            StringBuilder sb = new StringBuilder();
+            int minuscount = 0;
+            bool inStart = true;  //because i am testing at the begining of string.
+            foreach (var t in token)
+            {
+                if (t != ' ')
+                {
+                    if (t == '-' && inStart==true) minuscount++;
+                    else if (t == '+' && inStart == true)
+                    {
+                        /*ignore*/
+                    }
+                    else
+                    {
+                        sb.Append(t);
+                        inStart = false;
+                    }
+                }
+            }
+
+            int rem;
+            Math.DivRem(minuscount, 2, out rem);
+            if (rem > 0) sb.Insert(0, '-');
+
+
+            string expression = sb.ToString();
             double coe;
 
             //try the numbers first
@@ -250,7 +275,6 @@ namespace SymbolicAlgebra
                     }
                     else
                     {
-
                         if (FusedSymbols.ContainsKey(functionNames[i] + "(" + iparms + ")"))
                         {
                             var pp = FusedSymbols[functionNames[i] + "(" + iparms + ")"];
@@ -327,6 +351,11 @@ namespace SymbolicAlgebra
         private Dictionary<string, HybridVariable> _FusedSymbols;
 
         /// <summary>
+        /// 2^x*4^t*5^y   I mean {4^t, 5^y}
+        /// </summary>
+        private Dictionary<double, HybridVariable> _FusedConstants;
+
+        /// <summary>
         /// Extra terms that couldn't be added to the current term.
         /// </summary>
         public Dictionary<string, SymbolicVariable> AddedTerms
@@ -368,7 +397,83 @@ namespace SymbolicAlgebra
             }
         }
 
+        /// <summary>
+        /// Multiplied terms in the term other than the original coeffecient
+        /// </summary>
+        public Dictionary<double, HybridVariable> FusedConstants
+        {
+            get
+            {
+                if (_FusedConstants == null) _FusedConstants = new Dictionary<double, HybridVariable>();
+                return _FusedConstants;
+            }
+        }
 
+
+        #region Fused Constants Functions
+        private string GetConstantBaseValue(int i)
+        {
+
+            string result = string.Empty;
+
+            double power = FusedConstants.ElementAt(i).Value.NumericalVariable;
+            SymbolicVariable powerTerm = FusedConstants.ElementAt(i).Value.SymbolicVariable;
+
+            string variableName = FusedConstants.ElementAt(i).Key.ToString();
+            if (powerTerm != null)
+            {
+                string powerTermText = powerTerm.ToString();
+                if (powerTermText.Length > 1)
+                    result = variableName + "^(" + powerTermText + ")";
+                else
+                    result = variableName + "^" + powerTermText;
+            }
+            else if (power != 0)
+            {
+                // variable exist 
+                if (power != 1) result = variableName + "^" + power.ToString(CultureInfo.InvariantCulture);
+                else result = variableName;
+            }
+
+            return result;
+        }
+        private string GetConstantAbsoluteBaseValue(int i)
+        {
+
+            string result = string.Empty;
+
+            double power = FusedConstants.ElementAt(i).Value.NumericalVariable;
+            SymbolicVariable powerTerm = FusedConstants.ElementAt(i).Value.SymbolicVariable;
+
+            string variableName = FusedConstants.ElementAt(i).Key.ToString();
+
+            if (powerTerm != null)
+            {
+                string powerTermText = powerTerm.ToString();
+                if (powerTermText.Length > 1)
+                    result = variableName + "^(" + powerTermText + ")";
+                else
+                    result = variableName + "^" + powerTermText;
+            }
+            else if (power != 0)
+            {
+                // variable exist 
+                if (Math.Abs(power) != 1) result = variableName + "^" + Math.Abs(power).ToString(CultureInfo.InvariantCulture);
+                else result = variableName;
+            }
+
+            return result;
+        }
+        private double GetFusedConstantPower(int i)
+        {
+            return FusedConstants.ElementAt(i).Value.NumericalVariable;
+        }
+
+        
+
+        #endregion
+
+        #region Fused Symbols Functions
 
         /// <summary>
         /// from a*x^2  I mean {x^2} or x^-2
@@ -397,7 +502,6 @@ namespace SymbolicAlgebra
                 else result = variableName;
             }
             
-
             return result;    
         }
 
@@ -445,6 +549,7 @@ namespace SymbolicAlgebra
             return FusedSymbols.ElementAt(i).Value.NumericalVariable;
         }
 
+        #endregion
 
         /// <summary>
         /// from a*x^2  I mean {x^2}
@@ -458,7 +563,13 @@ namespace SymbolicAlgebra
 
                 if (_SymbolPowerTerm != null)
                 {
-                    result = Symbol + "^(" + SymbolPowerText + ")";
+                    if (_SymbolPowerTerm.IsZero)
+                    {
+                    }
+                    else
+                    {
+                        result = Symbol + "^(" + SymbolPowerText + ")";
+                    }
                 }
                 else
                 {
@@ -567,6 +678,27 @@ namespace SymbolicAlgebra
                                 result = Symbol + "^" + SymbolPowerText;
                         }
                     }
+                }
+            }
+
+            for (int i = 0; i < FusedConstants.Count; i++)
+            {
+
+                double pp = GetFusedConstantPower(i);
+
+                if (string.IsNullOrEmpty(result))
+                {
+                    if (pp >= 0)
+                        result += GetConstantBaseValue(i);
+                    else
+                        result += "1/" + GetConstantAbsoluteBaseValue(i);
+                }
+                else
+                {
+                    if (pp >= 0)
+                        result += "*" + GetConstantBaseValue(i);
+                    else
+                        result += "/" + GetConstantAbsoluteBaseValue(i);
                 }
             }
 
@@ -807,9 +939,10 @@ namespace SymbolicAlgebra
             }
             else
             {
-                if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase))
+                if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase)/*&&string.IsNullOrEmpty( this.Symbol)!=true*/)
                 {
-                    if (this._SymbolPowerTerm != null && sv._SymbolPowerTerm != null)
+                    if (this.Symbol == string.Empty) return true;  //because there is no symbol or empty symbol which indicates that the term is coefficient only
+                    else if (this._SymbolPowerTerm != null && sv._SymbolPowerTerm != null)
                     {
                         if (_SymbolPowerTerm.Equals(sv._SymbolPowerTerm)) return true;
                     }
@@ -837,7 +970,7 @@ namespace SymbolicAlgebra
             if (this.IsMultiValue && sv.IsMultiValue)
             {
                 // make sure added terms are equal in count.
-                if (this._AddedTerms.Count == sv._AddedTerms.Count)
+                if (this._AddedTerms.Count == sv._AddedTerms.Count && this._AddedTerms.Count > 0)
                 {
                     //ok there are another tests to be done.
                     int EqualTerms = 0;
@@ -904,7 +1037,10 @@ namespace SymbolicAlgebra
                 // symbol should be reset or replace with one variable from the fused variables.
                 if (svar.FusedSymbols.Count > 0)
                 {
-                    var firstFused = svar.FusedSymbols.First();
+                    // get the first iem that its key doesn't begin with number or -ve or +ve  because these keys is used for coeffecients constants that were fused
+                    KeyValuePair<string, HybridVariable>  firstFused = svar.FusedSymbols.FirstOrDefault();
+
+                    // if the returned value is not the default
                     svar._Symbol = firstFused.Key;
                     if (firstFused.Value.SymbolicVariable != null)
                     {
@@ -920,7 +1056,7 @@ namespace SymbolicAlgebra
                 }
                 else
                 {
-                    svar._Symbol = "";
+                    svar._Symbol = ""; //make sure to empty the symbol because its power is zero
                 }
             }
             foreach (var r in svar.AddedTerms.Values) AdjustZeroPowerTerms(r);
@@ -943,6 +1079,7 @@ namespace SymbolicAlgebra
             // then check the priamry term.
             if (svar.Coeffecient == 0)
             {
+                svar.Symbol = string.Empty;
                 if (svar.AddedTerms.Count > 0)
                 {
                     // The AddedTerms are collection from one level like this
@@ -995,7 +1132,7 @@ namespace SymbolicAlgebra
         /// <summary>
         /// tells if the this term is having coeffecient as number only.
         /// </summary>
-        public bool IsThisTermCoeffecientOnly
+        public bool IsCoeffecientOnly
         {
             get
             {
@@ -1127,6 +1264,11 @@ namespace SymbolicAlgebra
             foreach (var fv in FusedSymbols)
             {
                 clone.FusedSymbols.Add(fv.Key, (HybridVariable)fv.Value.Clone());
+            }
+
+            foreach (var fc in FusedConstants)
+            {
+                clone.FusedConstants.Add(fc.Key, (HybridVariable)fc.Value.Clone());
             }
 
             if(this._DividedTerm!=null) 
