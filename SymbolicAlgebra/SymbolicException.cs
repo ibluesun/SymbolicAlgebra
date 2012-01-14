@@ -6,7 +6,6 @@ using System.Runtime.Serialization;
 
 namespace SymbolicAlgebra
 {
-    [Serializable()]
     public class SymbolicException : Exception
     {
       public SymbolicException()
@@ -23,11 +22,6 @@ namespace SymbolicAlgebra
       {
          // Add any type-specific logic for inner exceptions.
       }
-      protected SymbolicException(SerializationInfo info, 
-         StreamingContext context) : base(info, context)
-      {
-         // Implement type-specific serialization constructor logic.
-      }    
 
     }
 }
