@@ -6,7 +6,11 @@ using System.Globalization;
 
 namespace SymbolicAlgebra
 {
+#if SILVERLIGHT
+    public partial class SymbolicVariable
+#else
     public partial class SymbolicVariable : ICloneable
+#endif
     {
         /// <summary>
         /// Multiply two symbolic variables
@@ -41,7 +45,7 @@ namespace SymbolicAlgebra
                     SourceTerm.SymbolPower = SourceTerm.SymbolPower + TargetSubTerm.SymbolPower;
                 }
 
-                //fuse the fusedvariables in b into sv
+                //fuse the fused variables in b into sv
                 foreach (var bfv in TargetSubTerm.FusedSymbols)
                 {
                     if (SourceTerm.FusedSymbols.ContainsKey(bfv.Key))
@@ -249,6 +253,10 @@ namespace SymbolicAlgebra
                 #endregion
             }
 
+            if (SourceTerm.DividedTerm.IsOne) SourceTerm.DividedTerm = TargetSubTerm.DividedTerm;
+            else
+                SourceTerm.DividedTerm = Multiply(SourceTerm.DividedTerm, TargetSubTerm.DividedTerm);
+
             //here is a code to continue with other parts of a when multiplying them
             if (SourceTerm.AddedTerms.Count > 0)
             {
@@ -346,10 +354,27 @@ namespace SymbolicAlgebra
                     // no the coeffecient part is not empty so we will test if bases are equal
                     // then make use of the fusedsymbols to add our constant
 
+
+                    double sbase = Math.Log(SourceTerm.Coeffecient, cst.ConstantValue);
+
                     if (SourceTerm.Coeffecient == cst.ConstantValue)
                     {
                         // sample: 2^x*2^y = 2^(x+y)
-                        SourceTerm._CoeffecientPowerTerm += cst.ConstantPower;
+                        var cpower = cst.ConstantPower;
+                        if (cpower == null) cpower = One;
+
+                        if (SourceTerm._CoeffecientPowerTerm == null) SourceTerm._CoeffecientPowerTerm = One;
+                        SourceTerm._CoeffecientPowerTerm += cpower;
+                    }
+                    else if ((sbase - Math.Floor(sbase)) == 0.0 && sbase > 0)   // make sure there are no
+                    {
+                        // then we can use the target base
+                        // 27*3^x = 3^3*3^x = 3^(3+x)
+                        var cpower = cst.ConstantPower;
+                        if (cpower == null) cpower = new SymbolicVariable("1");
+                        SourceTerm._CoeffecientPowerTerm = SymbolicVariable.Add(new SymbolicVariable(sbase.ToString()), cpower);
+                        SourceTerm.Coeffecient = cst.ConstantValue;
+
                     }
                     else
                     {
@@ -378,7 +403,7 @@ namespace SymbolicAlgebra
                                 // coeffecient we working with is number only
                                 // First Attempt: to try to get the power of this number with base of available coeffecients
                                 // if no base produced an integer power value then we add it into fused constants as it is.
-                                
+
                                 if (cst.ConstantValue == 1.0) continue;  // ONE doesn't change anything so we bypass it
 
                                 double? SucceededConstant = null;

@@ -1,6 +1,8 @@
 ﻿using SymbolicAlgebra;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Linq.Expressions;
+using System.Collections.Generic;
 
 namespace SymbolicAlgebraUnitTesting
 {
@@ -103,6 +105,9 @@ namespace SymbolicAlgebraUnitTesting
 
 
         #endregion
+
+
+        const string lnText = "log";
 
         /// <summary>
         ///A test for Adds
@@ -302,7 +307,7 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual("x^(2+y)", xp2y.ToString());
 
-            var xp2_y = xp2 / xpy;    // x^2 / x^y == x^(2-y)
+            var xp2_y = SymbolicVariable.Divide( xp2 , xpy);    // x^2 / x^y == x^(2-y)
 
             Assert.AreEqual("x^(2-y)", xp2_y.ToString());
 
@@ -592,6 +597,7 @@ namespace SymbolicAlgebraUnitTesting
             var kk = Two;
             var kk_i = kk.InvolvedSymbols;
             Assert.AreEqual(0, kk_i.Length);
+
         }
 
 
@@ -642,8 +648,8 @@ namespace SymbolicAlgebraUnitTesting
 
             var d = (x.Power(3) * y.Power(-40))+(y.Power(3)*z.Power(-1));
             var dd_y = d.Differentiate("y");
-            
-            Assert.AreEqual("-40*x^3/y^41+3*y^2/z", dd_y.ToString());
+
+            Assert.AreEqual("-40*x^3/y^41+3/z*y^2", dd_y.ToString());
 
             var e = x.RaiseToSymbolicPower(2*y);
             var de_x = e.Differentiate("x");
@@ -679,7 +685,7 @@ namespace SymbolicAlgebraUnitTesting
             var k = 18 * x.Power(2) + y.Power(3) * x + 2 * x * y;
             var dk_y = k.Differentiate("y");
 
-            Assert.AreEqual("3*y^2*x+2*x", dk_y.ToString());
+            Assert.AreEqual("3*x*y^2+2*x", dk_y.ToString());
         }
 
 
@@ -761,9 +767,11 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("-6*x*sin(3*x^2)", complexsin.Differentiate("x").ToString());
 
 
-            var log = new SymbolicVariable("log(x^6)");
+            var log = new SymbolicVariable(lnText + "(x^6*y^3)");
 
             Assert.AreEqual("6/x", log.Differentiate("x").ToString());
+
+            Assert.AreEqual("3/y", log.Differentiate("y").ToString());
 
         }
 
@@ -774,6 +782,10 @@ namespace SymbolicAlgebraUnitTesting
             var sin2y = sin.RaiseToSymbolicPower(SymbolicVariable.Parse("2-y"));
             Assert.AreEqual("sin(x)^(2-y)", sin2y.ToString());
             Assert.AreEqual("2*cos(x)*sin(x)^(1-y)-cos(x)*sin(x)^(1-y)*y", sin2y.Differentiate("x").ToString());
+
+            sin = SymbolicVariable.Parse("2*sin(x)");
+            Assert.AreEqual("2*cos(x)", sin.Differentiate("x").ToString());
+
         }
 
 
@@ -795,18 +807,17 @@ namespace SymbolicAlgebraUnitTesting
             var roro = SymbolicVariable.Multiply(p, xx);
             Assert.AreEqual("x^2*2^x", roro.ToString());
 
-            var g = SymbolicVariable.Multiply(new SymbolicVariable("log(2)"), SymbolicVariable.Parse("2^x"));
-            Assert.AreEqual("log(2)*2^x", g.ToString());
+            var g = SymbolicVariable.Multiply(new SymbolicVariable(lnText + "(2)"), SymbolicVariable.Parse("2^x"));
+            Assert.AreEqual(lnText + "(2)*2^x", g.ToString());
 
             g = SymbolicVariable.Multiply( g , SymbolicVariable.Parse("2^y"));
-            Assert.AreEqual("log(2)*2^(x+y)", g.ToString());
+            Assert.AreEqual(lnText + "(2)*2^(x+y)", g.ToString());
 
             g = SymbolicVariable.Multiply(g, SymbolicVariable.Parse("3^y"));
-            Assert.AreEqual("log(2)*2^(x+y)*3^y", g.ToString());
+            Assert.AreEqual(lnText + "(2)*2^(x+y)*3^y", g.ToString());
 
             g = SymbolicVariable.Multiply(g, SymbolicVariable.Parse("3^z"));
-            Assert.AreEqual("log(2)*2^(x+y)*3^(y+z)", g.ToString());
-
+            Assert.AreEqual(lnText + "(2)*2^(x+y)*3^(y+z)", g.ToString());
         }
 
 
@@ -868,7 +879,7 @@ namespace SymbolicAlgebraUnitTesting
         {
             var p = SymbolicVariable.Parse("u^(x^2)");
             var g= p.Differentiate("x");
-            Assert.AreEqual("2*log(u)*x*u^(x^2)", g.ToString());
+            Assert.AreEqual("2*"+ lnText + "(u)*x*u^(x^2)", g.ToString());
         }
 
         [TestMethod]
@@ -879,6 +890,112 @@ namespace SymbolicAlgebraUnitTesting
 
             s = new SymbolicVariable("--- + sin (3- 4 + t * 9) + 4 - 5");
             Assert.AreEqual("-sin(3-4+t*9)+4-5", s.ToString());
+        }
+
+        [TestMethod]
+        public void Issues8Testing()
+        {
+            //3^(2*x)*3
+            var t2x = SymbolicVariable.Parse("3^(2*x)");
+            var g = SymbolicVariable.Multiply(t2x, Three);
+            Assert.AreEqual("3^(2*x+1)", g.ToString());
+
+            var tx5 = SymbolicVariable.Parse("3^(x-5)");
+            g = SymbolicVariable.Multiply(Eleven, tx5);
+            Assert.AreEqual("11*3^(x-5)", g.ToString());
+
+            g = SymbolicVariable.Multiply(new SymbolicVariable("27"), tx5); // 3^3*3^(x-5)
+            Assert.AreEqual("3^(-2+x)", g.ToString());
+
+            var fvx = SymbolicVariable.Parse("5^x");
+            g = SymbolicVariable.Multiply(Five, fvx);
+
+            Assert.AreEqual("5^(1+x)", g.ToString());
+
+            var cst = new SymbolicVariable("-cos(t)");
+            g = SymbolicVariable.Multiply(t, cst);
+            Assert.AreEqual("-t*cos(t)", g.ToString());
+
+        }
+
+
+        [TestMethod]
+        public void DifferentiateMultpliedSymbols()
+        {
+            var p = SymbolicVariable.Parse("x^2*y^(2*x)");
+            var g = p.Differentiate("x");
+
+            Assert.AreEqual("2*y^(2*x)*x+2*x^2*"+ lnText + "(y)*y^(2*x)", g.ToString());
+
+            p = SymbolicVariable.Parse("2^(x^2)*x^3");
+            g = p.Differentiate("x");
+
+            Assert.AreEqual("x^4*2^(1+x^2)*" + lnText + "(2)+3*x^2*2^(x^2)", g.ToString());
+
+            p = SymbolicVariable.Parse("sin(x)*cos(x)");
+            g = p.Differentiate("x");
+
+            Assert.AreEqual("cos(x)^2-sin(x)^2", g.ToString());
+
+
+            p = SymbolicVariable.Parse("sin(2*x*y)*cos(x)");
+            g = p.Differentiate("x");
+
+            Assert.AreEqual("2*cos(x)*y*cos(2*x*y)-sin(2*x*y)*sin(x)", g.ToString());
+
+            g = p.Differentiate("y");
+            Assert.AreEqual("2*cos(x)*x*cos(2*x*y)", g.ToString());
+
+            p = SymbolicVariable.Parse(lnText + "(x^(2*f*t)*y^(5*t))");
+
+            g = p.Differentiate("t");
+            Assert.AreEqual("2*" + lnText + "(x)*f+5*" + lnText + "(y)", g.ToString());
+
+            g = p.Differentiate("x");
+            Assert.AreEqual("2/x*f*t", g.ToString());
+
+            g = p.Differentiate("y");
+            Assert.AreEqual("5/y*t", g.ToString());
+
+            
+
+
+        }
+
+
+        [TestMethod()]
+        public void InvolvedSymbolsTest2()
+        {
+            var p = SymbolicVariable.Parse("2^(2*f*t)*t^(8*i*u)*g^(7^(h*l)*s*c)");
+            Assert.AreEqual(9, p.InvolvedSymbols.Length);
+
+        }
+
+        /// <summary>
+        ///A test for ParseLambda
+        ///</summary>
+        [TestMethod()]
+        public void ParseLambdaTest()
+        {
+            var TwoX = SymbolicVariable.Parse("x*x");
+
+            
+            Assert.AreEqual(16, TwoX.Execute(4));
+
+            var pp = SymbolicVariable.Parse("2*x^60*x*y+z-3^u");
+
+            List<Tuple<string, double>> foo2 = new List<Tuple<string, double>>(4);
+            var x = new Tuple<string, double>("x", 0);
+            var y= new Tuple<string, double>("y", 9);
+            var z =new Tuple<string, double>("z", 8);
+            var u =new Tuple<string, double>("u", 7);
+
+            Assert.AreEqual(-2179.0, pp.Execute(y, x, z, u));
+
+            double v = CosFunction.Execute(2);
+
+            
+            
         }
     }
 }

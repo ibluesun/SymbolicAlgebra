@@ -1,3 +1,24 @@
+Symbolic Algebra [0.6]
+----------------------
+- Solved some issues (lot ones)
+- At last you can differentiate multiplied functions like (sin(x)*cos(x))|x == cos(x)^2-sin(x)^2  :) :) :)
+- fixed the log differentiation  after knowing the rule:   d/dx ln(g(x))  = g'(x)/g
+-  and for fixing the log I had to alter the divide operation and adjusting lot of calcs here and there 
+		{specially when symbolic power reach coefficient mode only I transfer its value to the numerical power and make it null 
+		   either in primary term and in fused symbols}
+
+- Added a native parsing so we can parse the resulted expression into a method to be called. (still calling function inside expression is not supported)
+   this way we can form the expressions by calculations and get a function delegeate to execute it inside our program.
+
+   double Execute(params Tuple<string, double>[] parameters)  // should be very illustrative from its body :)
+
+- merged the silverlight application inside the solution (and altered the .csproj to include the files without copying them).
+
+- Features not implemented yet:
+	a] asin, acos in differentiation implementation.
+	b] Ability to define custom functions in context and differentiate it also
+	c] Division is not complete
+
 Symbolic Algebra [0.5]
 ----------------------
 - Added the ability to multiplication of many coeffecients with different power terms

@@ -5,11 +5,16 @@ using System.Text;
 
 namespace SymbolicAlgebra
 {
+
     /// <summary>
     /// Symbolic + Numerical  value
     /// currently used in Fused Variables as the power term for the symbol in dictionary.
     /// </summary>
+    #if SILVERLIGHT
+    public struct HybridVariable 
+    #else
     public struct HybridVariable : ICloneable
+    #endif
     {
         
         public SymbolicVariable SymbolicVariable;
@@ -21,6 +26,15 @@ namespace SymbolicAlgebra
             HybridVariable nhv;
             nhv.NumericalVariable = hv.NumericalVariable - num.NumericalVariable;
             nhv.SymbolicVariable = hv.SymbolicVariable - num.SymbolicVariable;
+
+            if (nhv.SymbolicVariable != null)
+            {
+                if (nhv.SymbolicVariable.IsCoeffecientOnly)
+                {
+                    nhv.NumericalVariable = nhv.SymbolicVariable.Coeffecient;
+                    nhv.SymbolicVariable = null;
+                }
+            }
             return nhv;
         }
 
@@ -28,7 +42,20 @@ namespace SymbolicAlgebra
         {
             HybridVariable nhv;
             nhv.NumericalVariable = hv.NumericalVariable - num;
-            nhv.SymbolicVariable = hv.SymbolicVariable ;
+            nhv.SymbolicVariable = hv.SymbolicVariable;
+            return nhv;
+        }
+
+        public static HybridVariable operator -(HybridVariable hv, SymbolicVariable num)
+        {
+            HybridVariable nhv;
+            nhv.NumericalVariable = hv.NumericalVariable;
+            nhv.SymbolicVariable = hv.SymbolicVariable - num;
+            if (nhv.SymbolicVariable.IsCoeffecientOnly)
+            {
+                nhv.NumericalVariable = nhv.SymbolicVariable.Coeffecient;
+                nhv.SymbolicVariable = null;
+            }
             return nhv;
         }
 

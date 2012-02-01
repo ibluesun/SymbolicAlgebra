@@ -6,7 +6,11 @@ using System.Globalization;
 
 namespace SymbolicAlgebra
 {
+#if SILVERLIGHT
+    public partial class SymbolicVariable
+#else
     public partial class SymbolicVariable : ICloneable
+#endif
     {
 
         public static SymbolicVariable Divide(SymbolicVariable a, SymbolicVariable b)
@@ -36,8 +40,19 @@ namespace SymbolicAlgebra
             if (a.BaseEquals(TargetSubTerm))
             {
                 #region symbols are equal (I mean 2*x^3 = 2*X^3)
-                SourceTerm.Coeffecient = SourceTerm.Coeffecient / TargetSubTerm.Coeffecient;
-                SourceTerm.SymbolPower = SourceTerm.SymbolPower - TargetSubTerm.SymbolPower;
+
+                DivideCoeffecients(ref SourceTerm, TargetSubTerm);
+
+                if (a.SymbolPowerTerm != null || TargetSubTerm.SymbolPowerTerm != null)
+                {
+                    SourceTerm._SymbolPowerTerm = a.SymbolPowerTerm - TargetSubTerm.SymbolPowerTerm;
+                }
+                else
+                {
+                    SourceTerm.SymbolPower = SourceTerm.SymbolPower - TargetSubTerm.SymbolPower;
+                }
+
+                
 
                 //fuse the fused symbols in b into sv
                 foreach (var bfv in TargetSubTerm.FusedSymbols)
@@ -96,8 +111,22 @@ namespace SymbolicAlgebra
 
                             SourceTerm._SymbolPowerTerm -= TargetSubTerm._SymbolPowerTerm;
 
-                            // correct the source symbol power (because after division the power may still be positive
-                            if (SourceTerm._SymbolPowerTerm.IsNegative) SourceTerm._SymbolPower = -1;
+                            if (SourceTerm._SymbolPowerTerm.IsCoeffecientOnly)
+                            {
+                                SourceTerm._SymbolPower = SourceTerm._SymbolPowerTerm.Coeffecient;
+                                SourceTerm._SymbolPowerTerm = null;  // remove it because we don't need symbolic when we reach co
+                            }
+                            else
+                            {
+                                // correct the source symbol power (because after division the power may still be positive
+                                if (SourceTerm._SymbolPowerTerm.IsNegative)
+                                {
+                                    SourceTerm._SymbolPower = -1;
+
+                                    SourceTerm._SymbolPowerTerm *= NegativeOne;
+
+                                }
+                            }
                         }
                         else
                         {
@@ -119,7 +148,14 @@ namespace SymbolicAlgebra
                     {
                         #region Third Case: Target primary symbol exist in source fused variables
 
-                        SourceTerm.FusedSymbols[TargetSubTerm.Symbol] -= TargetSubTerm.SymbolPower;
+                        if (TargetSubTerm.SymbolPowerTerm != null)
+                        {
+                            SourceTerm.FusedSymbols[TargetSubTerm.Symbol] -= TargetSubTerm.SymbolPowerTerm;
+                        }
+                        else
+                        {
+                            SourceTerm.FusedSymbols[TargetSubTerm.Symbol] -= TargetSubTerm.SymbolPower;
+                        }
 
                         // however primary symbol in source still the same so we need to add it to the value in target (if applicable)
 
@@ -143,13 +179,21 @@ namespace SymbolicAlgebra
                                     if (tfs.Value.SymbolicVariable != null)
                                     {
                                         if (SourceTerm._SymbolPowerTerm != null)
+                                        {
                                             SourceTerm._SymbolPowerTerm -= tfs.Value.SymbolicVariable;
+                                        }
                                         else
                                         {
                                             // sum the value in the numerical part to the value in symbolic part
                                             SourceTerm._SymbolPowerTerm = new SymbolicVariable(SourceTerm._SymbolPower.ToString(CultureInfo.InvariantCulture)) - tfs.Value.SymbolicVariable;
                                             // reset the value in numerical part
                                             SourceTerm._SymbolPower = -1;
+                                        }
+
+                                        if(SourceTerm._SymbolPowerTerm.IsCoeffecientOnly) 
+                                        {
+                                            SourceTerm._SymbolPower = SourceTerm._SymbolPowerTerm.Coeffecient;
+                                            SourceTerm._SymbolPowerTerm = null;
                                         }
                                     }
                                     else
@@ -215,7 +259,7 @@ namespace SymbolicAlgebra
                     }
                 }
 
-                SourceTerm.Coeffecient = a.Coeffecient / TargetSubTerm.Coeffecient;
+                DivideCoeffecients(ref SourceTerm, TargetSubTerm);
                 #endregion
             }
 
@@ -224,7 +268,7 @@ namespace SymbolicAlgebra
                 Dictionary<string, SymbolicVariable> newAddedVariables = new Dictionary<string, SymbolicVariable>(StringComparer.OrdinalIgnoreCase);
                 foreach (var vv in SourceTerm.AddedTerms)
                 {
-                    var newv = vv.Value / TargetSubTerm;
+                    var newv = Divide (vv.Value , TargetSubTerm);
                     newAddedVariables.Add(newv.SymbolBaseValue, newv);
 
                 }
@@ -253,6 +297,125 @@ namespace SymbolicAlgebra
 
             return total; 
         }
+
+
+
+        /// <summary>
+        /// Multiply Coeffecients of second argument into first argument.
+        /// </summary>
+        /// <param name="SourceTerm"></param>
+        /// <param name="TargetSubTerm"></param>
+        private static void DivideCoeffecients(ref SymbolicVariable SourceTerm, SymbolicVariable TargetSubTerm)
+        {
+            // Note: I will try to avoid the primary coeffecient so it doesn't hold power
+            //      and only hold coeffecient itself.
+            foreach (var cst in TargetSubTerm.Constants)
+            {
+
+                if (SourceTerm._CoeffecientPowerTerm == null && cst.ConstantPower == null)
+                {
+                    SourceTerm.Coeffecient /= cst.ConstantValue;
+                }
+                // there is a coeffecient power term needs to be injected into the source
+                else
+                {
+                    // no the coeffecient part is not empty so we will test if bases are equal
+                    // then make use of the fusedsymbols to add our constant
+
+
+                    double sbase = Math.Log(SourceTerm.Coeffecient, cst.ConstantValue);
+
+                    if (SourceTerm.Coeffecient == cst.ConstantValue)
+                    {
+                        // sample: 2^x/2^y = 2^(x-y)
+                        var cpower = cst.ConstantPower;
+                        if (cpower == null) cpower = One;
+
+                        if (SourceTerm._CoeffecientPowerTerm == null) SourceTerm._CoeffecientPowerTerm = One;
+                        SourceTerm._CoeffecientPowerTerm -= cpower;
+                    }
+                    else if ((sbase - Math.Floor(sbase)) == 0.0 && sbase > 0)   // make sure there are no
+                    {
+                        // then we can use the target base
+                        // 27/3^x = 3^3/3^x = 3^(3-x)
+                        var cpower = cst.ConstantPower;
+                        if (cpower == null) cpower = new SymbolicVariable("1");
+                        SourceTerm._CoeffecientPowerTerm = SymbolicVariable.Subtract(new SymbolicVariable(sbase.ToString()), cpower);
+                        SourceTerm.Coeffecient = cst.ConstantValue;
+
+                    }
+                    else
+                    {
+                        // sample: 2^(x+y)*log(2)*3^y * 3^z   can't be summed.
+                        HybridVariable SameCoeffecient;
+                        if (SourceTerm.FusedConstants.TryGetValue(cst.ConstantValue, out SameCoeffecient))
+                        {
+                            SameCoeffecient.SymbolicVariable -= cst.ConstantPower;
+                            SourceTerm.FusedConstants[cst.ConstantValue] = SameCoeffecient;
+                        }
+                        else
+                        {
+                            // Add Target coefficient symbol to the fused symbols in source, with key as the coefficient number itself.
+                            if (cst.ConstantPower != null)
+                            {
+                                SourceTerm.FusedConstants.Add(
+                                    cst.ConstantValue,
+                                    new HybridVariable
+                                    {
+                                        NumericalVariable = 1, // power
+                                        SymbolicVariable = (SymbolicVariable)cst.ConstantPower.Clone()
+                                    });
+                            }
+                            else
+                            {
+                                // coeffecient we working with is number only
+                                // First Attempt: to try to get the power of this number with base of available coeffecients
+                                // if no base produced an integer power value then we add it into fused constants as it is.
+
+                                if (cst.ConstantValue == 1.0) continue;  // ONE doesn't change anything so we bypass it
+
+                                double? SucceededConstant = null;
+                                double ower = 0;
+                                foreach (var p in SourceTerm.Constants)
+                                {
+                                    ower = Math.Log(cst.ConstantValue, p.ConstantValue);
+                                    if (ower == Math.Floor(ower))
+                                    {
+                                        SucceededConstant = p.ConstantValue;
+                                        break;
+                                    }
+                                }
+
+                                if (SucceededConstant.HasValue)
+                                {
+                                    if (SourceTerm.Coeffecient == SucceededConstant.Value)
+                                    {
+                                        SourceTerm._CoeffecientPowerTerm -= new SymbolicVariable(ower.ToString());
+                                    }
+                                    else
+                                    {
+                                        var rr = SourceTerm.FusedConstants[SucceededConstant.Value];
+
+                                        rr.SymbolicVariable -= new SymbolicVariable(ower.ToString());
+                                        SourceTerm.FusedConstants[SucceededConstant.Value] = rr;
+                                    }
+
+                                }
+                                else
+                                {
+                                    SourceTerm.FusedConstants.Add(
+                                        cst.ConstantValue,
+                                        new HybridVariable
+                                        {
+                                            NumericalVariable = -1, // power
+                                        });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }    
 
     }
 }
