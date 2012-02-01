@@ -6,7 +6,11 @@ using System.Globalization;
 
 namespace SymbolicAlgebra
 {
+#if SILVERLIGHT
+    public partial class SymbolicVariable
+#else
     public partial class SymbolicVariable : ICloneable
+#endif
     {
         const string lnText = "log";
 
@@ -15,8 +19,10 @@ namespace SymbolicAlgebra
         /// </summary>
         /// <param name="sv"></param>
         /// <param name="parameter"></param>
-        private void DiffTerm(ref SymbolicVariable sv, string parameter)
+        private static SymbolicVariable DiffTerm(SymbolicVariable term, string parameter)
         {
+            var sv = (SymbolicVariable)term.Clone();
+
             bool symbolpowercontainParameter = false;
             if (sv._SymbolPowerTerm != null)
             {
@@ -87,22 +93,19 @@ namespace SymbolicAlgebra
                         // remove the power term in this copied function term
                         fv._SymbolPowerTerm = null;
                         fv.SymbolPower = 1.0;
+                        fv.Coeffecient = 1.0;
+
 
                         if (fv.FunctionName.Equals(lnText, StringComparison.OrdinalIgnoreCase))
                         {
+                            
                             if (fv.FunctionParameters.Length != 1) throw new SymbolicException("log function must have one parameter for differentiation to be done.");
 
-                            var pa = fv.FunctionParameters[0];
-                            if (pa.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
-                            {
-                                if (pa.SymbolPowerTerm != null) throw new SymbolicException("differentiating log with a parameter that has a symbolic power term is not supported");
+                            // d/dx ( ln( g(x) ) ) = g'(x)/g(x)
 
-                                fv = SymbolicVariable.Parse(pa.SymbolPower + "/" + pa.Symbol);
-                            }
-                            else
-                            {
-                                fv = Zero;
-                            }
+                            var pa = fv.FunctionParameters[0];
+                            var dpa = pa.Differentiate(parameter);
+                            fv = SymbolicVariable.Divide(dpa, pa);
 
                         }
                         else
@@ -125,9 +128,9 @@ namespace SymbolicAlgebra
                                     fv.SetFunctionName(newfuntions);
 
                                     if (IsNegativeResult)
-                                        fv = presult * SymbolicAlgebra.SymbolicVariable.NegativeOne * fv;
+                                        fv = SymbolicVariable.Multiply(presult, SymbolicAlgebra.SymbolicVariable.NegativeOne * fv);
                                     else
-                                        fv = presult * fv;
+                                        fv = SymbolicVariable.Multiply(presult, fv);
                                 }
                                 else
                                 {
@@ -158,7 +161,7 @@ namespace SymbolicAlgebra
                         }
 
 
-                        sv = fv * sv;
+                        sv = SymbolicVariable.Multiply(fv, sv);
                     }
                     else if (sv.IsCoeffecientOnly && sv._CoeffecientPowerTerm != null)
                     {
@@ -188,7 +191,133 @@ namespace SymbolicAlgebra
                     }
                 }
             }
+
+            return sv;
         }
+
+        private static SymbolicVariable DiffBigTerm(SymbolicVariable sv, string parameter)
+        {
+            // now result contains only one term
+            // -----------------------------------
+
+            // we need to differentiate multiplied terms   in this  ONE TERM
+            // every term is differentiated and multiplied by other terms  if  x*y*z  then == dx*y*z+x*dy+z+x*y*dz
+
+            int MultipliedTermsCount = sv.FusedSymbols.Count + sv.FusedConstants.Count + 1; // last one is the basic symbol and coeffecient in the instant
+
+            // separate all terms into array by flatting them
+            List<SymbolicVariable> MultipliedTerms = new List<SymbolicVariable>(MultipliedTermsCount);
+
+            Action<SymbolicVariable> SpliBaseTerm = (rr) =>
+            {
+                var basicterm = (SymbolicVariable)rr.Clone();
+                basicterm._FusedConstants = null;
+                basicterm._FusedSymbols = null;
+                
+                // split coeffecient and its associated symbol
+
+                if (basicterm.CoeffecientPowerTerm != null)
+                {
+                    // coefficient
+                    SymbolicVariable CoeffecientOnly = new SymbolicVariable("");
+                    CoeffecientOnly._CoeffecientPowerTerm = basicterm.CoeffecientPowerTerm;
+                    CoeffecientOnly.Coeffecient = basicterm.Coeffecient;
+                    MultipliedTerms.Add(CoeffecientOnly);
+
+                    // multiplied symbol
+                    if (!string.IsNullOrEmpty(basicterm.SymbolBaseValue))
+                        MultipliedTerms.Add(SymbolicVariable.Parse(basicterm.SymbolBaseValue));
+                }
+                else
+                {
+                    MultipliedTerms.Add(basicterm);
+                }
+
+            };
+
+            Action<SymbolicVariable> SpliFusedConstants = (rr) =>
+            {
+                var basicterm = (SymbolicVariable)rr.Clone();
+
+                var FCConstants = basicterm._FusedConstants;
+
+                // Key  is the coefficient
+                //  value contains the power  which always will be symbolic power or null
+                foreach (var FC in FCConstants)
+                {
+                    SymbolicVariable CoeffecientOnly = new SymbolicVariable("");
+                    CoeffecientOnly._CoeffecientPowerTerm = (SymbolicVariable)FC.Value.SymbolicVariable.Clone();
+                    CoeffecientOnly.Coeffecient = FC.Key;
+
+                    MultipliedTerms.Add(CoeffecientOnly);
+                }
+            };
+
+            Action<SymbolicVariable> SplitFusedSymbols = (rr) =>
+            {
+                var basicterm = (SymbolicVariable)rr.Clone();
+
+                var FSymbols = basicterm._FusedSymbols;
+
+                // Key  is the coefficient
+                //  value contains the power  which always will be symbolic power or null
+                foreach (var FS in FSymbols)
+                {
+                    var ss = new SymbolicVariable(FS.Key);
+                    ss.SymbolPower = FS.Value.NumericalVariable;
+                    if (FS.Value.SymbolicVariable != null)
+                        ss._SymbolPowerTerm = (SymbolicVariable)FS.Value.SymbolicVariable.Clone();
+
+                    MultipliedTerms.Add(ss);
+                }
+            };
+
+            SpliBaseTerm(sv);
+            if (sv.FusedConstants.Count > 0) SpliFusedConstants(sv);
+            if (sv.FusedSymbols.Count > 0) SplitFusedSymbols(sv);
+
+            List<SymbolicVariable> CalculatedDiffs = new List<SymbolicVariable>(MultipliedTermsCount);
+
+            // get all differentials of all terms                       // x*y*z ==>  dx  dy  dz 
+            for (int ix = 0; ix < MultipliedTerms.Count; ix++)
+            {
+                CalculatedDiffs.Add(DiffTerm(MultipliedTerms[ix], parameter));
+            }
+
+            // every result of calculated differentials should be multiplied by the other terms.
+            for(int ix =0; ix<CalculatedDiffs.Count; ix++)
+            {
+                var term = CalculatedDiffs[ix];
+
+                if (term.IsZero) continue;
+                var mt = One;
+
+                for(int iy=0;iy<MultipliedTerms.Count;iy++)
+                {
+                    if (iy == ix) continue;
+                    mt = SymbolicVariable.Multiply(mt, MultipliedTerms[iy]);
+                }
+
+                // term *mt
+                CalculatedDiffs[ix] = SymbolicVariable.Multiply(mt, term);
+
+            }
+
+            //       dx*y*z     dy*x*z       dz*x*y
+
+            var total = Zero;
+
+            foreach (var cc in CalculatedDiffs)
+            {
+                if (cc.IsZero) continue;
+
+                total = SymbolicVariable.Add(total, cc);
+            }
+
+
+            return total;
+        }
+
 
         /// <summary>
         /// Differentiate the whole term based on the needed variables ... you know what I mean :)
@@ -197,13 +326,19 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public SymbolicVariable Differentiate(string parameter)
         {
+
+
             SymbolicVariable result = (SymbolicVariable)this.Clone();
 
             Dictionary<string, SymbolicVariable> OtherTerms = result._AddedTerms;
             result._AddedTerms = null;
 
+
+            
             // see the first part.
-            DiffTerm(ref result, parameter);
+            //DiffTerm(ref result, parameter);
+            result = DiffBigTerm(result, parameter);
+
 
 
             Dictionary<string, SymbolicVariable> extraTerms = null;  // may be come from inner operations like deriving 5*x^(y-1)
@@ -229,7 +364,7 @@ namespace SymbolicAlgebra
                 for (int ix = 0; ix < OtherTerms.Count; ix++)
                 {
                     var term = OtherTerms.Values.ElementAt(ix);
-                    DiffTerm(ref term, parameter);
+                    term = DiffBigTerm(term, parameter);
 
                     result = Add(result, term);
                 }

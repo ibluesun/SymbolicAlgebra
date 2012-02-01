@@ -17,6 +17,9 @@ contains
                          	This is for the usage of raising power to symbols and not native values.
    5) CoeffecientPowerTerm  (SymbolicVariable instance of Coeffecient Part)
 
+   6) FusedSymbols			(for multiplied variables in the same term)
+   7) FusedConstants		(for multiplied coeffecients that have symbolic constants)
+
 
 Definitions:
 Multi Term:  Symbolic variables that contains plus or minus  other symbolic variables

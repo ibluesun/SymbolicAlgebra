@@ -8,7 +8,11 @@ using System.Text.RegularExpressions;
 
 namespace SymbolicAlgebra
 {
+    #if SILVERLIGHT
+    public partial class SymbolicVariable
+    #else
     public partial class SymbolicVariable : ICloneable
+    #endif
     {
 
         /// <summary>
@@ -175,10 +179,8 @@ namespace SymbolicAlgebra
                     }
                 }
             }
+            
             double rem = Math.IEEERemainder(minuscount, 2);
-
-            if (rem != 0.0) sb.Insert(0, new char[] { '-' });
-
 
             string expression = sb.ToString();
             double coe;
@@ -187,14 +189,20 @@ namespace SymbolicAlgebra
             if (double.TryParse(expression, out coe))
             {
                 Symbol = string.Empty;
-                Coeffecient = coe;
+                
+                if (rem != 0.0) Coeffecient = -1 * coe;
+                else Coeffecient = coe;
+
+
                 SymbolPower = 0;
             }
             else
             {
                 // not number then take the whole string as a symbol
                 Symbol = expression;
-                Coeffecient = 1;
+                if (rem != 0.0) Coeffecient = -1;     // in case of minus before symbol  -x or -sin(x)
+                else Coeffecient = 1;
+
                 SymbolPower = 1;
             }
 
@@ -552,7 +560,7 @@ namespace SymbolicAlgebra
 
         /// <summary>
         /// from a*x^2  I mean {x^2}
-        /// used as a key also.
+        /// used as a key in AddedTerms hashtable.
         /// </summary>
         public string SymbolBaseValue
         {
@@ -779,7 +787,11 @@ namespace SymbolicAlgebra
                     {
                         if (FusedSymbols.Count > 0)
                         {
-                            result = rr + result;
+                            result = rr + "*" +  result;
+                        }
+                        else if (FusedConstants.Count > 0)
+                        {
+                            result = rr + "*" + result;
                         }
                         else
                         {
@@ -1027,8 +1039,9 @@ namespace SymbolicAlgebra
         {
             for (int i = svar.FusedSymbols.Count - 1; i >= 0; i--)
             {
-                if (svar.FusedSymbols.ElementAt(i).Value.IsZero)
+                if (svar.FusedSymbols.ElementAt(i).Value.IsZero || svar.FusedSymbols.ElementAt(i).Key == string.Empty)
                     svar.FusedSymbols.Remove(svar.FusedSymbols.ElementAt(i).Key);
+                
             }
 
             if (svar._SymbolPower == 0)
@@ -1113,6 +1126,33 @@ namespace SymbolicAlgebra
         }
 
         /// <summary>
+        /// Test if the whole term equals One or not ==1.
+        /// </summary>
+        public bool IsOne
+        {
+            get
+            {
+                if (this.ToString() == "1") return true;
+
+                return false;
+            }
+        }
+
+
+        /// <summary>
+        /// Test if -1
+        /// </summary>
+        public bool IsNegativeOne
+        {
+            get
+            {
+                if (this.ToString() == "-1") return true;
+
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Tells if this instance is only one term.
         /// </summary>
         public bool IsOneTerm
@@ -1135,10 +1175,12 @@ namespace SymbolicAlgebra
         {
             get
             {
-                if (string.IsNullOrEmpty(this.SymbolBaseValue))
+                if (string.IsNullOrEmpty(this.SymbolBaseValue) && IsMultiValue == false)
                 {
                     return true;
                 }
+                else if (IsZero) return true;
+
                 return false;
             }
         }
@@ -1211,15 +1253,52 @@ namespace SymbolicAlgebra
                     symbols.AddRange(this._BaseVariable.InvolvedSymbols);
                 }
 
-                foreach (string fs in FusedSymbols.Keys)
+                // fused or multiplied symbols
+                foreach (var fsm in FusedSymbols)
                 {
+                    string fs = fsm.Key;
+
                     if (!symbols.Contains(fs, StringComparer.OrdinalIgnoreCase))
                         symbols.Add(fs);
+
+                    if (fsm.Value.SymbolicVariable != null)
+                    {
+                        foreach (string ss in fsm.Value.SymbolicVariable.InvolvedSymbols)
+                        {
+                            if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                                symbols.Add(ss);
+                        }
+                    }
                 }
 
+                // primary symbol
                 if (this.SymbolPowerTerm != null)
                 {
                     foreach (string ss in this.SymbolPowerTerm.InvolvedSymbols)
+                    {
+                        if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                            symbols.Add(ss);
+                    }
+                }
+
+
+                // fused constants powers
+                foreach (var fc in FusedConstants)
+                {
+                    if (fc.Value.SymbolicVariable != null)
+                    {
+                        foreach (string ss in fc.Value.SymbolicVariable.InvolvedSymbols)
+                        {
+                            if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                                symbols.Add(ss);
+                        }
+                    }
+                }
+
+                // coeffiecient power term
+                if (this.CoeffecientPowerTerm != null)
+                {
+                    foreach (string ss in this.CoeffecientPowerTerm.InvolvedSymbols)
                     {
                         if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
                             symbols.Add(ss);

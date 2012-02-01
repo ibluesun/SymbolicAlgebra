@@ -19,9 +19,13 @@ namespace SymbolicAlgebra
         public static string[] Diff(SymbolicVariable function, out bool negative)
         {
 
-            
-
             string func = function.FunctionName;
+
+            if (string.Equals(func, "exp", StringComparison.InvariantCultureIgnoreCase))
+            {
+                negative = false;
+                return new string[] { "exp" };
+            }
 
 
             if (string.Equals(func, "sin", StringComparison.InvariantCultureIgnoreCase))

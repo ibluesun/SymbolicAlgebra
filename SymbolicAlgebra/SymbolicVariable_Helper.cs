@@ -7,7 +7,11 @@ using System.Globalization;
 
 namespace SymbolicAlgebra
 {
+#if SILVERLIGHT
+    public partial class SymbolicVariable
+#else
     public partial class SymbolicVariable : ICloneable
+#endif
     {
         private static SymbolicVariable _NegativeOne = new SymbolicVariable("-1");
         private static SymbolicVariable _Zero = new SymbolicVariable("0");

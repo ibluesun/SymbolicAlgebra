@@ -7,7 +7,11 @@ using System.Globalization;
 
 namespace SymbolicAlgebra
 {
+#if SILVERLIGHT
+    public partial class SymbolicVariable
+#else
     public partial class SymbolicVariable : ICloneable
+#endif
     {
 
         #region coeffecient multiplication

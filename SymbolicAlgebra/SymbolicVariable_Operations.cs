@@ -1,7 +1,11 @@
 ﻿using System;
 namespace SymbolicAlgebra
 {
+#if SILVERLIGHT
     public partial class SymbolicVariable
+#else
+    public partial class SymbolicVariable : ICloneable
+#endif
     {
         
         /// <summary>
