@@ -986,6 +986,9 @@ namespace SymbolicAlgebraUnitTesting
             var tt = SymbolicVariable.Parse("5*sin(x)");
             Assert.AreEqual("x", tt.InvolvedSymbols[0]);
 
+            var popo = SymbolicVariable.Parse("sin(3*x)");
+            Assert.AreEqual("x", popo.InvolvedSymbols[0]);
+
         }
 
         /// <summary>
@@ -1033,6 +1036,10 @@ namespace SymbolicAlgebraUnitTesting
             
             v = SymbolicVariable.Parse("-1*x^2").Execute(8);
             Assert.AreEqual(-64, v);
+
+            v = SymbolicVariable.Parse("sin(3*x)").Execute(2);
+            Assert.AreEqual(Math.Sin(3 * 2), v);
+
         }
     }
 }

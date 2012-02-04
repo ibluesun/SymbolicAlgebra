@@ -1251,7 +1251,6 @@ namespace SymbolicAlgebra
                 Func<string, List<string>> pgh = (key) =>
                     {
                         List<string> fs = new List<string> { key };
-
                         int i = 0;
                         while (i < fs.Count)
                         {
@@ -1260,7 +1259,7 @@ namespace SymbolicAlgebra
                             {
                                 fs[i] = FunctionRegex.Match(fs[i]).Groups["parameters"].Value;
 
-                                var vps = TextTools.ComaSplit(fs[i]);
+                                var vps = TextTools.ExtractFunctionParameters(fs[i]);
 
                                 fs[i] = vps[0]; //first parameter
 
@@ -1273,29 +1272,23 @@ namespace SymbolicAlgebra
                                 // will conduct the test again of current fs[i] to see if it is a function or not.
                                 // so we are adding undiscovered symbols to later passes when i is increasing after this loop.
                             }
-
                             i++;
                         }
-
                         return fs;
-
                     };
 
                 List<string> symbols = new List<string>();
 
                 if (_BaseVariable == null)
                 {
-                    
                     if (!string.IsNullOrEmpty(this.Symbol))
                     {
-
                         var fs = pgh(this.Symbol);
                         foreach (var f in fs)
                         {
                             if (!symbols.Contains(f, StringComparer.OrdinalIgnoreCase))
                                 symbols.Add(f);
                         }
-
                     }
                 }
                 else
@@ -1307,7 +1300,6 @@ namespace SymbolicAlgebra
                 foreach (var fsm in FusedSymbols)
                 {
                     var fs = pgh(fsm.Key);
-                    
                     foreach (var f in fs)
                     {
                         if (!symbols.Contains(f, StringComparer.OrdinalIgnoreCase))
@@ -1333,7 +1325,6 @@ namespace SymbolicAlgebra
                             symbols.Add(ss);
                     }
                 }
-
 
                 // fused constants powers
                 foreach (var fc in FusedConstants)
