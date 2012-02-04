@@ -281,7 +281,7 @@ namespace SymbolicAlgebra
         /// Returns an expression that can be compiled into a function to be called dynamically.
         /// </summary>
         /// <returns></returns>
-        private Expression ParseDynamicExpression(out Dictionary<string, ParameterExpression> parameters, string expression =  null)
+        private Expression ParseDynamicExpression(ref Dictionary<string, ParameterExpression> discoveredParameters, string expression =  null)
         {
             if (string.IsNullOrEmpty(expression))
             {
@@ -289,8 +289,8 @@ namespace SymbolicAlgebra
                 expression = this.ToString();
             }
 
-            parameters = new Dictionary<string, ParameterExpression>();
 
+            expression = expression.TrimStart('-');  // remove any trailing minuses
 
 
             char[] separators = { '^', '*', '/', '+', '-', '(' };
@@ -309,6 +309,7 @@ namespace SymbolicAlgebra
             //    +  Addition
             //    -  Subtraction
 
+            
 
             // Tokenization is done by separating with operators
             DynamicExpressionOperator Root = new DynamicExpressionOperator();
@@ -318,6 +319,80 @@ namespace SymbolicAlgebra
             Stack<int> PLevels = new Stack<int>();
             bool Inner = false;
             bool FunctionContext = false;
+
+            #region method that will be reused
+            Action<Dictionary<string, ParameterExpression>> redundantFunction = (parameters) =>
+            {
+                // Last pass that escaped from the loop.
+                if (Inner)
+                {
+                    
+                    ep.DynamicExpression = ParseDynamicExpression(ref parameters, TokenBuilder.ToString());
+                    
+                    Inner = false;
+                }
+                else
+                {
+                    double constant;
+                    if (double.TryParse(TokenBuilder.ToString(), out constant))
+                    {
+                        ep.DynamicExpression = Expression.Constant(constant, typeof(double));
+                    }
+                    else
+                    {
+                        var pname = TokenBuilder.ToString();
+
+                        var FMatch = FunctionRegex.Match(pname);
+                        // test if the parameter is a function
+                        if (FMatch.Success)
+                        {
+                            // take the function name and search for it 
+                            // if you found it take the inner parameters and parse it independently
+                            var fname = FMatch.Groups["function"].Value;
+                            // search for the function in the math class
+                            var targetfunction = typeof(Math).GetMethod(fname, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+
+                            if (targetfunction != null)
+                            {
+                                // for now take the 
+                                var fps = FMatch.Groups["parameters"].Value;
+                                string[] pss = TextTools.ComaSplit(fps);
+                                Expression[] tfparams = new Expression[pss.Length];
+                                for (int ixf = 0; ixf < pss.Length; ixf++)
+                                {
+                                    tfparams[ixf] = ParseDynamicExpression(ref parameters, pss[ixf]);
+                                }
+                                ep.DynamicExpression = Expression.Call(targetfunction, tfparams);
+                            }
+                            else
+                            {
+                                throw new SymbolicException(string.Format("The target function {0} couldn't be found", fname));
+                            }
+                        }
+                        else
+                        {
+                            // this is an ordinary parameter based on our test.
+                            ParameterExpression pe;
+                            if (parameters.TryGetValue(pname, out pe))
+                            {
+                                ep.DynamicExpression = pe;
+                            }
+                            else
+                            {
+                                pe = Expression.Parameter(typeof(double), pname);
+
+                                ep.DynamicExpression = pe;
+
+                                parameters.Add(pname, pe);
+                            }
+                        }
+                    }
+                }
+            };
+
+
+            #endregion
+
             for (int ix = 0; ix < expression.Length; ix++)
             {
                 if (PLevels.Count == 0)
@@ -347,39 +422,9 @@ namespace SymbolicAlgebra
                         else
                         {
                             // tokenize   when we reach any operator  or open '(' parenthesis 
-                            if (Inner)
-                            {
-                                Dictionary<string, ParameterExpression> subParameters;
-                                ep.DynamicExpression = ParseDynamicExpression(out subParameters, TokenBuilder.ToString());
-                                foreach (var p in subParameters) parameters.Add(p.Key, p.Value);
-                                Inner = false;
-                            }
-                            else
-                            {
-                                double constant;
-                                if (double.TryParse(TokenBuilder.ToString(), out constant))
-                                {
-                                    ep.DynamicExpression = Expression.Constant(constant, typeof(double));
-                                }
-                                else
-                                {
-                                    var pname = TokenBuilder.ToString();
-                                    ParameterExpression pe;
-                                    if (parameters.TryGetValue(pname, out pe))
-                                    {
-                                        ep.DynamicExpression = pe;
-                                    }
-                                    else
-                                    {
-                                        pe = Expression.Parameter(typeof(double), pname);
 
-                                        ep.DynamicExpression = pe;
-
-                                        parameters.Add(pname, pe);
-                                    }
-                                }
-                            }
-
+                            redundantFunction(discoveredParameters);
+                            
                             TokenBuilder = new StringBuilder();
 
                             ep.Operation = expression[ix].ToString();
@@ -426,39 +471,8 @@ namespace SymbolicAlgebra
                 }
             }
 
-            // Last pass that escaped from the loop.
-            if (Inner)
-            {
-                Dictionary<string, ParameterExpression> subParameters;
-                ep.DynamicExpression = ParseDynamicExpression(out subParameters, TokenBuilder.ToString());
-                foreach (var p in subParameters) parameters.Add(p.Key, p.Value);
-                Inner = false;
-            }
-            else
-            {
-                double constant;
-                if (double.TryParse(TokenBuilder.ToString(), out constant))
-                {
-                    ep.DynamicExpression = Expression.Constant(constant, typeof(double));
-                }
-                else
-                {
-                    var pname = TokenBuilder.ToString();
-                    ParameterExpression pe;
-                    if (parameters.TryGetValue(pname, out pe))
-                    {
-                        ep.DynamicExpression = pe;
-                    }
-                    else
-                    {
-                        pe = Expression.Parameter(typeof(double), pname);
+            redundantFunction(discoveredParameters);
 
-                        ep.DynamicExpression = pe;
-
-                        parameters.Add(pname, pe);
-                    }
-                }
-            }
             TokenBuilder = null;
 
 
@@ -523,25 +537,42 @@ namespace SymbolicAlgebra
 
 
         private Expression DynamicBody;
-        private Dictionary<string, ParameterExpression> DynamicParameters;
+        private Dictionary<string, ParameterExpression> DynamicParameters = new Dictionary<string,ParameterExpression>();
         private LambdaExpression Lambda;
         private Delegate FunctionDelegate;
-
 
         /// <summary>
         /// Execute the expression and give the result back.
         /// </summary>
         /// <param name="parameters">Array of tuples of parameter name and value in double</param>
         /// <returns></returns>
-        public double Execute(params Tuple<string, double>[] parameters)
+        public double Execute(Dictionary<string, double> parameters)
         {
             
             var pcount = this.InvolvedSymbols.Length;
-            if (parameters.Length != pcount) throw new SymbolicException("Number of arguments is not correct");
+
+            if (parameters.Count != pcount) throw new SymbolicException("Number of arguments is not correct");
 
             if (DynamicBody == null)
             {
-                DynamicBody = ParseDynamicExpression(out DynamicParameters);
+                var t0 = this[0];
+                DynamicBody = this[0].ParseDynamicExpression(ref DynamicParameters);
+                if (t0.IsNegative)
+                    DynamicBody = Expression.Multiply(Expression.Constant(-1.0), DynamicBody);
+
+                
+
+                // i will parse each term alone.  // so that i have more control over the parse
+                for (int tc = 1; tc < TermsCount; tc++)
+                {
+                    var rt = this[tc];
+
+                    if (rt.IsNegative)
+                        DynamicBody = Expression.Subtract(DynamicBody, rt.ParseDynamicExpression(ref DynamicParameters));
+                    else
+                        DynamicBody = Expression.Add(DynamicBody, rt.ParseDynamicExpression(ref DynamicParameters));
+                }
+
                 Lambda = Expression.Lambda(DynamicBody, DynamicParameters.Values);
                 FunctionDelegate = Lambda.Compile();
             }
@@ -549,11 +580,11 @@ namespace SymbolicAlgebra
             double[] FinalParams = new double[DynamicParameters.Count];
 
             // map parameters to the discovered ones.
-            for (int ix = 0; ix < DynamicParameters.Count; ix++ )
+            for (int ix = 0; ix < DynamicParameters.Count; ix++)
             {
                 // take the parameter value from passed parameters by the dynamicparameter name.
                 string key = DynamicParameters.Keys.ElementAt(ix);
-                FinalParams[ix] = parameters.First(x => x.Item1 == key).Item2;
+                FinalParams[ix] = parameters[key];
             }
 
             if (pcount == 0) return ((Func<double>)FunctionDelegate)();
@@ -598,8 +629,19 @@ namespace SymbolicAlgebra
                 FunctionDelegate)(FinalParams[0], FinalParams[1], FinalParams[2], FinalParams[3], FinalParams[4], FinalParams[5], FinalParams[6], FinalParams[7], FinalParams[8], FinalParams[9], FinalParams[10], FinalParams[11], FinalParams[12]);
 
 
-
             throw new Exception("What is that call ???!!");
+        }
+
+
+
+        public double Execute(params Tuple<string, double>[] parameters)
+        {
+            Dictionary<string, double> FinalParams = new Dictionary<string, double>();
+            
+            foreach (var p in parameters) FinalParams.Add(p.Item1, p.Item2);
+
+            return Execute(FinalParams);
+
         }
 
 
@@ -610,7 +652,10 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public double Execute(double parameter)
         {
-            return Execute(new Tuple<string, double>(InvolvedSymbols[0], parameter));
+            Dictionary<string, double> d = new Dictionary<string, double>(1);
+            d.Add(InvolvedSymbols[0], parameter);
+
+            return Execute(d);
         }
     }
 }

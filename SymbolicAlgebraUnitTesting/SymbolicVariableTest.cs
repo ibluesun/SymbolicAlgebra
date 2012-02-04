@@ -715,7 +715,7 @@ namespace SymbolicAlgebraUnitTesting
 
 
         [TestMethod]
-        public void FuncDiffTest()
+        public void FuncDiscoveryTest()
         {
             Assert.AreEqual(true, CosFunction.IsFunction);
             Assert.AreEqual(false, x.IsFunction);
@@ -724,6 +724,12 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual(true, VFuntion.IsFunction);
 
             Assert.AreEqual(true, EmptyFuntion.IsFunction);
+
+
+            var cf = SymbolicVariable.Parse("sum(o, sum(a,b))");
+            var g = cf.GetFunctionParameters();
+            Assert.AreEqual("o", g[0].ToString());
+            Assert.AreEqual("sum(a,b)", g[1].ToString());
 
 
             
@@ -957,9 +963,6 @@ namespace SymbolicAlgebraUnitTesting
             g = p.Differentiate("y");
             Assert.AreEqual("5/y*t", g.ToString());
 
-            
-
-
         }
 
 
@@ -968,6 +971,20 @@ namespace SymbolicAlgebraUnitTesting
         {
             var p = SymbolicVariable.Parse("2^(2*f*t)*t^(8*i*u)*g^(7^(h*l)*s*c)");
             Assert.AreEqual(9, p.InvolvedSymbols.Length);
+
+            Assert.AreEqual("x", CosFunction.InvolvedSymbols[0]);
+
+            var fon = SymbolicVariable.Parse("2*sin(x)*sin(cos(y))*log(z)+ g(f(t(u)))");
+            Assert.AreEqual(4, fon.InvolvedSymbols.Length);
+
+            var su = new SymbolicVariable("sum(x,y)");
+            Assert.AreEqual(2, su.InvolvedSymbols.Length);
+
+            var sq = SymbolicVariable.Parse("2*x*sqrt(u,G(F(v,c,x)))*l");
+            Assert.AreEqual(5, sq.InvolvedSymbols.Length);
+
+            var tt = SymbolicVariable.Parse("5*sin(x)");
+            Assert.AreEqual("x", tt.InvolvedSymbols[0]);
 
         }
 
@@ -979,7 +996,6 @@ namespace SymbolicAlgebraUnitTesting
         {
             var TwoX = SymbolicVariable.Parse("x*x");
 
-            
             Assert.AreEqual(16, TwoX.Execute(4));
 
             var pp = SymbolicVariable.Parse("2*x^60*x*y+z-3^u");
@@ -992,10 +1008,31 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual(-2179.0, pp.Execute(y, x, z, u));
 
-            double v = CosFunction.Execute(2);
+            double v = CosFunction.Execute(3.14159265358979);
+
+            Assert.AreEqual(-1.0, v);
+
+            v = SymbolicVariable.Parse("asin(x)").Execute(0.03);
+            Assert.AreEqual(Math.Asin(0.03), v);
+
+            v = SymbolicVariable.Parse("exp(x)*sin(x)").Execute(2);
+            Assert.AreEqual(Math.Exp(2) * Math.Sin(2), v);
+
+            v = SymbolicVariable.Parse("5*sin(x)").Execute(5);
+            Assert.AreEqual(5 * Math.Sin(5), v);
+
+            v = SymbolicVariable.Parse("20*cos(x)*sin(x)^3+x").Execute(3);
+            Assert.AreEqual(20 * Math.Cos(3) * Math.Pow(Math.Sin(3), 3) + 3, v);
+
+            v = SymbolicVariable.Parse("20*cos(x)*sin(x)^3-x").Execute(3);
+            Assert.AreEqual(20 * Math.Cos(3) * Math.Pow(Math.Sin(3), 3) - 3, v);
 
             
+            //v = SymbolicVariable.Parse("7*sin(x)*log(x)").Execute(3);
+            //Assert.AreEqual(7 * Math.Sin(3) * Math.Log(3), v);
             
+            v = SymbolicVariable.Parse("-1*x^2").Execute(8);
+            Assert.AreEqual(-64, v);
         }
     }
 }

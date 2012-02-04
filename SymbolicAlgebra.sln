@@ -24,6 +24,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAConsole", "SAConsole\SACo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverAlgebra", "SilverAlgebra\SilverAlgebra.csproj", "{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "D3", "D3", "{D14A5B7D-35F4-4E5C-9FA9-F141C18B0F30}"
+	ProjectSection(SolutionItems) = preProject
+		D3\DynamicDataDisplay.BingMaps.Silverlight.dll = D3\DynamicDataDisplay.BingMaps.Silverlight.dll
+		D3\DynamicDataDisplay.Silverlight.dll = D3\DynamicDataDisplay.Silverlight.dll
+		D3\Microsoft.Maps.MapControl.Common.dll = D3\Microsoft.Maps.MapControl.Common.dll
+		D3\Microsoft.Maps.MapControl.dll = D3\Microsoft.Maps.MapControl.dll
+		D3\System.Reactive.dll = D3\System.Reactive.dll
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 5
