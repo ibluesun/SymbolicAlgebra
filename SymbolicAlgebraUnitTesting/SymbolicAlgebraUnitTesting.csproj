@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SymbolicVariableTest.cs" />
+    <Compile Include="TextToolsTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SymbolicAlgebra\SymbolicAlgebra.csproj">

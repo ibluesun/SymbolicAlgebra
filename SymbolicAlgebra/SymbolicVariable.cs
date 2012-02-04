@@ -20,7 +20,10 @@ namespace SymbolicAlgebra
         /// </summary>
         public double Coeffecient { private set; get; }
 
-
+        /// <summary>
+        /// ["function"]  group for name
+        /// ["parameters"] group for the inner between brackets (*)  including any commas also.
+        /// </summary>
         static Regex FunctionRegex = new Regex(@"^(?<function>[0-9a-zA-Z:]+)\((?<parameters>.*)\)$");
 
 
@@ -139,7 +142,16 @@ namespace SymbolicAlgebra
 
 
         private bool? _IsFunction;
-        SymbolicVariable[] FunctionParameters;
+        private SymbolicVariable[] FunctionParameters;
+
+        /// <summary>
+        /// method for accessing the inner parameters if the symbol defined is function 
+        /// I use it only for testing.
+        /// </summary>
+        public SymbolicVariable[] GetFunctionParameters()
+        {
+            return FunctionParameters;
+        }
         
         string _FunctionName;
 
@@ -223,7 +235,8 @@ namespace SymbolicAlgebra
                     var parms = m.Groups["parameters"].Value;
                     if (!string.IsNullOrEmpty(parms))
                     {
-                        string[] pps = parms.Split(',');
+                        string[] pps = TextTools.ComaSplit(parms);
+                        
                         FunctionParameters = new SymbolicVariable[pps.Length];
                         for (int i = 0; i < pps.Length; i++)
                         {
@@ -841,7 +854,7 @@ namespace SymbolicAlgebra
 
 
         /// <summary>
-        /// 
+        /// Returns the symbolic variable as a pure terms without
         /// </summary>
         /// <param name="ix"></param>
         /// <returns></returns>
@@ -1209,15 +1222,8 @@ namespace SymbolicAlgebra
         {
             get
             {
-                if (this.CoeffecientPowerTerm == null)
-                {
-                    if (this.Coeffecient < 0) return true;
-                    else return false;
-                }
-                else
-                {
-                    return false;   //coeffecient may be raised
-                }
+                if (this.Coeffecient < 0) return true;
+                else return false;
             }
         }
 
@@ -1242,11 +1248,55 @@ namespace SymbolicAlgebra
         {
             get
             {
+                Func<string, List<string>> pgh = (key) =>
+                    {
+                        List<string> fs = new List<string> { key };
+
+                        int i = 0;
+                        while (i < fs.Count)
+                        {
+                            // this loop extract the inner parameters from the enclosed function calls as f(g(n(x)))
+                            while (FunctionRegex.Match(fs[i]).Success)
+                            {
+                                fs[i] = FunctionRegex.Match(fs[i]).Groups["parameters"].Value;
+
+                                var vps = TextTools.ComaSplit(fs[i]);
+
+                                fs[i] = vps[0]; //first parameter
+
+                                // many parameters may be  u, e, sin(f)  etc..
+                                // add the extra parameter to the list of discovered symbols
+                                for (int vpi = 1; vpi < vps.Length; vpi++)
+                                    fs.Add(vps[vpi]);
+
+                                // we note here that the dynamic list of fs has been increased  and we 
+                                // will conduct the test again of current fs[i] to see if it is a function or not.
+                                // so we are adding undiscovered symbols to later passes when i is increasing after this loop.
+                            }
+
+                            i++;
+                        }
+
+                        return fs;
+
+                    };
+
                 List<string> symbols = new List<string>();
 
                 if (_BaseVariable == null)
                 {
-                    if (!string.IsNullOrEmpty(this.Symbol)) symbols.Add(this.Symbol);
+                    
+                    if (!string.IsNullOrEmpty(this.Symbol))
+                    {
+
+                        var fs = pgh(this.Symbol);
+                        foreach (var f in fs)
+                        {
+                            if (!symbols.Contains(f, StringComparer.OrdinalIgnoreCase))
+                                symbols.Add(f);
+                        }
+
+                    }
                 }
                 else
                 {
@@ -1256,10 +1306,13 @@ namespace SymbolicAlgebra
                 // fused or multiplied symbols
                 foreach (var fsm in FusedSymbols)
                 {
-                    string fs = fsm.Key;
-
-                    if (!symbols.Contains(fs, StringComparer.OrdinalIgnoreCase))
-                        symbols.Add(fs);
+                    var fs = pgh(fsm.Key);
+                    
+                    foreach (var f in fs)
+                    {
+                        if (!symbols.Contains(f, StringComparer.OrdinalIgnoreCase))
+                            symbols.Add(f);
+                    }
 
                     if (fsm.Value.SymbolicVariable != null)
                     {

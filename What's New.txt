@@ -1,3 +1,12 @@
+Symbolic Algebra [0.7]
+----------------------
+- enhanced the parsing to native functions
+- corrected errors regarding calling nested functions and discovery of the nested parameters.
+- enhanced the silver light version and added graphing ability to show the function trends.
+   Dynamic Data Display for Silverlight (http://research.microsoft.com/en-us/um/cambridge/groups/science/tools/d3/dynamicdatadisplay.htm)
+
+
+
 Symbolic Algebra [0.6]
 ----------------------
 - Solved some issues (lot ones)
