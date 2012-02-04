@@ -1,3 +1,7 @@
+Symbolic Algebra [0.71]
+-----------------------
+- Fixed parameter extraction in expression sin(3*x) to return x not 3*x
+
 Symbolic Algebra [0.7]
 ----------------------
 - enhanced the parsing to native functions
