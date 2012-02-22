@@ -1,6 +1,17 @@
 Symbolic Algebra [0.71]
 -----------------------
 - Fixed parameter extraction in expression sin(3*x) to return x not 3*x
+- in parsing expression to native function
+    all parameters of the generated function is ordered by name 
+	{ 
+	 this will lower the overhead of guessing what parameter before what
+	 and also will speed the execution because of getting rid of dictionary or tuple[] paramter array sending.
+	}
+
+- log(x) in parsing function is choosed as one parameter from Math.Log(x)  // needs enhancment if we used log(x,y)
+- fixed negative triogonometric functions so that sin(-x) = -sin(x)
+
+								
 
 Symbolic Algebra [0.7]
 ----------------------

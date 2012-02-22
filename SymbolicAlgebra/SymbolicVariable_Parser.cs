@@ -5,6 +5,7 @@ using System.Text;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Linq.Expressions;
+using System.Reflection;
 
 
 namespace SymbolicAlgebra
@@ -349,8 +350,17 @@ namespace SymbolicAlgebra
                             // take the function name and search for it 
                             // if you found it take the inner parameters and parse it independently
                             var fname = FMatch.Groups["function"].Value;
+
                             // search for the function in the math class
-                            var targetfunction = typeof(Math).GetMethod(fname, System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                            MethodInfo targetfunction;
+
+                            if (fname.Equals("log", StringComparison.OrdinalIgnoreCase))
+                                targetfunction = typeof(Math).GetMethod("Log", new Type[]{typeof(double)});
+                            else
+                                targetfunction = typeof(Math).GetMethod(
+                                    fname
+                                    , System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+                                    );
 
                             if (targetfunction != null)
                             {
@@ -541,17 +551,9 @@ namespace SymbolicAlgebra
         private LambdaExpression Lambda;
         private Delegate FunctionDelegate;
 
-        /// <summary>
-        /// Execute the expression and give the result back.
-        /// </summary>
-        /// <param name="parameters">Array of tuples of parameter name and value in double</param>
-        /// <returns></returns>
-        public double Execute(Dictionary<string, double> parameters)
-        {
-            
-            var pcount = this.InvolvedSymbols.Length;
 
-            if (parameters.Count != pcount) throw new SymbolicException("Number of arguments is not correct");
+        private void PrepareExecute()
+        {
 
             if (DynamicBody == null)
             {
@@ -559,8 +561,6 @@ namespace SymbolicAlgebra
                 DynamicBody = this[0].ParseDynamicExpression(ref DynamicParameters);
                 if (t0.IsNegative)
                     DynamicBody = Expression.Multiply(Expression.Constant(-1.0), DynamicBody);
-
-                
 
                 // i will parse each term alone.  // so that i have more control over the parse
                 for (int tc = 1; tc < TermsCount; tc++)
@@ -573,19 +573,35 @@ namespace SymbolicAlgebra
                         DynamicBody = Expression.Add(DynamicBody, rt.ParseDynamicExpression(ref DynamicParameters));
                 }
 
-                Lambda = Expression.Lambda(DynamicBody, DynamicParameters.Values);
+                // sort the parameter based on alphabet.
+
+                var finalexparms = from exp in DynamicParameters
+                                   orderby exp.Key
+                                   select exp.Value;
+
+                Lambda = Expression.Lambda(DynamicBody, finalexparms.ToArray());
                 FunctionDelegate = Lambda.Compile();
             }
+        }
 
-            double[] FinalParams = new double[DynamicParameters.Count];
+        /// <summary>
+        /// Execute the expression and give the result back.
+        /// </summary>
+        /// <param name="parameters">Dictionary of parameters name and value in double</param>
+        /// <returns></returns>
+        public double Execute(Dictionary<string, double> parameters)
+        {
 
-            // map parameters to the discovered ones.
-            for (int ix = 0; ix < DynamicParameters.Count; ix++)
-            {
-                // take the parameter value from passed parameters by the dynamicparameter name.
-                string key = DynamicParameters.Keys.ElementAt(ix);
-                FinalParams[ix] = parameters[key];
-            }
+            PrepareExecute();
+
+            var pcount = this.InvolvedSymbols.Length;
+
+            if (parameters.Count != pcount) throw new SymbolicException("Number of arguments is not correct");
+
+            double[] FinalParams = (from pr in parameters 
+                                   orderby pr.Key
+                                   select pr.Value).ToArray();
+
 
             if (pcount == 0) return ((Func<double>)FunctionDelegate)();
 
@@ -628,7 +644,6 @@ namespace SymbolicAlgebra
             if (pcount == 13) return ((Func<double, double, double, double, double, double, double, double, double, double, double, double, double, double>)
                 FunctionDelegate)(FinalParams[0], FinalParams[1], FinalParams[2], FinalParams[3], FinalParams[4], FinalParams[5], FinalParams[6], FinalParams[7], FinalParams[8], FinalParams[9], FinalParams[10], FinalParams[11], FinalParams[12]);
 
-
             throw new Exception("What is that call ???!!");
         }
 
@@ -646,16 +661,69 @@ namespace SymbolicAlgebra
 
 
         /// <summary>
-        /// Simplified execute in case of expression contains one parameter only.
+        /// Execute expression that take no arguments.
         /// </summary>
-        /// <param name="parameter"></param>
         /// <returns></returns>
-        public double Execute(double parameter)
+        public double Execute()
         {
-            Dictionary<string, double> d = new Dictionary<string, double>(1);
-            d.Add(InvolvedSymbols[0], parameter);
-
-            return Execute(d);
+            return ((Func<double>)FunctionDelegate)();
         }
+
+        /// <summary>
+        /// Execute Function that expect you to pass arguments in alphabet argument order.
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns>Expression Evaluation</returns>
+        public double Execute(params double[] parameters)
+        {
+            PrepareExecute();
+
+            var pcount = parameters.Count();
+
+            if (pcount == 0) return ((Func<double>)FunctionDelegate)();
+
+            if (pcount == 1) return ((Func<double, double>)
+                FunctionDelegate)(parameters[0]);
+
+            if (pcount == 2) return ((Func<double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1]);
+
+            if (pcount == 3) return ((Func<double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2]);
+
+            if (pcount == 4) return ((Func<double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3]);
+
+            if (pcount == 5) return ((Func<double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4]);
+
+            if (pcount == 6) return ((Func<double, double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5]);
+
+            if (pcount == 7) return ((Func<double, double, double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6]);
+
+            if (pcount == 8) return ((Func<double, double, double, double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7]);
+
+            if (pcount == 9) return ((Func<double, double, double, double, double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[8]);
+
+            if (pcount == 10) return ((Func<double, double, double, double, double, double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[8], parameters[9]);
+
+            if (pcount == 11) return ((Func<double, double, double, double, double, double, double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[8], parameters[9], parameters[10]);
+
+            if (pcount == 12) return ((Func<double, double, double, double, double, double, double, double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[8], parameters[9], parameters[10], parameters[11]);
+
+            if (pcount == 13) return ((Func<double, double, double, double, double, double, double, double, double, double, double, double, double, double>)
+                FunctionDelegate)(parameters[0], parameters[1], parameters[2], parameters[3], parameters[4], parameters[5], parameters[6], parameters[7], parameters[8], parameters[9], parameters[10], parameters[11], parameters[12]);
+
+            throw new Exception("What is that call ???!!");
+        }
+
+        
     }
 }
