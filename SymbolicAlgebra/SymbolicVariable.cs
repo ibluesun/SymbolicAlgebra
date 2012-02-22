@@ -230,7 +230,6 @@ namespace SymbolicAlgebra
                     _FunctionName = m.Groups["function"].Value;
 
 
-                    Symbol = _FunctionName + "(";
 
                     var parms = m.Groups["parameters"].Value;
                     if (!string.IsNullOrEmpty(parms))
@@ -241,11 +240,46 @@ namespace SymbolicAlgebra
                         for (int i = 0; i < pps.Length; i++)
                         {
                             FunctionParameters[i] = Parse(pps[i]);
-                            Symbol += FunctionParameters[i].ToString() + ",";
                         }
                     }
-                    if (Symbol.EndsWith(",")) Symbol = Symbol.TrimEnd(',');
-                    Symbol += ")";
+
+                    if (FunctionParameters != null)
+                    {
+                        string[] oddfuncs = { "sin", "csc", "tan", "cot" };
+                        string[] evenfuncs = { "cos", "sec" };
+
+                        // for some triogonmetric functions like sin  sin(-x) = -sin(x)  // this is important
+
+                        // sin(-x) = -sin(x)
+                        if (oddfuncs.Contains(_FunctionName, StringComparer.OrdinalIgnoreCase))
+                        {
+                            // 
+                            if (FunctionParameters[0].IsNegative)
+                            {
+                                Coeffecient *= -1;
+                                FunctionParameters[0].Coeffecient = FunctionParameters[0].Coeffecient * (-1);
+                            }
+                        }
+
+                        // cos(-x) == cos(x)
+                        if (evenfuncs.Contains(_FunctionName, StringComparer.OrdinalIgnoreCase))
+                        {
+                            // 
+                            if (FunctionParameters[0].IsNegative)
+                            {
+                                FunctionParameters[0].Coeffecient = FunctionParameters[0].Coeffecient * (-1);
+                            }
+                        }
+
+                        Symbol = _FunctionName + "(";
+                        for (int i = 0; i < FunctionParameters.Length; i++)
+                        {
+                            Symbol += FunctionParameters[i].ToString() + ",";
+                        }
+
+                        if (Symbol.EndsWith(",")) Symbol = Symbol.TrimEnd(',');
+                        Symbol += ")";
+                    }
                 }
                 else
                 {
@@ -1357,6 +1391,7 @@ namespace SymbolicAlgebra
                             symbols.Add(ss);
                     }
                 }
+                symbols.Sort();
                 return symbols.ToArray();
             }
         }

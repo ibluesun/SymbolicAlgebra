@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq.Expressions;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SymbolicAlgebraUnitTesting
 {
@@ -580,12 +581,12 @@ namespace SymbolicAlgebraUnitTesting
             string[] gg = tv4.InvolvedSymbols;
 
 
-            Assert.AreEqual("x", gg[0]);
-            Assert.AreEqual("y", gg[1]);
-            Assert.AreEqual("z", gg[2]);
-            Assert.AreEqual("u", gg[3]);
-            Assert.AreEqual("w", gg[4]);
-            Assert.AreEqual("v", gg[5]);
+            Assert.AreEqual("u", gg[0]);
+            Assert.AreEqual("v", gg[1]);
+            Assert.AreEqual("w", gg[2]);
+            Assert.AreEqual("x", gg[3]);
+            Assert.AreEqual("y", gg[4]);
+            Assert.AreEqual("z", gg[5]);
 
             var o = new SymbolicVariable("o");
             var pp = o.RaiseToSymbolicPower(x);
@@ -1040,6 +1041,43 @@ namespace SymbolicAlgebraUnitTesting
             v = SymbolicVariable.Parse("sin(3*x)").Execute(2);
             Assert.AreEqual(Math.Sin(3 * 2), v);
 
+        }
+
+        [TestMethod()]
+        public void ParseLambdaPerformanceTest()
+        {
+            var r = SymbolicVariable.Parse("3*sin(x)*x^3");
+            r.Execute(0);
+
+            Dictionary<string, double> xdic = new Dictionary<string, double>(1);
+
+            xdic.Add("x", 0);
+
+            int times = 100000;
+
+            // Test using dictionary
+            int t0 = Environment.TickCount;
+            for (int i = 0; i < times; i++)
+            {
+                r.Execute(xdic);
+                xdic["x"] = xdic["x"]++;
+            }
+
+            int tElapsed = Environment.TickCount - t0;
+
+            Trace.WriteLine(string.Format("Dictionary One Parameter Elapsed Time {0}", tElapsed));
+
+            // test without dictionary
+            double pizo = 0;
+            t0 = Environment.TickCount;
+            for (int i = 0; i < times; i++)
+            {
+                r.Execute(pizo);
+                pizo++;
+            }
+
+            tElapsed = Environment.TickCount - t0;
+            Trace.WriteLine(string.Format("Native Offset One Parameter Elapsed Time {0}", tElapsed));
         }
     }
 }
