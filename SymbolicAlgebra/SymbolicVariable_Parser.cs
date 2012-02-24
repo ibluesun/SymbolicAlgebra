@@ -354,7 +354,12 @@ namespace SymbolicAlgebra
                             // search for the function in the math class
                             MethodInfo targetfunction;
 
-                            if (fname.Equals("log", StringComparison.OrdinalIgnoreCase))
+                            if (CoMath.AvailableFunctions.Contains(fname, StringComparer.OrdinalIgnoreCase))
+                                targetfunction = typeof(CoMath).GetMethod(
+                                        fname
+                                        , System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
+                                        );
+                            else if (fname.Equals("log", StringComparison.OrdinalIgnoreCase))
                                 targetfunction = typeof(Math).GetMethod("Log", new Type[]{typeof(double)});
                             else
                                 targetfunction = typeof(Math).GetMethod(

@@ -9,6 +9,9 @@ namespace SymbolicAlgebra
     public class FunctionDiff
     {
 
+        public static readonly string[] FFunctions = { "exp", "sin", "sinh", "cos", "cosh", "tan", "tanh", "sec", "sech", "csc", "csch", "cot", "coth" };
+
+        public static readonly string[] BFunctions = { "asin", "asinh", "acos", "acosh", "atan", "atanh", "asec", "asech", "acsc", "acsch", "acot", "acoth" };
 
         /// <summary>
         /// get the function derivation  like sin => cos
@@ -16,7 +19,7 @@ namespace SymbolicAlgebra
         /// <param name="function"></param>
         /// <param name="negative">indicates if the function returned should have negative value or not</param>
         /// <returns>string of the differentiated function</returns>
-        public static string[] Diff(SymbolicVariable function, out bool negative)
+        public static string[] DiffFFunction(SymbolicVariable function, out bool negative)
         {
 
             string func = function.FunctionName;
@@ -104,5 +107,91 @@ namespace SymbolicAlgebra
             return null;
 
         }
+
+        public static SymbolicVariable DiffBFunction(SymbolicVariable fv, string parameter)
+        {
+
+            var pa = fv.GetFunctionParameters()[0];
+
+            var ps = SymbolicVariable.Multiply(pa, pa);
+
+            var func = fv.FunctionName;
+
+            var dpa = pa.Differentiate(parameter);
+
+            
+            if (string.Equals(func, "asin", StringComparison.InvariantCultureIgnoreCase))
+            {                
+                //asin(x) → 1 / sqrt(1-x^2) 
+
+                return SymbolicVariable.Parse(dpa.ToString() + "/Sqrt(1-" + ps.ToString() + ")");
+            }
+
+            if (string.Equals(func, "acos", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/Sqrt(1-" + ps.ToString() + ")");
+            }
+
+            if (string.Equals(func, "atan", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse(dpa.ToString() + "/(" + ps.ToString() + "+1)");
+            }
+
+            if (string.Equals(func, "acot", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(" + ps.ToString() + "+1)");
+            }
+
+            if (string.Equals(func, "asec", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse(dpa.ToString() + "/(Sqrt(1-1/" + ps.ToString() + ")*" + ps.ToString() + ")");
+            }
+
+            if (string.Equals(func, "acsc", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(Sqrt(1-1/" + ps.ToString() + ")*" + ps.ToString() + ")");
+            }
+
+
+
+            #region hyperbolic functions
+            if (string.Equals(func, "asinh", StringComparison.InvariantCultureIgnoreCase))
+            {
+                //asin(x) → 1 / sqrt(x^2+1) 
+
+                return SymbolicVariable.Parse(dpa.ToString() + "/Sqrt(" + ps.ToString() + "+1)");
+            }
+
+            if (string.Equals(func, "acosh", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/Sqrt(" + ps.ToString() + "-1)");
+            }
+
+            if (string.Equals(func, "atanh", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse(dpa.ToString() + "/(1-" + ps.ToString() + ")");
+            }
+
+            if (string.Equals(func, "acoth", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(" + ps.ToString() + "-1)");
+            }
+
+            if (string.Equals(func, "asech", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(Sqrt(1/" + ps.ToString() + "-1)*" + ps.ToString() + ")");
+            }
+
+            if (string.Equals(func, "acsch", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(Sqrt(1/" + ps.ToString() + "+1)*" + ps.ToString() + ")");
+            }
+
+            #endregion
+            throw new SymbolicException(fv.FunctionName + " differentiation not implemented yet");
+
+            
+        }
+    
     }
 }
