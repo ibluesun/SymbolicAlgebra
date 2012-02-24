@@ -98,20 +98,35 @@ namespace SymbolicAlgebra
 
                         if (fv.FunctionName.Equals(lnText, StringComparison.OrdinalIgnoreCase))
                         {
-                            
-                            if (fv.FunctionParameters.Length != 1) throw new SymbolicException("log function must have one parameter for differentiation to be done.");
+                            if (fv.FunctionParameters.Length != 1) throw new SymbolicException("Log function must have one parameter for differentiation to be done.");
 
                             // d/dx ( ln( g(x) ) ) = g'(x)/g(x)
 
                             var pa = fv.FunctionParameters[0];
                             var dpa = pa.Differentiate(parameter);
                             fv = SymbolicVariable.Divide(dpa, pa);
+                            
+                        }
+                        else if(fv.FunctionName.Equals("sqrt", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // d/dx ( sqrt( g(x) ) ) = g'(x) / 2* sqrt(g(x))
+                            if (fv.FunctionParameters.Length != 1) throw new SymbolicException("Sqrt function must have one parameter for differentiation to be done.");
 
+                            var pa = fv.FunctionParameters[0];
+                            var dpa = pa.Differentiate(parameter);
+                            var den = Multiply(Two, fv);
+                            fv = Divide(dpa, den);
+
+                        }
+                        else if (FunctionDiff.BFunctions.Contains(fv.FunctionName, StringComparer.OrdinalIgnoreCase))
+                        {
+                            fv = FunctionDiff.DiffBFunction(fv, parameter);
                         }
                         else
                         {
+                            // triogonometric functions 
                             bool IsNegativeResult;
-                            string[] newfuntions = FunctionDiff.Diff(fv, out IsNegativeResult);
+                            string[] newfuntions = FunctionDiff.DiffFFunction(fv, out IsNegativeResult);
 
                             if (newfuntions != null)
                             {

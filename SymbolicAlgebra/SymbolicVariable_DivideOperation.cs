@@ -25,7 +25,7 @@ namespace SymbolicAlgebra
             {
 
                 //multiply divided term by this value
-                SourceTerm.DividedTerm = SourceTerm.DividedTerm * b;
+                SourceTerm.DividedTerm = Multiply(SourceTerm.DividedTerm, b);
 
                 return SourceTerm;
             }

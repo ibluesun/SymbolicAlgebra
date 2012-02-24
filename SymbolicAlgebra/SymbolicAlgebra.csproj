@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CoMath.cs" />
     <Compile Include="FunctionDiff.cs" />
     <Compile Include="HybridVariable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

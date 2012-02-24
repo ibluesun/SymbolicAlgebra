@@ -1,3 +1,11 @@
+Symbolic Algebra [0.72]
+-----------------------
+- Sqrt(x) differentiation added
+- differentiation for { "asin", "asinh", "acos", "acosh", "atan", "atanh", "asec", "asech", "acsc", "acsch", "acot", "acoth" }  implemented
+- parsing for { "Sec", "Csc", "Cot", "Sech", "Csch", "Coth" , "ACosh", "ASinh", "ATanh", "ASec", "ACsc", "ACot", "ASech", "ACsch", "ACoth"} added in CoMath class  
+- fixed  0- 1/(1+x)  yielded to only -1   which is now fixed.
+
+
 Symbolic Algebra [0.71]
 -----------------------
 - Fixed parameter extraction in expression sin(3*x) to return x not 3*x

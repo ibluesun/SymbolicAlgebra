@@ -870,7 +870,16 @@ namespace SymbolicAlgebra
                 }
             }
 
-            if (DividedTerm.FormSymbolTextValue() != "1") result = result + "/(" + DividedTerm.ToString() + ")";
+            if (DividedTerm.IsOneTerm == false)
+            {
+                result = result + "/(" + DividedTerm.ToString() + ")";
+            }
+            else if (DividedTerm.FormSymbolTextValue() != "1")
+            {
+                result = result + "/(" + DividedTerm.ToString() + ")";
+            }
+
+
             return result;
         }
 
@@ -997,7 +1006,7 @@ namespace SymbolicAlgebra
             }
             else
             {
-                if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase)/*&&string.IsNullOrEmpty( this.Symbol)!=true*/)
+                if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase) && sv.DividedTerm.IsOne/*&&string.IsNullOrEmpty( this.Symbol)!=true*/)
                 {
                     if (this.Symbol == string.Empty) return true;  //because there is no symbol or empty symbol which indicates that the term is coefficient only
                     else if (this._SymbolPowerTerm != null && sv._SymbolPowerTerm != null)
