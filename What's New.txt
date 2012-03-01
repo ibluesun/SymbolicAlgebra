@@ -1,3 +1,21 @@
+Symbolic Algebra [0.8]
+-----------------------
+- Summing or subtracting two different denominators terms result in a correct operation.
+	for this bug i had to make a big addition by introducing another property ExtraTerms
+	ExtraTerms holds the terms with different denominators other than 1  (review DividedTerm property)
+- Differentiating of numerator/denominator has been corrected  and is now acting right despite the output
+      remember that symbolic algebra is greedy evaluator and it means it will not store values in that form (x+y)^3/(a+b)^2
+	    this is by design because the symbolic calculations is needed for numerical calculations after this
+		so the output calced is always as expanded as the library can.
+		
+- Added the ability to store functions in the context 
+     f(x) := x^2+sin(x)
+	 f(x)|x   will get the derivative
+	 f(o)|o   also get the derivative.
+- Also stored functions can be executed in its context.
+
+
+
 Symbolic Algebra [0.72]
 -----------------------
 - Sqrt(x) differentiation added

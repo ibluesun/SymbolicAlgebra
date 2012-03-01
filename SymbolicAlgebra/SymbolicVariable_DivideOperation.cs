@@ -275,6 +275,19 @@ namespace SymbolicAlgebra
                 SourceTerm._AddedTerms = newAddedVariables;
             }
 
+            // Extra Terms of a
+            if (SourceTerm.ExtraTerms.Count > 0)
+            {
+                List<ExtraTerm> newExtraTerms = new List<ExtraTerm>();
+                foreach (var et in SourceTerm.ExtraTerms)
+                {
+                    var newe = Divide(et.Term, TargetSubTerm);
+                    newExtraTerms.Add(new ExtraTerm { Term = newe });
+                }
+                SourceTerm._ExtraTerms = newExtraTerms;
+            }
+
+
             int subIndex = 0;
             SymbolicVariable total = SourceTerm;
 
@@ -287,8 +300,18 @@ namespace SymbolicAlgebra
                 //   this new term is a sub term in b and will be added to all terms of a.
                 TargetSubTerm = b.AddedTerms.ElementAt(subIndex).Value;
 
-                total = total + (a / TargetSubTerm);
+                total = total + Divide(a, TargetSubTerm);
                 subIndex = subIndex + 1;  //increase     
+            }
+
+            // for extra terms  {terms that has different divided term}
+            int extraIndex = 0;
+            while (extraIndex < b.ExtraTerms.Count)
+            {
+                TargetSubTerm = b.ExtraTerms[extraIndex].Term;
+                var TargetTermSubTotal = Divide(a, TargetSubTerm);
+                total = Add(total, TargetTermSubTotal);
+                extraIndex++;
             }
 
 

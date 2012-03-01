@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Globalization;
+using System.Diagnostics;
 
 namespace SymbolicAlgebra
 {
@@ -156,7 +157,37 @@ namespace SymbolicAlgebra
                             {
                                 // the function is not a special function like sin, cos, and log.
                                 // search for the function in the running context.
-                                throw new SymbolicException("This function is not a special function, and I haven't implemented storing user functions in the running context");
+
+                                #if  SILVERLIGHT
+                                #else
+                                Debug.Print("Diff(" + fv + ")");
+                                #endif
+
+                                var extendedFunction = Functions.Keys.FirstOrDefault(c => c.StartsWith(fv.FunctionName));
+                                if (!string.IsNullOrEmpty(extendedFunction))
+                                {
+                                    string[] fps = extendedFunction.Substring(extendedFunction.IndexOf("(")).TrimStart('(').TrimEnd(')').Split(',');
+                                    
+                                    if(fps.Length != fv.RawFunctionParameters.Length) throw new SymbolicException("Insufficient function parameters");
+
+                                    // replace parameters
+                                    var dsf = Functions[extendedFunction].ToString();
+
+                                    for(int ipxf=0; ipxf < fps.Length ;ipxf++)
+                                    {
+                                        dsf = dsf.Replace(fps[ipxf], fv.RawFunctionParameters[ipxf]);
+                                    }
+
+                                    fv = SymbolicVariable.Parse(dsf).Differentiate(parameter);
+                                    
+                                }
+                                else
+                                {
+
+
+
+                                    throw new SymbolicException("This function is not a special function, and I haven't implemented storing user functions in the running context");
+                                }
                             }
                         }
 
@@ -210,6 +241,24 @@ namespace SymbolicAlgebra
             return sv;
         }
 
+        private struct MultipliedTerm
+        {
+            
+            public SymbolicVariable Term;
+            public bool Divided;
+            public MultipliedTerm(SymbolicVariable term)
+            {
+                Term = term;
+                Divided = false;
+            }
+
+            public MultipliedTerm(SymbolicVariable term, bool divided)
+            {
+                Term = term;
+                Divided = divided;
+            }
+        }
+
         private static SymbolicVariable DiffBigTerm(SymbolicVariable sv, string parameter)
         {
             // now result contains only one term
@@ -220,8 +269,11 @@ namespace SymbolicAlgebra
 
             int MultipliedTermsCount = sv.FusedSymbols.Count + sv.FusedConstants.Count + 1; // last one is the basic symbol and coeffecient in the instant
 
+            SymbolicVariable SvDividedTerm = sv.DividedTerm;  // here we isolate the divided term for later calculations
+            sv.DividedTerm = One;
+
             // separate all terms into array by flatting them
-            List<SymbolicVariable> MultipliedTerms = new List<SymbolicVariable>(MultipliedTermsCount);
+            List<MultipliedTerm> MultipliedTerms = new List<MultipliedTerm>(MultipliedTermsCount);
 
             Action<SymbolicVariable> SpliBaseTerm = (rr) =>
             {
@@ -237,15 +289,15 @@ namespace SymbolicAlgebra
                     SymbolicVariable CoeffecientOnly = new SymbolicVariable("");
                     CoeffecientOnly._CoeffecientPowerTerm = basicterm.CoeffecientPowerTerm;
                     CoeffecientOnly.Coeffecient = basicterm.Coeffecient;
-                    MultipliedTerms.Add(CoeffecientOnly);
+                    MultipliedTerms.Add(new MultipliedTerm(CoeffecientOnly));
 
                     // multiplied symbol
                     if (!string.IsNullOrEmpty(basicterm.SymbolBaseValue))
-                        MultipliedTerms.Add(SymbolicVariable.Parse(basicterm.SymbolBaseValue));
+                        MultipliedTerms.Add(new MultipliedTerm(SymbolicVariable.Parse(basicterm.SymbolBaseValue)));
                 }
                 else
                 {
-                    MultipliedTerms.Add(basicterm);
+                    MultipliedTerms.Add(new MultipliedTerm(basicterm));
                 }
 
             };
@@ -264,7 +316,7 @@ namespace SymbolicAlgebra
                     CoeffecientOnly._CoeffecientPowerTerm = (SymbolicVariable)FC.Value.SymbolicVariable.Clone();
                     CoeffecientOnly.Coeffecient = FC.Key;
 
-                    MultipliedTerms.Add(CoeffecientOnly);
+                    MultipliedTerms.Add(new MultipliedTerm( CoeffecientOnly));
                 }
             };
 
@@ -283,7 +335,7 @@ namespace SymbolicAlgebra
                     if (FS.Value.SymbolicVariable != null)
                         ss._SymbolPowerTerm = (SymbolicVariable)FS.Value.SymbolicVariable.Clone();
 
-                    MultipliedTerms.Add(ss);
+                    MultipliedTerms.Add(new MultipliedTerm( ss));
                 }
             };
 
@@ -296,21 +348,44 @@ namespace SymbolicAlgebra
             // get all differentials of all terms                       // x*y*z ==>  dx  dy  dz 
             for (int ix = 0; ix < MultipliedTerms.Count; ix++)
             {
-                CalculatedDiffs.Add(DiffTerm(MultipliedTerms[ix], parameter));
+                CalculatedDiffs.Add(DiffTerm(MultipliedTerms[ix].Term, parameter));
+            }
+
+            // what about divided term ??
+            if (!SvDividedTerm.IsOne)
+            {
+                /*
+                 * diff(f(x)*g(x)/h(x),x);
+                 *      -(f(x)*g(x)*('diff(h(x),x,1)))/h(x)^2       <== notice the negative sign here and the squared denominator
+                 *      +(f(x)*('diff(g(x),x,1)))/h(x)
+                 *      +(g(x)*('diff(f(x),x,1)))/h(x)
+                 */
+                var dvr = Subtract(Zero, SvDividedTerm.Differentiate(parameter));  //differential of divided takes minus sign because it wil
+                CalculatedDiffs.Add(dvr);
+
+                // add the divided term but in negative  value because it is divided and in differentiation it will have -ve power
+                MultipliedTerms.Add(new MultipliedTerm(SvDividedTerm, true));
             }
 
             // every result of calculated differentials should be multiplied by the other terms.
-            for(int ix =0; ix<CalculatedDiffs.Count; ix++)
+            for (int ix = 0; ix < CalculatedDiffs.Count; ix++)
             {
                 var term = CalculatedDiffs[ix];
 
                 if (term.IsZero) continue;
                 var mt = One;
+                int mltc = MultipliedTerms.Count;
 
-                for(int iy=0;iy<MultipliedTerms.Count;iy++)
+                //if (!SvDividedTerm.IsOne) mltc++;
+
+                for (int iy = 0; iy < mltc; iy++)
                 {
                     if (iy == ix) continue;
-                    mt = SymbolicVariable.Multiply(mt, MultipliedTerms[iy]);
+
+                    if (MultipliedTerms[iy].Divided)
+                        mt = SymbolicVariable.Divide(mt, MultipliedTerms[iy].Term);
+                    else
+                        mt = SymbolicVariable.Multiply(mt, MultipliedTerms[iy].Term);
                 }
 
                 // term *mt
@@ -319,7 +394,6 @@ namespace SymbolicAlgebra
             }
 
             //       dx*y*z     dy*x*z       dz*x*y
-
             var total = Zero;
 
             foreach (var cc in CalculatedDiffs)
@@ -329,6 +403,7 @@ namespace SymbolicAlgebra
                 total = SymbolicVariable.Add(total, cc);
             }
 
+            if (!SvDividedTerm.IsOne) total.DividedTerm  = Multiply(SvDividedTerm, SvDividedTerm);
 
             return total;
         }
@@ -345,8 +420,12 @@ namespace SymbolicAlgebra
 
             SymbolicVariable result = (SymbolicVariable)this.Clone();
 
-            Dictionary<string, SymbolicVariable> OtherTerms = result._AddedTerms;
+            Dictionary<string, SymbolicVariable> OtherAddedTerms = result._AddedTerms;
             result._AddedTerms = null;
+
+            List<ExtraTerm> OtherExtraTerms = result._ExtraTerms;
+            result._ExtraTerms = null;
+
 
 
             
@@ -355,7 +434,7 @@ namespace SymbolicAlgebra
             result = DiffBigTerm(result, parameter);
 
 
-
+            /* Removed because I used extra terms in the anatomy of the symbolic variable class
             Dictionary<string, SymbolicVariable> extraTerms = null;  // may be come from inner operations like deriving 5*x^(y-1)
             if (result._AddedTerms != null)
             {
@@ -371,19 +450,30 @@ namespace SymbolicAlgebra
                 foreach (var tr in extraTerms)
                     result = Add(result, tr.Value);
             }
-
+            */
 
             // take the rest terms
-            if (OtherTerms != null)
+            if (OtherAddedTerms != null)
             {
-                for (int ix = 0; ix < OtherTerms.Count; ix++)
+                for (int ix = 0; ix < OtherAddedTerms.Count; ix++)
                 {
-                    var term = OtherTerms.Values.ElementAt(ix);
+                    var term = OtherAddedTerms.Values.ElementAt(ix);
                     term = DiffBigTerm(term, parameter);
 
                     result = Add(result, term);
                 }
             }
+
+            if (OtherExtraTerms != null)
+            {
+                for (int ix = 0; ix < OtherExtraTerms.Count; ix++)
+                {
+                    var term = OtherExtraTerms[ix].Term;
+                    term = DiffBigTerm(term, parameter);
+                    result = Add(result, term);
+                }
+            }
+
 
             AdjustZeroPowerTerms(result);
 

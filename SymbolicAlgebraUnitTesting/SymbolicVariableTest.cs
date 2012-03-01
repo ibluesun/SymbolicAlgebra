@@ -204,7 +204,7 @@ namespace SymbolicAlgebraUnitTesting
             // dividing by two terms
             var r = a / b;
 
-            Assert.AreEqual(r.ToString(), "x+y/(x-y)");
+            Assert.AreEqual(r.ToString(), "(x+y)/(x-y)");
 
             // dividing by one term
             var rx = a / x;   
@@ -1078,6 +1078,46 @@ namespace SymbolicAlgebraUnitTesting
 
             tElapsed = Environment.TickCount - t0;
             Trace.WriteLine(string.Format("Native Offset One Parameter Elapsed Time {0}", tElapsed));
+        }
+
+
+
+        [TestMethod]
+        public void Issues9Testing()
+        {
+            // the following issues has been fixed by using ExtraTerms in Symbolic Variable
+            // Extra Term include the terms that is not divided by one 
+
+            var v = SymbolicVariable.Parse("x+2/(x+8)");
+            Assert.AreEqual("x+2/(x+8)", v.ToString());
+
+            v = SymbolicVariable.Parse("x/(x+8)+x");
+            Assert.AreEqual("x/(x+8)+x", v.ToString());
+
+            v = SymbolicVariable.Parse("0 - 1/(1+x)");
+            Assert.AreEqual("-1/(1+x)", v.ToString());
+
+            v = SymbolicVariable.Parse("+6/(z*x*y)-(2+u+v)/(x+y)");
+            Assert.AreEqual("6/z/x/y-(2+u+v)/(x+y)", v.ToString());
+
+
+            v = SymbolicVariable.Parse("2/(x+2) + y/(x+2)");
+            Assert.AreEqual("(2+y)/(x+2)", v.ToString());
+
+            v = SymbolicVariable.Parse("2/(x+2) - y/(x+2)");
+            Assert.AreEqual("(2-y)/(x+2)", v.ToString());
+
+            v = SymbolicVariable.Parse("(1/(y+x)+2/y)*8");
+            Assert.AreEqual("8/(y+x)+16/y", v.ToString());
+
+            v = SymbolicVariable.Divide(v, Eight);
+            Assert.AreEqual("1/(y+x)+2/y", v.ToString());
+
+            v = SymbolicVariable.Parse("(2/(x+y)^2)|x");
+            Assert.AreEqual("(-4*x-4*y)/(x^4+4*y*x^3+6*y^2*x^2+4*y^3*x+y^4)", v.ToString());
+
+            v = SymbolicVariable.Parse("(2+3/x+5/(x-1))|x");
+            Assert.AreEqual("-3/x^2+-5/(x^2-2*x+1)", v.ToString());
         }
     }
 }

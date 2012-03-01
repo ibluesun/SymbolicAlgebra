@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace SymbolicAlgebra
 {
-    public class FunctionDiff
+    public static class FunctionDiff
     {
 
         public static readonly string[] FFunctions = { "exp", "sin", "sinh", "cos", "cosh", "tan", "tanh", "sec", "sech", "csc", "csch", "cot", "coth" };
