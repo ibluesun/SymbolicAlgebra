@@ -143,6 +143,7 @@ namespace SymbolicAlgebra
 
         private bool? _IsFunction;
         private SymbolicVariable[] FunctionParameters;
+        private string[] RawFunctionParameters;
 
         /// <summary>
         /// method for accessing the inner parameters if the symbol defined is function 
@@ -234,12 +235,12 @@ namespace SymbolicAlgebra
                     var parms = m.Groups["parameters"].Value;
                     if (!string.IsNullOrEmpty(parms))
                     {
-                        string[] pps = TextTools.ComaSplit(parms);
-                        
-                        FunctionParameters = new SymbolicVariable[pps.Length];
-                        for (int i = 0; i < pps.Length; i++)
+                        RawFunctionParameters = TextTools.ComaSplit(parms);
+
+                        FunctionParameters = new SymbolicVariable[RawFunctionParameters.Length];
+                        for (int i = 0; i < RawFunctionParameters.Length; i++)
                         {
-                            FunctionParameters[i] = Parse(pps[i]);
+                            FunctionParameters[i] = Parse(RawFunctionParameters[i]);
                         }
                     }
 
@@ -392,6 +393,14 @@ namespace SymbolicAlgebra
         private Dictionary<string, SymbolicVariable> _AddedTerms;
 
 
+        /*
+         * 
+         * When adding or subtracting terms that has different denominator then we need to store this terms as an extended terms
+         */
+
+        private List<ExtraTerm> _ExtraTerms;
+
+
         /// <summary>
         /// Terms that couldn't be divide on this term like  x/(x^2-y^5)
         /// </summary>
@@ -410,7 +419,7 @@ namespace SymbolicAlgebra
         private Dictionary<double, HybridVariable> _FusedConstants;
 
         /// <summary>
-        /// Extra terms that couldn't be added to the current term.
+        /// Added terms that couldn't be added to the current term (symbol) and share the same Divided Term.
         /// </summary>
         public Dictionary<string, SymbolicVariable> AddedTerms
         {
@@ -418,6 +427,21 @@ namespace SymbolicAlgebra
             {
                 if (_AddedTerms == null) _AddedTerms = new Dictionary<string, SymbolicVariable>(StringComparer.OrdinalIgnoreCase);
                 return _AddedTerms;
+            }
+        }
+
+
+        /// <summary>
+        /// Extra Terms that doesn't share the same denominator  (take care that 1/x + 1/y share the same denominator because the symbol power here is -1)
+        /// so representaion of (1/y+1/x) = y^-1+x^-1
+        /// however 1/x+1/(x+Y)  doesn't share the same denominator so that ExtraTerms now contain 1/(x+y)
+        /// </summary>
+        public List<ExtraTerm> ExtraTerms
+        {
+            get
+            {
+                if (_ExtraTerms == null) _ExtraTerms = new List<ExtraTerm>();
+                return _ExtraTerms;
             }
         }
 
@@ -805,7 +829,7 @@ namespace SymbolicAlgebra
                 if (_CoeffecientPowerTerm != null)
                 {
                     // coeffecient part  like 3^x  {remember coeffecient may be raised to symbol}
-                    if (CoeffecientPowerTerm.IsMultiValue)
+                    if (CoeffecientPowerTerm.IsMultiValue || CoeffecientPowerTerm.IsMultiTerm)
                         rr = rr + "^(" + CoeffecientPowerText + ")";
                     else
                         rr = rr + "^" + CoeffecientPowerText;  
@@ -865,20 +889,35 @@ namespace SymbolicAlgebra
                         if (sv.FormSymbolTextValue().StartsWith("-"))
                             result += sv.FormSymbolTextValue();
                         else
+                        {
                             result += "+" + sv.FormSymbolTextValue();
+
+                        }
+                        if (!sv.DividedTerm.IsOne) result += "/(" + sv.DividedTerm.FinalText() + ")";
                     }
                 }
             }
 
             if (DividedTerm.IsOneTerm == false)
             {
-                result = result + "/(" + DividedTerm.ToString() + ")";
+                if (TermsCount > 1)
+                    result = "(" + result + ")/(" + DividedTerm.ToString() + ")";
+                else
+                    result = result + "/(" + DividedTerm.ToString() + ")";
             }
             else if (DividedTerm.FormSymbolTextValue() != "1")
             {
-                result = result + "/(" + DividedTerm.ToString() + ")";
+                if (TermsCount > 1)
+                    result = "(" + result + ")/(" + DividedTerm.ToString() + ")";
+                else
+                    result = result + "/(" + DividedTerm.ToString() + ")";
             }
 
+            foreach (var eterm in ExtraTerms)
+            {
+                if (eterm.Negative) result += "-" + eterm.Term.FinalText();
+                else result += "+" + eterm.Term.FinalText();
+            }
 
             return result;
         }
@@ -936,6 +975,24 @@ namespace SymbolicAlgebra
         }
 
 
+
+        public static Dictionary<string, SymbolicVariable> _Functions;
+
+        /// <summary>
+        /// Contains a static dictionary of function names that may be used inside the context of differentiation
+        /// on the form of "u(x)" := "x^2"
+        /// </summary>
+        public static Dictionary<string, SymbolicVariable> Functions
+        {
+            get
+            {
+                if (_Functions == null) _Functions = new Dictionary<string, SymbolicVariable>(StringComparer.OrdinalIgnoreCase);
+                return _Functions;
+            }
+        }
+
+        
+
         /// <summary>
         /// Compare the symbol of current instance to the symbol of parameter instance
         /// either in primary symbol part and in fused symbols.
@@ -945,6 +1002,8 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public bool BaseEquals(SymbolicVariable sv)
         {
+
+            if (!this.DividedTerm.Equals(sv.DividedTerm)) return false;
 
             if (this.FusedSymbols.Count > 0 || sv.FusedSymbols.Count > 0)
             {
@@ -1006,7 +1065,7 @@ namespace SymbolicAlgebra
             }
             else
             {
-                if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase) && sv.DividedTerm.IsOne/*&&string.IsNullOrEmpty( this.Symbol)!=true*/)
+                if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase) && this.DividedTerm.Equals( sv.DividedTerm))
                 {
                     if (this.Symbol == string.Empty) return true;  //because there is no symbol or empty symbol which indicates that the term is coefficient only
                     else if (this._SymbolPowerTerm != null && sv._SymbolPowerTerm != null)
@@ -1034,7 +1093,7 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public bool Equals(SymbolicVariable sv)
         {
-            if (this.IsMultiValue && sv.IsMultiValue)
+            if (this.IsMultiTerm && sv.IsMultiTerm)
             {
                 // make sure added terms are equal in count.
                 if (this._AddedTerms.Count == sv._AddedTerms.Count && this._AddedTerms.Count > 0)
@@ -1055,9 +1114,10 @@ namespace SymbolicAlgebra
                     if (EqualTerms == count) return true;
                     else return false;   //whether it was more or less.
                 }
-            }
+            }   
             else
             {
+                if (this.IsMultiTerm == true || sv.IsMultiTerm == true) return false;
                 if (this.Symbol.Equals(sv.Symbol, StringComparison.OrdinalIgnoreCase))
                 {
                     if (this.SymbolPower == sv.SymbolPower)
@@ -1141,7 +1201,13 @@ namespace SymbolicAlgebra
             for (int i = svar.AddedTerms.Count - 1; i >= 0; i--)
             {
                 if (svar.AddedTerms.ElementAt(i).Value.Coeffecient == 0)
-                    svar.AddedTerms.Remove(svar.AddedTerms.ElementAt(i).Key);
+                    svar.AddedTerms.Remove (svar.AddedTerms.ElementAt(i).Key);
+            }
+
+            for (int i = svar.ExtraTerms.Count - 1; i >= 0; i--)
+            {
+                if (svar.ExtraTerms.ElementAt(i).Term.Coeffecient == 0)
+                    svar.ExtraTerms.RemoveAt(i);
             }
 
             // then check the priamry term.
@@ -1163,6 +1229,24 @@ namespace SymbolicAlgebra
                     priamry._AddedTerms = NewAddedTerms;
 
                     svar = priamry;
+                }
+                else if (svar.ExtraTerms.Count > 0)
+                {
+                    SymbolicVariable priamry = svar.ExtraTerms.ElementAt(0).Term;
+                    if (svar.ExtraTerms[0].Negative) priamry.Coeffecient *= -1;
+                    svar.ExtraTerms.RemoveAt(0);
+
+                    var NewExtraTerms = svar.ExtraTerms;
+
+                    priamry._ExtraTerms = NewExtraTerms;
+
+                    svar = priamry;
+
+                }
+                else
+                {
+                    // nothing to replace
+                    // the primary is zerooooooooo     big zeroooooooooooooooo
                 }
             }
         }
@@ -1231,7 +1315,7 @@ namespace SymbolicAlgebra
         {
             get
             {
-                if (string.IsNullOrEmpty(this.SymbolBaseValue) && IsMultiValue == false)
+                if (string.IsNullOrEmpty(this.SymbolBaseValue) && IsMultiTerm == false)
                 {
                     return true;
                 }
@@ -1241,6 +1325,14 @@ namespace SymbolicAlgebra
             }
         }
 
+        public bool IsMultiTerm
+        {
+            get
+            {
+                if (AddedTerms.Count == 0) return false;
+                return true;
+            }
+        }
 
         /// <summary>
         /// Indicates that there are more than coeffecient
@@ -1250,8 +1342,6 @@ namespace SymbolicAlgebra
         {
             get
             {
-                if(_AddedTerms==null) return false;
-                if (_AddedTerms.Count > 0) return true;
                 if (Math.Abs(Coeffecient) != 1)
                 {
                     if (!string.IsNullOrEmpty(Symbol)) return true;
@@ -1435,6 +1525,11 @@ namespace SymbolicAlgebra
             foreach (var fc in FusedConstants)
             {
                 clone.FusedConstants.Add(fc.Key, (HybridVariable)fc.Value.Clone());
+            }
+
+            foreach (var et in ExtraTerms)
+            {
+                clone.ExtraTerms.Add(et);
             }
 
             if(this._DividedTerm!=null) 

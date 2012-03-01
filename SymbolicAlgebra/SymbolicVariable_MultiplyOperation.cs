@@ -270,6 +270,18 @@ namespace SymbolicAlgebra
                 SourceTerm._AddedTerms = newAddedVariables;
             }
 
+            // Extra Terms of a
+            if (SourceTerm.ExtraTerms.Count > 0)
+            {
+                List<ExtraTerm> newExtraTerms = new List<ExtraTerm>();
+                foreach (var et in SourceTerm.ExtraTerms)
+                {
+                    var newe = Multiply(et.Term, TargetSubTerm);
+                    newExtraTerms.Add(new ExtraTerm { Term = newe });
+                }
+                SourceTerm._ExtraTerms = newExtraTerms;
+            }
+
             // now source term which is the first parameter cloned, have the new calculated value.
             int subIndex = 0;
             SymbolicVariable total = SourceTerm;
@@ -289,6 +301,16 @@ namespace SymbolicAlgebra
                 subIndex = subIndex + 1;  //increase 
             }
 
+            // for extra terms  {terms that has different divided term}
+            int extraIndex = 0;
+            while (extraIndex < b.ExtraTerms.Count)
+            {
+                TargetSubTerm = b.ExtraTerms[extraIndex].Term;
+                var TargetTermSubTotal = Multiply(a, TargetSubTerm);
+                total = Add(total, TargetTermSubTotal);
+                extraIndex++;
+            }
+
             
             AdjustZeroPowerTerms(total);
 
@@ -301,7 +323,6 @@ namespace SymbolicAlgebra
         {
             public double ConstantValue;
             public SymbolicVariable ConstantPower;
-            
         }
 
         public CoeffecienttValue[] Constants

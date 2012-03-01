@@ -36,15 +36,31 @@ namespace SymbolicAlgebra
         /// <summary>
         /// Parse expression of variables and make SymbolicVariable
         /// </summary>
-        /// <param name="expression"></param>
+        /// <param name="expr"></param>
         /// <returns></returns>
         public static SymbolicVariable Parse(string expression)
         {
+            var r = from zr in expression.Split(':', '=')
+                    where string.IsNullOrWhiteSpace(zr)==false
+                    select zr.Trim();
+            
+            string[] rr = r.ToArray();
+
+            string expr  = string.Empty;
+            if (rr.Length == 0) return null;
+            if (rr.Length > 1)
+            {
+                //function
+                expr = rr[1];
+            }
+            else
+                expr = rr[0];
+
             char[] separators = {'^', '*', '/', '+', '-', '(', '|'};
             char[] seps = {'^', '*', '/', '+', '-', '|'};
 
 
-            expression = expression.Replace(" ", "");
+            expr = expr.Replace(" ", "");
 
             //if (expression.StartsWith("-") ||expression.StartsWith("+")) expression = expression.Insert(1,"1*");
 
@@ -67,31 +83,31 @@ namespace SymbolicAlgebra
             Stack<int> PLevels = new Stack<int>();
             bool Inner = false;
             bool FunctionContext = false;
-            for (int ix = 0; ix < expression.Length; ix++)
+            for (int ix = 0; ix < expr.Length; ix++)
             {
                 if (PLevels.Count == 0)
                 {
                     // include the normal parsing when we are not in parenthesis group
-                    if (separators.Contains(expression[ix]))
+                    if (separators.Contains(expr[ix]))
                     {
-                        if ((expression[ix] == '-' || expression[ix] == '+') && ix == 0)
+                        if ((expr[ix] == '-' || expr[ix] == '+') && ix == 0)
                         {
-                            TokenBuilder.Append(expression[ix]);
+                            TokenBuilder.Append(expr[ix]);
                         }
-                        else if (expression[ix] == '(')
+                        else if (expr[ix] == '(')
                         {
                             PLevels.Push(1);
-                            var bb = ix>0?separators.Contains(expression[ix-1]):true;
+                            var bb = ix>0?separators.Contains(expr[ix-1]):true;
                             if (!bb)
                             {
                                 //the previous charachter is normal word which indicates we reached a function
                                 FunctionContext = true;
-                                TokenBuilder.Append(expression[ix]);
+                                TokenBuilder.Append(expr[ix]);
                             }
                         }
-                        else if (seps.Contains(expression[ix - 1]) && (expression[ix] == '-' || expression[ix] == '+'))
+                        else if (seps.Contains(expr[ix - 1]) && (expr[ix] == '-' || expr[ix] == '+'))
                         {
-                            TokenBuilder.Append(expression[ix]);
+                            TokenBuilder.Append(expr[ix]);
                         }
                         else
                         {
@@ -108,24 +124,24 @@ namespace SymbolicAlgebra
 
                             TokenBuilder = new StringBuilder();
 
-                            ep.Operation = expression[ix].ToString();
+                            ep.Operation = expr[ix].ToString();
                             ep.Next = new SymbolicExpressionOperator();
                             ep = ep.Next;           // advance the reference to the next node to make the linked list.
                         }
                     }
                     else
                     {
-                        TokenBuilder.Append(expression[ix]);
+                        TokenBuilder.Append(expr[ix]);
                     }
                 }
                 else
                 {
                     // we are in group
-                    if (expression[ix] == '(')
+                    if (expr[ix] == '(')
                     {
                         PLevels.Push(1);
                     }
-                    if (expression[ix] == ')')
+                    if (expr[ix] == ')')
                     {
                         PLevels.Pop();
 
@@ -134,7 +150,7 @@ namespace SymbolicAlgebra
                             Inner = true;
                             if (FunctionContext)
                             {
-                                TokenBuilder.Append(expression[ix]);
+                                TokenBuilder.Append(expr[ix]);
                                 FunctionContext = false;
                                 Inner = false;   // because i am taking the function body as a whole in this parse pass.
                                 // then inner parameters of the function will be parsed again 
@@ -142,12 +158,12 @@ namespace SymbolicAlgebra
                         }
                         else
                         {
-                            TokenBuilder.Append(expression[ix]);    
+                            TokenBuilder.Append(expr[ix]);    
                         }
                     }
                     else
                     {
-                        TokenBuilder.Append(expression[ix]);
+                        TokenBuilder.Append(expr[ix]);
                     }
                 }
             }
@@ -219,6 +235,15 @@ namespace SymbolicAlgebra
                         eop = eop.Next;
                     }
                 }
+            }
+
+            if (rr.Length > 1)
+            {
+                // there was a function defintion
+                var fname = rr[0];
+
+                Functions[fname] = Root.SymbolicExpression;
+                
             }
 
             return Root.SymbolicExpression;
@@ -381,7 +406,16 @@ namespace SymbolicAlgebra
                             }
                             else
                             {
-                                throw new SymbolicException(string.Format("The target function {0} couldn't be found", fname));
+                                var fn = Functions.Keys.FirstOrDefault(cc => cc.StartsWith(fname));
+                                if (!string.IsNullOrEmpty(fn))
+                                {
+                                    // this is good  because we have a body.
+                                    ep.DynamicExpression = Functions[fn].ParseDynamicExpression(ref parameters);   
+                                }
+                                else
+                                {
+                                    throw new SymbolicException(string.Format("The target function {0} couldn't be found", fname));
+                                }
                             }
                         }
                         else
