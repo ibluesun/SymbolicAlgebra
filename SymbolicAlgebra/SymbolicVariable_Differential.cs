@@ -163,7 +163,7 @@ namespace SymbolicAlgebra
                                 Debug.Print("Diff(" + fv + ")");
                                 #endif
 
-                                var extendedFunction = Functions.Keys.FirstOrDefault(c => c.StartsWith(fv.FunctionName));
+                                var extendedFunction = Functions.Keys.FirstOrDefault(c => c.StartsWith(fv.FunctionName, StringComparison.OrdinalIgnoreCase));
                                 if (!string.IsNullOrEmpty(extendedFunction))
                                 {
                                     string[] fps = extendedFunction.Substring(extendedFunction.IndexOf("(")).TrimStart('(').TrimEnd(')').Split(',');
