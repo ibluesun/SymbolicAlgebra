@@ -1,3 +1,7 @@
+Symbolic Algebra [0.81]
+-----------------------
+- Fixed case sensitive error :)  all my programs are not case sensitive :)
+
 Symbolic Algebra [0.8]
 -----------------------
 - Summing or subtracting two different denominators terms result in a correct operation.
