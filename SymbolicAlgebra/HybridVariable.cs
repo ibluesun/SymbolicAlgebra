@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 
 namespace SymbolicAlgebra
 {
@@ -102,6 +103,18 @@ namespace SymbolicAlgebra
             return nhv;
         }
 
+        public override string ToString()
+        {
+            if (SymbolicVariable != null)
+            {
+                return SymbolicVariable.ToString();
+            }
+            else 
+            {
+                return NumericalVariable.ToString(CultureInfo.InvariantCulture);
+            }
+        }
+
         
         public bool IsZero
         {
@@ -109,15 +122,6 @@ namespace SymbolicAlgebra
             {
                 if (SymbolicVariable != null)
                 {
-                    //if (SymbolicVariable.Coeffecient == 0)
-                    //{
-                    //    bool zz = true;
-                    //    foreach (SymbolicVariable vv in SymbolicVariable.AddedTerms.Values)
-                    //        if (vv.Coeffecient != 0) zz = false;
-
-                    //    return zz;
-
-                    //}
                     return SymbolicVariable.IsZero;
                 }
                 else if (NumericalVariable == 0)

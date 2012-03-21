@@ -123,13 +123,14 @@ namespace SymbolicAlgebra
             if (string.Equals(func, "asin", StringComparison.InvariantCultureIgnoreCase))
             {                
                 //asin(x) → 1 / sqrt(1-x^2) 
-
-                return SymbolicVariable.Parse(dpa.ToString() + "/Sqrt(1-" + ps.ToString() + ")");
+                
+                return SymbolicVariable.Parse(dpa.ToString() + "/sqrt(1-(" + ps.ToString() + "))");
             }
 
             if (string.Equals(func, "acos", StringComparison.InvariantCultureIgnoreCase))
             {
-                return SymbolicVariable.Parse("-" + dpa.ToString() + "/Sqrt(1-" + ps.ToString() + ")");
+                
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/sqrt(1-(" + ps.ToString() + "))");
             }
 
             if (string.Equals(func, "atan", StringComparison.InvariantCultureIgnoreCase))
@@ -144,12 +145,12 @@ namespace SymbolicAlgebra
 
             if (string.Equals(func, "asec", StringComparison.InvariantCultureIgnoreCase))
             {
-                return SymbolicVariable.Parse(dpa.ToString() + "/(Sqrt(1-1/" + ps.ToString() + ")*" + ps.ToString() + ")");
+                return SymbolicVariable.Parse(dpa.ToString() + "/(sqrt(1-1/(" + ps.ToString() + "))*" + ps.ToString() + ")");
             }
 
             if (string.Equals(func, "acsc", StringComparison.InvariantCultureIgnoreCase))
             {
-                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(Sqrt(1-1/" + ps.ToString() + ")*" + ps.ToString() + ")");
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(sqrt(1-1/(" + ps.ToString() + "))*" + ps.ToString() + ")");
             }
 
 
@@ -159,17 +160,18 @@ namespace SymbolicAlgebra
             {
                 //asin(x) → 1 / sqrt(x^2+1) 
 
-                return SymbolicVariable.Parse(dpa.ToString() + "/Sqrt(" + ps.ToString() + "+1)");
+                return SymbolicVariable.Parse(dpa.ToString() + "/sqrt(" + ps.ToString() + "+1)");
             }
 
             if (string.Equals(func, "acosh", StringComparison.InvariantCultureIgnoreCase))
             {
-                return SymbolicVariable.Parse("-" + dpa.ToString() + "/Sqrt(" + ps.ToString() + "-1)");
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/sqrt(" + ps.ToString() + "-1)");
             }
 
             if (string.Equals(func, "atanh", StringComparison.InvariantCultureIgnoreCase))
             {
-                return SymbolicVariable.Parse(dpa.ToString() + "/(1-" + ps.ToString() + ")");
+                
+                return SymbolicVariable.Parse(dpa.ToString() + "/(1-(" + ps.ToString() + "))");
             }
 
             if (string.Equals(func, "acoth", StringComparison.InvariantCultureIgnoreCase))
@@ -179,12 +181,12 @@ namespace SymbolicAlgebra
 
             if (string.Equals(func, "asech", StringComparison.InvariantCultureIgnoreCase))
             {
-                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(Sqrt(1/" + ps.ToString() + "-1)*" + ps.ToString() + ")");
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(sqrt(1/" + ps.ToString() + "-1)*" + ps.ToString() + ")");
             }
 
             if (string.Equals(func, "acsch", StringComparison.InvariantCultureIgnoreCase))
             {
-                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(Sqrt(1/" + ps.ToString() + "+1)*" + ps.ToString() + ")");
+                return SymbolicVariable.Parse("-" + dpa.ToString() + "/(sqrt(1/" + ps.ToString() + "+1)*" + ps.ToString() + ")");
             }
 
             #endregion

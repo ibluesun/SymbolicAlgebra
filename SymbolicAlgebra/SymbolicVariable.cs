@@ -202,11 +202,8 @@ namespace SymbolicAlgebra
             if (double.TryParse(expression, out coe))
             {
                 Symbol = string.Empty;
-                
                 if (rem != 0.0) Coeffecient = -1 * coe;
                 else Coeffecient = coe;
-
-
                 SymbolPower = 0;
             }
             else
@@ -230,8 +227,6 @@ namespace SymbolicAlgebra
                     _IsFunction = true;
                     _FunctionName = m.Groups["function"].Value;
 
-
-
                     var parms = m.Groups["parameters"].Value;
                     if (!string.IsNullOrEmpty(parms))
                     {
@@ -244,10 +239,12 @@ namespace SymbolicAlgebra
                         }
                     }
 
+                    // the following is the process of simplifieng known functions to its simplified form
                     if (FunctionParameters != null)
                     {
                         string[] oddfuncs = { "sin", "csc", "tan", "cot" };
                         string[] evenfuncs = { "cos", "sec" };
+                        
 
                         // for some triogonmetric functions like sin  sin(-x) = -sin(x)  // this is important
 
@@ -272,14 +269,165 @@ namespace SymbolicAlgebra
                             }
                         }
 
-                        Symbol = _FunctionName + "(";
-                        for (int i = 0; i < FunctionParameters.Length; i++)
+                        bool log = false;
+                        if (_FunctionName.Equals(lnText, StringComparison.OrdinalIgnoreCase))
                         {
-                            Symbol += FunctionParameters[i].ToString() + ",";
-                        }
+                            #region log simplification region
+                            if (!FunctionParameters[0].IsMultiTerm)
+                            {
+                                if (FunctionParameters[0].IsOne)
+                                {
+                                    _Symbol = string.Empty;
+                                    Coeffecient = 0;
+                                    _SymbolPower = 0;
+                                    FunctionParameters = null;
+                                }
 
-                        if (Symbol.EndsWith(",")) Symbol = Symbol.TrimEnd(',');
-                        Symbol += ")";
+                                if (FunctionParameters != null)
+                                {
+                                    if (!string.IsNullOrEmpty(FunctionParameters[0].FunctionName))
+                                    {
+                                        if (FunctionParameters[0].FunctionName.Equals("exp", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            // take the inner of exp and put it as a symbolic variable
+                                            ReplaceCurrentValuesWith(FunctionParameters[0].FunctionParameters[0]);
+
+                                            FunctionParameters = null;
+                                        }
+                                    }
+                                }
+
+                                if (FunctionParameters != null)
+                                {
+                                    if (FunctionParameters[0].FusedSymbols.Count > 0 || FunctionParameters[0].FusedConstants.Count > 0 ||
+                                        (FunctionParameters[0].CoeffecientPowerTerm != null && FunctionParameters[0].SymbolPowerTerm != null) ||
+                                        ((FunctionParameters[0].CoeffecientPowerTerm != null) && (FunctionParameters[0].SymbolPower > 1 || FunctionParameters[0].SymbolPower < 0)) ||
+                                        (FunctionParameters[0].Coeffecient!=1 && !string.IsNullOrEmpty(FunctionParameters[0].Symbol) && FunctionParameters[0].SymbolPower!=0)
+
+                                        )
+                                    {
+                                        #region log(x*y)
+                                        // we have parameter on the form x*y or y/x or whatever
+                                        // we take the power of each term and also fused constants 
+                                        // and we prepare an expanded expression of term1_power*log(term1)+ term2_power*log(term2)+...
+
+                                        var logparam = FunctionParameters[0];
+
+                                        // Constants part
+                                        var first_constant = new HybridVariable { NumericalVariable = 1, SymbolicVariable = logparam.CoeffecientPowerTerm };
+                                        logparam._CoeffecientPowerTerm = null;
+
+                                        HybridVariable[] fusedConstants = new HybridVariable[logparam.FusedConstants.Count];
+                                        for (int i = 0; i < logparam.FusedConstants.Count; i++)
+                                        {
+                                            // get the power we need
+                                            fusedConstants[i] = (HybridVariable)logparam.FusedConstants.ElementAt(i).Value.Clone();
+
+                                            // make the poewr of fused variable one  {it means if it was 2^x or 2^2  now it will be 2^1
+                                            logparam.FusedConstants[logparam.FusedConstants.ElementAt(i).Key] = new HybridVariable { NumericalVariable = 1 };
+                                        }
+
+                                        // symbols part
+                                        var first_symbol = new HybridVariable { NumericalVariable = logparam.SymbolPower, SymbolicVariable = logparam.SymbolPowerTerm };
+                                        logparam._SymbolPowerTerm = null;
+                                        logparam.SymbolPower = 1;
+
+                                        HybridVariable[] fusedPowers = new HybridVariable[logparam.FusedSymbols.Count];
+                                        for (int i = 0; i < logparam.FusedSymbols.Count; i++)
+                                        {
+                                            // get the power we need
+                                            fusedPowers[i] = (HybridVariable)logparam.FusedSymbols.ElementAt(i).Value.Clone();
+
+                                            // make the poewr of fused variable one  {it means if it was y^x or y^2  now it will be y^1
+                                            logparam.FusedSymbols[logparam.FusedSymbols.ElementAt(i).Key] = new HybridVariable { NumericalVariable = 1 };
+                                        }
+
+                                        SymbolicVariable final = null;
+
+                                        // first coefficient power * log(coefficient)
+                                        final = Multiply(first_constant, new SymbolicVariable("log(" + logparam.Coeffecient.ToString() + ")"));
+                                        for (int i = 0; i < logparam.FusedConstants.Count; i++)
+                                        {
+                                            final = Add(final, Multiply(fusedConstants[i], new SymbolicVariable("log(" + logparam.FusedConstants.ElementAt(i).Key.ToString() + ")")));
+                                        }
+
+                                        // continue with symbols
+                                        final = Add(final, Multiply(first_symbol, new SymbolicVariable("log(" + logparam.Symbol + ")")));
+                                        for (int i = 0; i < logparam.FusedSymbols.Count; i++)
+                                        {
+                                            final = Add(final, Multiply(fusedPowers[i], new SymbolicVariable("log(" + logparam.FusedSymbols.ElementAt(i).Key + ")")));
+                                        }
+
+                                        ReplaceCurrentValuesWith(final);
+                                        #endregion
+
+
+                                    }
+                                    else
+                                    {
+                                        if (FunctionParameters[0].SymbolPowerTerm != null || FunctionParameters[0].SymbolPower > 1 || FunctionParameters[0].SymbolPower < 0)
+                                        {
+                                            // like log(y^x) for example
+
+                                            // get the power term
+                                            var spt = new HybridVariable { NumericalVariable = FunctionParameters[0].SymbolPower, SymbolicVariable = FunctionParameters[0].SymbolPowerTerm };
+
+
+                                            // make the log(parameter without its power)
+                                            FunctionParameters[0]._SymbolPowerTerm = null;
+                                            FunctionParameters[0].SymbolPower = 1;
+
+                                            string pwop = "log(" + FunctionParameters[0] + ")";
+                                            FunctionParameters = null;
+                                            var t = new SymbolicVariable(pwop);
+
+                                            // replace the primary symbol with the information of the power in parameter
+                                            var rs = Multiply(spt, t);
+                                            ReplaceCurrentValuesWith(rs);
+                                        }
+                                        else if (FunctionParameters[0].CoeffecientPowerTerm != null)
+                                        {
+                                            // like log(4^x)
+
+                                            // get the power term
+                                            var spt = FunctionParameters[0].CoeffecientPowerTerm;
+
+                                            // make the log(parameter without its power)
+                                            FunctionParameters[0]._CoeffecientPowerTerm = null;
+                                            string pwop = "log(" + FunctionParameters[0] + ")";
+                                            FunctionParameters = null;
+                                            var t = new SymbolicVariable(pwop);
+
+                                            // replace the primary symbol with the information of the power in parameter
+                                            var rs = Multiply(spt, t);
+                                            ReplaceCurrentValuesWith(rs);
+                                        }
+                                        else
+                                        {
+                                            //nothing
+                                            Symbol = _FunctionName + "(" + FunctionParameters[0].ToString() +")";
+                                        }
+                                    }
+                                }
+                            }
+
+                            log = true;
+                            #endregion
+                        }
+                        if (log)
+                        {
+                        }
+                        else 
+                        {
+                            Symbol = _FunctionName + "(";
+                            for (int i = 0; i < FunctionParameters.Length; i++)
+                            {
+                                Symbol += FunctionParameters[i].ToString() + ",";
+                            }
+
+                            if (Symbol.EndsWith(",")) Symbol = Symbol.TrimEnd(',');
+                            Symbol += ")";
+                        }
                     }
                 }
                 else
@@ -289,6 +437,25 @@ namespace SymbolicAlgebra
             }
 
 
+        }
+
+        /// <summary>
+        /// Replace the current instance with all values from the parameter.
+        /// Note: this is not cloning, but it is taking the whole content into the current instance
+        /// </summary>
+        /// <param name="spt"></param>
+        void ReplaceCurrentValuesWith(SymbolicVariable spt)
+        {
+            _Symbol = spt.Symbol;
+            Coeffecient = spt.Coeffecient;
+            _CoeffecientPowerTerm = spt.CoeffecientPowerTerm;
+            _FusedConstants = spt.FusedConstants;
+            _SymbolPower = spt.SymbolPower;
+            _SymbolPowerTerm = spt.SymbolPowerTerm;
+            _AddedTerms = spt.AddedTerms;
+            _ExtraTerms = spt.ExtraTerms;
+            _DividedTerm = spt.DividedTerm;
+            _FusedSymbols = spt.FusedSymbols;
         }
 
         /// <summary>
@@ -527,7 +694,7 @@ namespace SymbolicAlgebra
 
             if (powerTerm != null)
             {
-                string powerTermText = powerTerm.ToString();
+                string powerTermText = powerTerm.IsNegative ? SymbolicVariable.Multiply(NegativeOne, powerTerm).ToString() : powerTerm.ToString();
                 if (powerTermText.Length > 1)
                     result = variableName + "^(" + powerTermText + ")";
                 else
@@ -600,7 +767,8 @@ namespace SymbolicAlgebra
 
             if (powerTerm != null)
             {
-                string powerTermText = powerTerm.ToString();
+                string powerTermText = powerTerm.IsNegative ? SymbolicVariable.Multiply(NegativeOne, powerTerm).ToString() : powerTerm.ToString();
+
                 if (powerTermText.Length > 1)
                     result = variableName + "^(" + powerTermText + ")";
                 else
@@ -630,14 +798,19 @@ namespace SymbolicAlgebra
         #endregion
 
         /// <summary>
-        /// from a*x^2  I mean {x^2}
+        /// from a*x^2  I mean {x^2} 
+        /// a^3*x^2  ===>  a^3|x^2
         /// used as a key in AddedTerms hashtable.
         /// </summary>
-        public string SymbolBaseValue
+        public string WholeValueBaseKey
         {
             get
             {
                 string result = string.Empty;
+
+                
+                // add the key of the coefficient only  when it has power term and coefficient itself is not zero.
+                if (CoeffecientPowerTerm != null && Coeffecient != 0) result = Coeffecient.ToString(CultureInfo.InvariantCulture) + "^" + CoeffecientPowerTerm.WholeValueBaseKey + "|";
 
                 if (_SymbolPowerTerm != null)
                 {
@@ -684,6 +857,21 @@ namespace SymbolicAlgebra
             }
         }
 
+
+
+        public string SymbolBaseKey
+        {
+            get
+            {
+                string g = WholeValueBaseKey;
+
+                if (g.Contains('|')) return g.Substring(g.IndexOf('|') + 1);
+                else return g;
+                
+            }
+        }
+        
+
         /// <summary>
         /// Gets the power part of this term
         /// return empty text when power = 0 or 1 or -1
@@ -723,15 +911,17 @@ namespace SymbolicAlgebra
             
             string result = string.Empty;
 
+            // first check the primary storage of the symbol and if it has value or noy
+
             if (!string.IsNullOrEmpty(Symbol))
             {
                 // include the power of instance 
                 if (string.IsNullOrEmpty(SymbolPowerText))
                 {
                     if (_SymbolPower == 0)
-                        result = "1";
+                        result = "1";                  // x^0     will result in 1
                     else
-                        result = Symbol;
+                        result = Symbol;               //  x  the symbol itself
                 }
                 else
                 {
@@ -740,18 +930,18 @@ namespace SymbolicAlgebra
                     if (SymbolPower >= 0)
                     {
                         if (SymbolPowerText.Length > 1)
-                            result = Symbol + "^(" + SymbolPowerText + ")";
+                            result = Symbol + "^(" + SymbolPowerText + ")";               // x^(power)
                         else
-                            result = Symbol + "^" + SymbolPowerText;
+                            result = Symbol + "^" + SymbolPowerText;                      //  x^power
                     }
                     else
                     {
                         if (_SymbolPowerTerm == null)
-                            result = Symbol + "^" + Math.Abs(SymbolPower).ToString(CultureInfo.InvariantCulture);
+                            result = Symbol + "^" + Math.Abs(SymbolPower).ToString(CultureInfo.InvariantCulture);    // x^power
                         else
                         {
                             if (SymbolPowerText.Length > 1)
-                                result = Symbol + "^(" + SymbolPowerText + ")";
+                                result = Symbol + "^(" + SymbolPowerText + ")";                                   // x^(multi power term)
                             else
                                 result = Symbol + "^" + SymbolPowerText;
                         }
@@ -759,34 +949,15 @@ namespace SymbolicAlgebra
                 }
             }
 
-            for (int i = 0; i < FusedConstants.Count; i++)
-            {
-
-                double pp = GetFusedConstantPower(i);
-
-                if (string.IsNullOrEmpty(result))
-                {
-                    if (pp >= 0)
-                        result += GetConstantBaseValue(i);
-                    else
-                        result += "1/" + GetConstantAbsoluteBaseValue(i);
-                }
-                else
-                {
-                    if (pp >= 0)
-                        result += "*" + GetConstantBaseValue(i);
-                    else
-                        result += "/" + GetConstantAbsoluteBaseValue(i);
-                }
-            }
 
             for (int i = 0; i < FusedSymbols.Count; i++)
             {
 
-                double pp = GetFusedPower(i);
+                double pp = GetFusedPower(i);         // fused symbol power
 
                 if (string.IsNullOrEmpty(result))
                 {
+                    // if there were no powers in the main symbol storage  {this case shouldn't happen from calculation} because I always transfer any fused symbol inside the main storage
                     if (pp >= 0)
                         result += GetSymbolBaseValue(i);
                     else
@@ -797,7 +968,10 @@ namespace SymbolicAlgebra
                     if (pp >= 0)
                         result += "*" + GetSymbolBaseValue(i);
                     else
-                        result += "/" + GetSymbolAbsoluteBaseValue(i);
+                    {
+                        var sabv = GetSymbolAbsoluteBaseValue(i);
+                        result += "/" + sabv;
+                    }
                 }
             }
 
@@ -812,7 +986,7 @@ namespace SymbolicAlgebra
         {
             string result = GetFormattedSymbolicValue();
 
-            if (Coeffecient == 0) return "0";
+            if (Coeffecient == 0) return "0";                 // this cancel all the symbolic variable because of 0 in coeffecient
 
             if (Coeffecient == 1)
             {
@@ -860,10 +1034,6 @@ namespace SymbolicAlgebra
                         {
                             result = rr + "*" +  result;
                         }
-                        else if (FusedConstants.Count > 0)
-                        {
-                            result = rr + "*" + result;
-                        }
                         else
                         {
                             result = rr;
@@ -871,6 +1041,33 @@ namespace SymbolicAlgebra
                     }
                 }
             }
+
+            if (FusedConstants.Count > 0) if (result == "1") result = string.Empty;
+            
+            // continue with the rest of constants
+            for (int i = 0; i < FusedConstants.Count; i++)
+            {
+
+                
+
+                double pp = GetFusedConstantPower(i);
+
+                if (string.IsNullOrEmpty(result))
+                {
+                    if (pp >= 0)
+                        result += GetConstantBaseValue(i);
+                    else
+                        result += "1/" + GetConstantAbsoluteBaseValue(i);
+                }
+                else
+                {
+                    if (pp >= 0)
+                        result += "*" + GetConstantBaseValue(i);
+                    else
+                        result += "/" + GetConstantAbsoluteBaseValue(i);
+                }
+            }
+
 
             return result;
             
@@ -915,8 +1112,19 @@ namespace SymbolicAlgebra
 
             foreach (var eterm in ExtraTerms)
             {
-                if (eterm.Negative) result += "-" + eterm.Term.FinalText();
-                else result += "+" + eterm.Term.FinalText();
+                if (eterm.Negative)
+                {
+                    
+                    result += "-" + eterm.Term.FinalText();
+                }
+                else
+                {
+                    string etv = eterm.Term.FinalText();
+                    if(etv.StartsWith("-")) 
+                        result+=etv;
+                    else 
+                        result += "+" + etv ;
+                }
             }
 
             return result;
@@ -1151,6 +1359,50 @@ namespace SymbolicAlgebra
             return Coeffecient.GetHashCode() + Symbol.GetHashCode() + SymbolPower.GetHashCode();
         }
 
+        private static void AdjustSpecialFunctions(ref SymbolicVariable sv)
+        {
+            // if you found sqrt(x)^2 get the parameter of the function
+
+            var aterms = sv._AddedTerms;
+            sv._AddedTerms = null;
+            var eterms = sv._ExtraTerms;
+            sv._ExtraTerms = null;
+
+            if (sv.IsFunction && sv.FunctionName.Equals("sqrt", StringComparison.OrdinalIgnoreCase)&&sv.SymbolPower>1)
+            {
+                var parameterPower = 0.5 * sv.SymbolPower;
+                
+                var newvalue = sv.FunctionParameters[0].Power(parameterPower);
+                newvalue.Coeffecient *= sv.Coeffecient;
+
+                sv = newvalue;
+                
+            }
+
+            if (aterms != null)
+            {
+                for (int i = 0; i < aterms.Count; i++)
+                {
+                    var sa = aterms.ElementAt(i).Value;
+
+                    AdjustSpecialFunctions(ref sa);
+
+                    sv.AddedTerms.Add(sa.WholeValueBaseKey,sa);
+                }
+                
+            }
+
+            if (eterms != null)
+            {
+                foreach (var r in eterms)
+                {
+                    AdjustSpecialFunctions(ref r.Term);
+                    sv.ExtraTerms.Add(r);
+                }
+                
+            }
+        }
+
         private static void AdjustZeroPowerTerms(SymbolicVariable svar)
         {
             for (int i = svar.FusedSymbols.Count - 1; i >= 0; i--)
@@ -1315,7 +1567,7 @@ namespace SymbolicAlgebra
         {
             get
             {
-                if (string.IsNullOrEmpty(this.SymbolBaseValue) && IsMultiTerm == false)
+                if (string.IsNullOrEmpty(this.WholeValueBaseKey) && IsMultiTerm == false)
                 {
                     return true;
                 }
@@ -1329,7 +1581,7 @@ namespace SymbolicAlgebra
         {
             get
             {
-                if (AddedTerms.Count == 0) return false;
+                if (AddedTerms.Count == 0 && ExtraTerms.Count == 0) return false;
                 return true;
             }
         }
@@ -1369,6 +1621,7 @@ namespace SymbolicAlgebra
         {
             get
             {
+                if (_IsFunction == null) _IsFunction = false;
                 return _IsFunction.Value;
             }
         }
@@ -1499,7 +1752,11 @@ namespace SymbolicAlgebra
 
         public object Clone()
         {
+            
             SymbolicVariable clone = new SymbolicVariable(this.Symbol);
+
+            //if (this._BaseVariable == null)  clone._Symbol = this._Symbol;
+
             clone.Coeffecient = this.Coeffecient;
             clone._SymbolPower = this._SymbolPower;
 

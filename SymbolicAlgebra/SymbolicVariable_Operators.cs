@@ -65,8 +65,28 @@ namespace SymbolicAlgebra
 
             if (a.BaseEquals(subB))
             {
-                sv.Coeffecient = a.Coeffecient + subB.Coeffecient;
-                consumed = true;
+                if (a.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
+                {
+                    sv.Coeffecient = a.Coeffecient + subB.Coeffecient;
+                    consumed = true;
+                }
+                else if (a.CoeffecientPowerTerm != null && subB.CoeffecientPowerTerm != null)
+                {
+                    if (a.CoeffecientPowerTerm.Equals(subB.CoeffecientPowerTerm))
+                    {
+                        var cr = a.Coeffecient + subB.Coeffecient;
+                        if (cr == 0)
+                        {
+                            sv.Coeffecient = cr;
+                            consumed = true;
+                        }
+                    }
+                }
+                else
+                {
+                    // nothing
+                }
+
             }
               
             //so the equality doesn't exits or this instance have other terms also
@@ -82,9 +102,29 @@ namespace SymbolicAlgebra
                 if (av.Value.BaseEquals(subB))
                 {
                     var iv = (SymbolicVariable)a.AddedTerms[av.Key].Clone();
-                    iv.Coeffecient = iv.Coeffecient + subB.Coeffecient;
-                    sv.AddedTerms[av.Key] = iv;
-                    consumed = true;
+
+                    if (iv.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
+                    {
+                        iv.Coeffecient = iv.Coeffecient + subB.Coeffecient;
+                        sv.AddedTerms[av.Key] = iv;
+                        consumed = true;
+                    }
+                    else if (iv.CoeffecientPowerTerm != null && subB.CoeffecientPowerTerm != null)
+                    {
+                        if (iv.CoeffecientPowerTerm.Equals(subB.CoeffecientPowerTerm) )
+                        {
+                            var cr = iv.Coeffecient + subB.Coeffecient;
+                            if (cr == 0)
+                            {
+                                iv.Coeffecient = cr;
+                                sv.AddedTerms[av.Key] = iv;
+                                consumed = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                    }
                 }
             }
 
@@ -92,9 +132,9 @@ namespace SymbolicAlgebra
             {
                 // add it to the positive variables.
 
-                SymbolicVariable pv;
+                SymbolicVariable pv = null;
 
-                sv.AddedTerms.TryGetValue(subB.SymbolBaseValue, out pv);
+                sv.AddedTerms.TryGetValue(subB.WholeValueBaseKey, out pv);
 
                 if (pv == null)
                 {
@@ -105,21 +145,21 @@ namespace SymbolicAlgebra
 
                     pv.DividedTerm = One;
                     // then add the original term
-                    sv.AddedTerms.Add(pv.SymbolBaseValue, pv);
+                    sv.AddedTerms.Add(pv.WholeValueBaseKey, pv);
 
                     if (SubTerms != null)
                     {
                         //then add the value added terms if exist
                         foreach (var at in pv.AddedTerms)
                         {
-                            sv.AddedTerms.Add(at.Value.SymbolBaseValue, at.Value);
+                            sv.AddedTerms.Add(at.Value.WholeValueBaseKey, at.Value);
                         }
                     }
                 }
                 else
                 {
                     //exist before add it to this variable.
-                    sv.AddedTerms[subB.SymbolBaseValue] = Add(sv.AddedTerms[subB.SymbolBaseValue], subB);
+                    sv.AddedTerms[subB.WholeValueBaseKey] = Add(sv.AddedTerms[subB.WholeValueBaseKey], subB);
                 }
             }
 
@@ -135,8 +175,11 @@ namespace SymbolicAlgebra
                 }
             }
 
+            AdjustSpecialFunctions(ref sv);
             AdjustZeroPowerTerms(sv);
             AdjustZeroCoeffecientTerms(ref sv);
+
+
             return sv;
 
         }
@@ -174,7 +217,7 @@ namespace SymbolicAlgebra
                 {
                     // add in the extra terms
                     var negative_b = ((SymbolicVariable)b.Clone());
-                    //negative_b.Coeffecient *= -1;
+                    
                     a_b.ExtraTerms.Add(new ExtraTerm { Term = negative_b, Negative = true });
                 }
                 AdjustZeroCoeffecientTerms(ref a_b);
@@ -188,13 +231,33 @@ namespace SymbolicAlgebra
 
             SymbolicVariable sv = (SymbolicVariable)a.Clone();
         NewPart:
+
             
             bool consumed = false;
 
             if (a.BaseEquals(subB))
             {
-                sv.Coeffecient = a.Coeffecient - subB.Coeffecient;
-                consumed = true;
+                if (a.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
+                {
+                    sv.Coeffecient = a.Coeffecient - subB.Coeffecient;
+                    consumed = true;
+                }
+                else if (a.CoeffecientPowerTerm != null && subB.CoeffecientPowerTerm != null)
+                {
+                    if (a.CoeffecientPowerTerm.Equals(subB.CoeffecientPowerTerm))
+                    {
+                        var cr = a.Coeffecient - subB.Coeffecient;
+                        if (cr == 0)
+                        {
+                            sv.Coeffecient = cr;
+                            consumed = true;
+                        }
+                    }
+                }
+                else
+                {
+                    // nothing
+                }
             }
 
             //so the equality doesn't exits or this instance have other terms also
@@ -209,9 +272,29 @@ namespace SymbolicAlgebra
                 if (av.Value.BaseEquals(subB))
                 {
                     var iv = (SymbolicVariable)a.AddedTerms[av.Key].Clone();
-                    iv.Coeffecient = iv.Coeffecient - subB.Coeffecient;
-                    sv.AddedTerms[av.Key] = iv;
-                    consumed = true;
+
+                    if (iv.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
+                    {
+                        iv.Coeffecient = iv.Coeffecient - subB.Coeffecient;
+                        sv.AddedTerms[av.Key] = iv;
+                        consumed = true;
+                    }
+                    else if (iv.CoeffecientPowerTerm != null && subB.CoeffecientPowerTerm != null)
+                    {
+                        if (iv.CoeffecientPowerTerm.Equals(subB.CoeffecientPowerTerm))
+                        {
+                            var cr = iv.Coeffecient - subB.Coeffecient;
+                            if (cr == 0)
+                            {
+                                iv.Coeffecient = cr;
+                                sv.AddedTerms[av.Key] = iv;
+                                consumed = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                    }
                 }
             }
 
@@ -222,7 +305,7 @@ namespace SymbolicAlgebra
 
                 SymbolicVariable pv;
 
-                sv.AddedTerms.TryGetValue(subB.SymbolBaseValue, out pv);
+                sv.AddedTerms.TryGetValue(subB.WholeValueBaseKey, out pv);
 
                 if (pv == null)
                 {
@@ -234,7 +317,7 @@ namespace SymbolicAlgebra
 
                     pv.DividedTerm = One;
 
-                    sv.AddedTerms.Add(pv.SymbolBaseValue, pv);
+                    sv.AddedTerms.Add(pv.WholeValueBaseKey, pv);
 
                     if (SubTerms != null)
                     {
@@ -242,7 +325,7 @@ namespace SymbolicAlgebra
                         foreach (var at in pv.AddedTerms)
                         {
                             at.Value.Coeffecient *= -1;
-                            sv.AddedTerms.Add(at.Value.SymbolBaseValue, at.Value);
+                            sv.AddedTerms.Add(at.Value.WholeValueBaseKey, at.Value);
                         }
                     }
 
@@ -251,7 +334,7 @@ namespace SymbolicAlgebra
                 {
                     //exist before add it to this variable.
 
-                    sv.AddedTerms[subB.SymbolBaseValue] = Subtract(sv.AddedTerms[subB.SymbolBaseValue], subB);
+                    sv.AddedTerms[subB.WholeValueBaseKey] = Subtract(sv.AddedTerms[subB.WholeValueBaseKey], subB);
                 }
             }
 
@@ -268,6 +351,7 @@ namespace SymbolicAlgebra
             }
 
 
+            AdjustSpecialFunctions(ref sv);
             AdjustZeroPowerTerms(sv);
             AdjustZeroCoeffecientTerms(ref sv);
 

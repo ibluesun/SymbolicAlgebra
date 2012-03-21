@@ -23,7 +23,7 @@ namespace SymbolicAlgebra
 
             //if the value is only having coeffecient then there is no need to instantiate the powerterm
 
-            if (b.IsOneTerm & b.IsCoeffecientOnly)
+            if (b.IsOneTerm & b.IsCoeffecientOnly & (Math.Floor(b.Coeffecient) == b.Coeffecient) /*& b.Coeffecient >= 0*/)
             {
                 an = an.Power(b.Coeffecient);
             }
@@ -37,7 +37,7 @@ namespace SymbolicAlgebra
                 {
                     if (an._SymbolPowerTerm == null)
                     {
-                        an._SymbolPowerTerm = an.SymbolPower * b;
+                        if (an.SymbolPower != 0) an._SymbolPowerTerm =  an.SymbolPower * b;
                     }
                     else
                     {

@@ -27,8 +27,10 @@ namespace SymbolicAlgebra
             bool symbolpowercontainParameter = false;
             if (sv._SymbolPowerTerm != null)
             {
-                if (sv._SymbolPowerTerm.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
+                if (sv._SymbolPowerTerm.InvolvedSymbols.Contains(parameter, StringComparer.OrdinalIgnoreCase))
+                {
                     symbolpowercontainParameter = true;
+                }
                 else
                 {
                     int prcount = sv._SymbolPowerTerm.FusedSymbols.Count(p => p.Key.Equals(parameter, StringComparison.OrdinalIgnoreCase));
@@ -36,8 +38,12 @@ namespace SymbolicAlgebra
                 }
             }
 
+            bool cc = false;
+            if(sv.BaseVariable!=null) cc = sv.BaseVariable.InvolvedSymbols.Contains(parameter, StringComparer.OrdinalIgnoreCase); // case of base variable
+            else cc = sv.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase) ;
+
             // x^3*y^2*z^5    , diff to x;
-            if (sv.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
+            if (cc)
             {
                 if (sv._SymbolPowerTerm == null)
                 {
@@ -47,14 +53,28 @@ namespace SymbolicAlgebra
                 }
                 else
                 {
-                    // symbol power term exist
-                    SymbolicVariable oldPower = sv._SymbolPowerTerm;
-                    sv._SymbolPowerTerm = Subtract(sv._SymbolPowerTerm, One);
-                    sv = Multiply(sv, oldPower);
+                    if (symbolpowercontainParameter)
+                    {
+                        // here is the case when base and power are the same with the parameter we are differentiating with
+                        //  i.e.  x^x|x
+                        // Logarithmic Differentiation   
+                        var lnterm = new SymbolicVariable("log(" + sv.ToString() + ")");
+                        var dlnterm = lnterm.Differentiate(parameter);
+                        sv = Multiply(sv, dlnterm);
+
+                    }
+                    else
+                    {
+                        // symbol power term exist
+                        SymbolicVariable oldPower = sv._SymbolPowerTerm;
+                        sv._SymbolPowerTerm = Subtract(sv._SymbolPowerTerm, One);
+                        sv = Multiply(sv, oldPower);
+                    }
                 }
             }
             else if (symbolpowercontainParameter)
             {
+                // this case is when the power term is the same 
                 var log = new SymbolicVariable(lnText + "(" + sv.Symbol + ")");
                 var dp = sv._SymbolPowerTerm.Differentiate(parameter);
                 sv = SymbolicVariable.Multiply(log, SymbolicVariable.Multiply(dp, sv));
@@ -292,8 +312,8 @@ namespace SymbolicAlgebra
                     MultipliedTerms.Add(new MultipliedTerm(CoeffecientOnly));
 
                     // multiplied symbol
-                    if (!string.IsNullOrEmpty(basicterm.SymbolBaseValue))
-                        MultipliedTerms.Add(new MultipliedTerm(SymbolicVariable.Parse(basicterm.SymbolBaseValue)));
+                    if (!string.IsNullOrEmpty(basicterm.SymbolBaseKey))
+                        MultipliedTerms.Add(new MultipliedTerm(SymbolicVariable.Parse(basicterm.WholeValueBaseKey)));
                 }
                 else
                 {
@@ -474,6 +494,8 @@ namespace SymbolicAlgebra
                 }
             }
 
+
+            AdjustSpecialFunctions(ref result);
 
             AdjustZeroPowerTerms(result);
 

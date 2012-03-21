@@ -69,7 +69,10 @@ namespace SymbolicAlgebra
                     // 
 
                     // the instance have an empty primary variable so we should add it 
-                    SourceTerm.Symbol = TargetSubTerm.Symbol;
+                    if (TargetSubTerm._BaseVariable != null) SourceTerm._BaseVariable = TargetSubTerm._BaseVariable;
+                    else 
+                        SourceTerm.Symbol = TargetSubTerm.Symbol;
+
                     SourceTerm.SymbolPower = TargetSubTerm.SymbolPower;
                     if (TargetSubTerm.SymbolPowerTerm != null) 
                         SourceTerm._SymbolPowerTerm = (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone();
@@ -231,7 +234,16 @@ namespace SymbolicAlgebra
                                         }
                                     }
                                     else
-                                        SourceTerm._SymbolPower += fsv.Value.NumericalVariable;
+                                    {
+                                        if (SourceTerm.SymbolPowerTerm != null)
+                                        {
+                                            SourceTerm._SymbolPowerTerm += new SymbolicVariable(fsv.Value.ToString());
+                                        }
+                                        else
+                                        {
+                                            SourceTerm._SymbolPower += fsv.Value.NumericalVariable;
+                                        }
+                                    }
 
                                 }
                                 else
@@ -265,7 +277,7 @@ namespace SymbolicAlgebra
                 {
                     var newv = Multiply(vv.Value, TargetSubTerm);
 
-                    newAddedVariables.Add(newv.SymbolBaseValue, newv);
+                    newAddedVariables.Add(newv.WholeValueBaseKey, newv);
                 }
                 SourceTerm._AddedTerms = newAddedVariables;
             }
@@ -312,9 +324,11 @@ namespace SymbolicAlgebra
             }
 
             
+            AdjustSpecialFunctions(ref total);
             AdjustZeroPowerTerms(total);
 
             AdjustZeroCoeffecientTerms(ref total);
+
 
             return total;
         }
@@ -468,6 +482,24 @@ namespace SymbolicAlgebra
                     }
                 }
             }
-        }    
+        }
+
+
+
+
+        /// <summary>
+        /// Multiply hybrid variable by symbolic variable, and returns the value into symbolic variable.
+        /// because hybrid variable is either number of symbolic.
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns><see cref="SymbolicVariable"/></returns>
+        public static SymbolicVariable Multiply(HybridVariable a, SymbolicVariable b)
+        {
+            if (a.SymbolicVariable != null) return Multiply(a.SymbolicVariable, b);
+            else return Multiply(new SymbolicVariable(a.NumericalVariable.ToString()), b);
+        }
+
+    
     }
 }
