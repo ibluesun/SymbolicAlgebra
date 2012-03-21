@@ -71,7 +71,10 @@ namespace SymbolicAlgebra
                 {
                     #region First Case: Source primary symbol doesn't exist
                     // the instance have an empty primary variable so we should add it 
-                    SourceTerm.Symbol = TargetSubTerm.Symbol;
+                    
+                    if (TargetSubTerm._BaseVariable != null) SourceTerm._BaseVariable = TargetSubTerm._BaseVariable;
+                    else SourceTerm.Symbol = TargetSubTerm.Symbol; 
+                    
                     SourceTerm.SymbolPower = -1 * TargetSubTerm.SymbolPower;
                     if (TargetSubTerm.SymbolPowerTerm != null) SourceTerm._SymbolPowerTerm = -1 * (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone();
 
@@ -239,14 +242,23 @@ namespace SymbolicAlgebra
                                         else
                                         {
                                             // sum the value in the numerical part to the value in symbolic part
-                                            SourceTerm._SymbolPowerTerm = 
+                                            SourceTerm._SymbolPowerTerm =
                                                 new SymbolicVariable(SourceTerm._SymbolPower.ToString(CultureInfo.InvariantCulture)) - fsv.Value.SymbolicVariable;
                                             // reset the value in numerical part
                                             SourceTerm._SymbolPower = -1;
                                         }
                                     }
                                     else
-                                        SourceTerm._SymbolPower -= fsv.Value.NumericalVariable;
+                                    {
+                                        if (SourceTerm.SymbolPowerTerm != null)
+                                        {
+                                            SourceTerm._SymbolPowerTerm -= new SymbolicVariable(fsv.Value.ToString());
+                                        }
+                                        else
+                                        {
+                                            SourceTerm._SymbolPower -= fsv.Value.NumericalVariable;
+                                        }
+                                    }
 
                                 }
                                 else
@@ -269,7 +281,7 @@ namespace SymbolicAlgebra
                 foreach (var vv in SourceTerm.AddedTerms)
                 {
                     var newv = Divide (vv.Value , TargetSubTerm);
-                    newAddedVariables.Add(newv.SymbolBaseValue, newv);
+                    newAddedVariables.Add(newv.WholeValueBaseKey, newv);
 
                 }
                 SourceTerm._AddedTerms = newAddedVariables;
@@ -315,8 +327,11 @@ namespace SymbolicAlgebra
             }
 
 
+            AdjustSpecialFunctions(ref total);
+
             AdjustZeroPowerTerms(total);
             AdjustZeroCoeffecientTerms(ref total);
+
 
             return total; 
         }
@@ -385,8 +400,8 @@ namespace SymbolicAlgebra
                                     cst.ConstantValue,
                                     new HybridVariable
                                     {
-                                        NumericalVariable = 1, // power
-                                        SymbolicVariable = (SymbolicVariable)cst.ConstantPower.Clone()
+                                        NumericalVariable = -1, // power
+                                        SymbolicVariable = Subtract(Zero, cst.ConstantPower)
                                     });
                             }
                             else

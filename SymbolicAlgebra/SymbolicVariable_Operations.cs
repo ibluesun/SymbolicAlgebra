@@ -21,8 +21,20 @@ namespace SymbolicAlgebra
             int pw = Math.Abs(power);
             while (pw > 1)
             {
-                total = SymbolicVariable.Multiply(total, this);
-                pw--;
+                if (this.IsFunction && this.FunctionName.Equals("Sqrt", StringComparison.OrdinalIgnoreCase))
+                {
+                    //
+                    var parameterpower = power * 0.5;
+
+                    total = this.FunctionParameters[0].Power(parameterpower);
+
+                    pw = 0; // to end the loop
+                }
+                else
+                {
+                    total = SymbolicVariable.Multiply(total, this);
+                    pw--;
+                }
             }
 
             if (power < 0)
@@ -46,8 +58,22 @@ namespace SymbolicAlgebra
             }
             else
             {
-                // multi term that we can't raise it to the double
-                return p.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
+                if (power == 0.5)
+                {
+                    // return sqrt function of the multi term
+
+                    return new SymbolicVariable("Sqrt(" + p.ToString() + ")");
+                }
+                else if (power > 0 && power < 1)
+                {
+                    // I don't have solution for this now
+                    throw new SymbolicException("I don't have solution for this type of power " + p.ToString() + "^ (" + power.ToString() + ")");
+                }
+                else
+                {
+                    // multi term that we can't raise it to the double
+                    return p.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
+                }
             }
 
             return  p;

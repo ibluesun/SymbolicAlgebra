@@ -1,3 +1,17 @@
+Symbolic Algebra [0.82]
+------------------------
+- now Sqrt(x)^2  present x
+- also sqrt(x) * sqrt(x) present x
+- lot of bug fixes like 3^u+4^y 
+
+- Simplification when creating log(x) has been implemented
+	log(1) = 0
+	log(exp(x)) = x
+	log(y/x) = log(y)-log(x)
+
+- Logarithmic Differentiation  (and it took me a great deal of time :) :)
+
+
 Symbolic Algebra [0.81]
 -----------------------
 - Fixed case sensitive error :)  all my programs are not case sensitive :)

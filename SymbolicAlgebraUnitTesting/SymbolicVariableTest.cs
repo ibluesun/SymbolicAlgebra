@@ -936,8 +936,7 @@ namespace SymbolicAlgebraUnitTesting
 
             p = SymbolicVariable.Parse("2^(x^2)*x^3");
             g = p.Differentiate("x");
-
-            Assert.AreEqual("x^4*2^(1+x^2)*" + lnText + "(2)+3*x^2*2^(x^2)", g.ToString());
+            Assert.AreEqual("x^4*log(2)*2^(1+x^2)+3*x^2*2^(x^2)", g.ToString());
 
             p = SymbolicVariable.Parse("sin(x)*cos(x)");
             g = p.Differentiate("x");
@@ -954,15 +953,16 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("2*cos(x)*x*cos(2*x*y)", g.ToString());
 
             p = SymbolicVariable.Parse(lnText + "(x^(2*f*t)*y^(5*t))");
+            Assert.AreEqual("2*f*t*log(x)+5*t*log(y)", p.ToString());
 
             g = p.Differentiate("t");
-            Assert.AreEqual("2*" + lnText + "(x)*f+5*" + lnText + "(y)", g.ToString());
+            Assert.AreEqual("2*f*log(x)+5*log(y)", g.ToString());
 
             g = p.Differentiate("x");
-            Assert.AreEqual("2/x*f*t", g.ToString());
+            Assert.AreEqual("2*f*t/x", g.ToString());
 
             g = p.Differentiate("y");
-            Assert.AreEqual("5/y*t", g.ToString());
+            Assert.AreEqual("5*t/y", g.ToString());
 
         }
 
@@ -1117,7 +1117,143 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("(-4*x-4*y)/(x^4+4*y*x^3+6*y^2*x^2+4*y^3*x+y^4)", v.ToString());
 
             v = SymbolicVariable.Parse("(2+3/x+5/(x-1))|x");
-            Assert.AreEqual("-3/x^2+-5/(x^2-2*x+1)", v.ToString());
+            Assert.AreEqual("-3/x^2-5/(x^2-2*x+1)", v.ToString());
+        }
+
+        [TestMethod]
+        public void Issues10Testing()
+        {
+            var v = SymbolicVariable.Parse("4+5*t");
+            v = v.Power(0.5);
+
+            Assert.AreEqual("Sqrt(4+5*t)", v.ToString());
+
+
+            v = v.Power(2);
+            Assert.AreEqual("4+5*t", v.ToString());
+
+            v = SymbolicVariable.Parse("sqrt(8+x)*sqrt(8+x)");
+            Assert.AreEqual("8+x", v.ToString());
+            
+            v = SymbolicVariable.Parse("sqrt(5*x^2)*6*sqrt(x^2*5)");
+            Assert.AreEqual("30*x^2", v.ToString());
+
+
+            v = SymbolicVariable.Parse("(6*sqrt(x*2)+4*sqrt(x+x))*sqrt(2*x)");
+            Assert.AreEqual("20*x", v.ToString());
+
+
+        }
+
+        [TestMethod]
+        public void Issues11Testing()
+        {
+            var v = SymbolicVariable.Parse("acos(x^2+y^2)");
+            Assert.AreEqual("-2*x/sqrt(1-x^4-2*y^2*x^2-y^4)", v.Differentiate("x").ToString());
+
+            v = SymbolicVariable.Parse("z*x/(x^2+y^2+z^2)^(1.5)");
+            Assert.AreEqual("z*x/(x^2+y^2+z^2)^(1.5)", v.ToString());
+
+            v = SymbolicVariable.Parse("acos(z/sqrt(x^2+y^2+z^2))");
+            Assert.AreEqual("z*x/(x^2+y^2+z^2)^(1.5)/sqrt(1-z^2/(x^2+y^2+z^2))", v.Differentiate("x").ToString());
+
+        }
+
+        [TestMethod]
+        public void LogSimplificationTest()
+        {
+            var v = new SymbolicVariable("log(1)");
+            Assert.AreEqual("0", v.ToString());
+
+            v = new SymbolicVariable("log(exp(1))");
+            Assert.AreEqual("1", v.ToString());
+
+            v = new SymbolicVariable("log(exp(x^2/4))");
+            Assert.AreEqual("0.25*x^2", v.ToString());
+
+            v = new SymbolicVariable("log(x*y)");
+            Assert.AreEqual("log(x)+log(y)", v.ToString());
+
+            v = new SymbolicVariable("log(2*x*y)");
+            Assert.AreEqual("log(2)+log(x)+log(y)", v.ToString());
+
+            v = new SymbolicVariable("log(2*x)");
+            Assert.AreEqual("log(2)+log(x)", v.ToString());
+
+            v = new SymbolicVariable("log(y^x)");
+            Assert.AreEqual("x*log(y)", v.ToString());
+
+            v = new SymbolicVariable("log(y^(2*x+3))");
+            Assert.AreEqual("2*x*log(y)+3*log(y)", v.ToString());
+
+            v = new SymbolicVariable("log(3^y*i^5)");
+            Assert.AreEqual("y*log(3)+5*log(i)", v.ToString());
+
+            v = new SymbolicVariable("log(3^y/i^5)");
+            Assert.AreEqual("y*log(3)-5*log(i)", v.ToString());
+
+
+            v = new SymbolicVariable("log(3^y-4^u)");
+            Assert.AreEqual("log(3^y-4^u)", v.ToString());
+        }
+
+        [TestMethod]
+        public void Issues12Test()
+        {
+            // it is about addition and subtraction of coefficients with different or the same powers.
+
+            var v = SymbolicVariable.Parse("3^y-4^u");
+            Assert.AreEqual("3^y-4^u", v.ToString());
+
+            v = SymbolicVariable.Parse("3^y-4^y");
+            Assert.AreEqual("3^y-4^y", v.ToString());
+
+            v = SymbolicVariable.Parse("3^y+4^y");
+            Assert.AreEqual("3^y+4^y", v.ToString());
+
+            v = SymbolicVariable.Parse("3^y+4^u");
+            Assert.AreEqual("3^y+4^u", v.ToString());
+
+            v = SymbolicVariable.Parse("3^u-5^x-3^u");
+            Assert.AreEqual("-5^x", v.ToString());
+
+            v = SymbolicVariable.Parse("3^u-5^x-3^u+6^x+2^x+5^y");
+            Assert.AreEqual("-5^x+6^x+2^x+5^y", v.ToString());
+
+            var pp = SymbolicVariable.Parse("2*(1-3*x)^cos(x)");   //issue is that parser consider the (1-3*x) is a whole parameter which is wrong
+
+            Assert.AreEqual(pp.InvolvedSymbols.Length, 1);
+            Assert.AreEqual(pp.InvolvedSymbols[0], "x");
+
+        }
+
+        [TestMethod]
+        public void LogarithmicDifferentiationTest()
+        {
+            
+            //LOGARITHMIC DIFFERENTIATION  was not correct
+
+            var v = SymbolicVariable.Parse("x^x");
+            v = v.Differentiate("x");
+            Assert.AreEqual("x^x*log(x)+x^x", v.ToString());
+
+            v = SymbolicVariable.Parse("2*x^(3*x^2)");
+            v = v.Differentiate("x");
+            Assert.AreEqual("12*x^(3*x^2+1)*log(x)+6*x^(3*x^2+1)", v.ToString());
+
+            v = SymbolicVariable.Parse("x^exp(x)");
+            v = v.Differentiate("x");
+            Assert.AreEqual("x^(exp(x))*log(x)*exp(x)+x^(exp(x)-1)*exp(x)", v.ToString());
+
+            v = SymbolicVariable.Parse("(1-3*x)^cos(x)");
+            v = v.Differentiate("x");
+            Assert.AreEqual("-(1-3*x)^(cos(x))*log((1-3*x))*sin(x)-3*(1-3*x)^(cos(x))*cos(x)/(1-3*x)", v.ToString());
+
+
+            v = SymbolicVariable.Parse("log(2*x^(3*x^2))");
+            v = v.Differentiate("x");
+            Assert.AreEqual("6*log(x)*x+3*x", v.ToString());
+
         }
     }
 }
