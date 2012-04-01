@@ -1,3 +1,9 @@
+Symbolic Algebra [0.83]
+------------------------
+- Fixed differentiation when raising function to power of the same parameter
+  i.e. (sin(x)^x)|x  
+
+
 Symbolic Algebra [0.82]
 ------------------------
 - now Sqrt(x)^2  present x

@@ -1255,6 +1255,25 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("6*log(x)*x+3*x", v.ToString());
 
         }
+
+        [TestMethod]
+        public void Issues13Test()
+        {
+            var v = new SymbolicVariable("log(sin(x)^x)");
+
+            Assert.AreEqual("x*log(sin(x))", v.ToString());
+
+            var dv = v.Differentiate("x");
+
+            Assert.AreEqual("log(sin(x))+x*cos(x)/sin(x)", dv.ToString());
+
+            v = SymbolicVariable.Parse("sin(x)^x");
+
+            dv = v.Differentiate("x");
+
+            Assert.AreEqual("sin(x)^x*log(sin(x))+sin(x)^(x-1)*x*cos(x)", dv.ToString());
+
+        }
     }
 }
 

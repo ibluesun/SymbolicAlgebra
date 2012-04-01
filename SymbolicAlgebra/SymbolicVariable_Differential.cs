@@ -40,7 +40,20 @@ namespace SymbolicAlgebra
 
             bool cc = false;
             if(sv.BaseVariable!=null) cc = sv.BaseVariable.InvolvedSymbols.Contains(parameter, StringComparer.OrdinalIgnoreCase); // case of base variable
-            else cc = sv.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase) ;
+            else if (sv.IsFunction && symbolpowercontainParameter == true)
+            {
+                // search if a parameter contains the same parameter
+                foreach (var pf in sv.FunctionParameters)
+                    if (pf.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        cc = true;
+                        break;
+                    }
+            }
+            else
+            {
+                cc = sv.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase);
+            }
 
             // x^3*y^2*z^5    , diff to x;
             if (cc)
