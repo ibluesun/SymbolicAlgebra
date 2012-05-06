@@ -22,6 +22,12 @@ namespace SymbolicAlgebra
         {
             if (a == null || b == null) return null;
 
+            if (a.IsZero) return new SymbolicVariable("0");
+            if (b.IsZero) return new SymbolicVariable("0");
+
+            if (a.IsOne) return (SymbolicVariable)b.Clone();
+            if (b.IsOne) return (SymbolicVariable)a.Clone();
+
             SymbolicVariable TargetSubTerm = (SymbolicVariable)b.Clone();
 
             TargetSubTerm._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
@@ -305,7 +311,12 @@ namespace SymbolicAlgebra
 
                 // there are still terms to be consumed 
                 //   this new term is a sub term in b and will be added to all terms of a.
-                TargetSubTerm = b.AddedTerms.ElementAt(subIndex).Value;
+                TargetSubTerm = (SymbolicVariable) b.AddedTerms.ElementAt(subIndex).Value.Clone();
+
+                
+                TargetSubTerm.DividedTerm = b.DividedTerm;   // this line is important because I extracted this added term from a bigger term with the same divided term
+                                                             // and when I did this the extracted term lost its divided term 
+
 
                 var TargetTermSubTotal = Multiply(a, TargetSubTerm);
                 total = Add(total, TargetTermSubTotal);

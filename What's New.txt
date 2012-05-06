@@ -1,3 +1,16 @@
+Symbolic Algebra [0.84]
+------------------------
+- Executing the symbolic variable instance will ignore any extra parameters you feed into it.
+- Right Associativity for power operation.
+- Fixed when dividing zero over complex symbolic variable to return zero also.
+- Fixed when dividing multi term over multie term (if the two are identical) then we produce 1
+- Adding when multiplieng two terms that if one of them is zero then the result will be zero directly without any more hassle.
+- Fixed multiplication error of multiterm with divided variable othern than one when multiplied by other number
+- Adding when multiplieng two terms that if one of them is one the other will be returned automatically.
+- Fixed an error when getting involved symbols in this expression "5*sin(x)^(4^x)*log(sin(x))*log(4)*4^x+5*sin(x)^(4^x-1)*cos(x)*4^x"
+
+
+
 Symbolic Algebra [0.83]
 ------------------------
 - Fixed differentiation when raising function to power of the same parameter
