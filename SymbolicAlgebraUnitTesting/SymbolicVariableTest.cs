@@ -812,7 +812,7 @@ namespace SymbolicAlgebraUnitTesting
 
             var xx = SymbolicVariable.Parse("x^2");
             var roro = SymbolicVariable.Multiply(p, xx);
-            Assert.AreEqual("x^2*2^x", roro.ToString());
+            Assert.AreEqual("2^x*x^2", roro.ToString());
 
             var g = SymbolicVariable.Multiply(new SymbolicVariable(lnText + "(2)"), SymbolicVariable.Parse("2^x"));
             Assert.AreEqual(lnText + "(2)*2^x", g.ToString());
@@ -936,7 +936,7 @@ namespace SymbolicAlgebraUnitTesting
 
             p = SymbolicVariable.Parse("2^(x^2)*x^3");
             g = p.Differentiate("x");
-            Assert.AreEqual("x^4*log(2)*2^(1+x^2)+3*x^2*2^(x^2)", g.ToString());
+            Assert.AreEqual("x^4*log(2)*2^(1+x^2)+2^x^2*x^2*3", g.ToString());
 
             p = SymbolicVariable.Parse("sin(x)*cos(x)");
             g = p.Differentiate("x");
@@ -1262,17 +1262,48 @@ namespace SymbolicAlgebraUnitTesting
             var v = new SymbolicVariable("log(sin(x)^x)");
 
             Assert.AreEqual("x*log(sin(x))", v.ToString());
-
             var dv = v.Differentiate("x");
 
             Assert.AreEqual("log(sin(x))+x*cos(x)/sin(x)", dv.ToString());
-
             v = SymbolicVariable.Parse("sin(x)^x");
 
             dv = v.Differentiate("x");
-
             Assert.AreEqual("sin(x)^x*log(sin(x))+sin(x)^(x-1)*x*cos(x)", dv.ToString());
 
+        }
+
+        [TestMethod]
+        public void PowerRightAssociativity()
+        {
+            var d = SymbolicVariable.Parse("a^b^c");
+            Assert.AreEqual("a^(b^c)", d.ToString());
+
+            var r = d.Execute(3, 2, 4);
+            Assert.AreEqual(43046721.0, r);
+        }
+
+        [TestMethod]
+        public void Issues14Test()
+        {
+            // operations on zero when muliplied or divided should return zero 
+            var bb = SymbolicVariable.Parse("0/(x+3)");
+            Assert.AreEqual("0", bb.ToString());
+
+            bb = SymbolicVariable.Parse("(2*cos(theta)^2*r^2*sin(theta)^2+sin(theta)^4*r^2+cos(theta)^4*r^2)/(2*cos(theta)^2*r^2*sin(theta)^2+sin(theta)^4*r^2+cos(theta)^4*r^2)");
+            Assert.AreEqual("1", bb.ToString());
+
+            var gg = SymbolicVariable.Parse("(cos(theta)^2+sin(theta)^2)/(2*cos(theta)^2*r^2*sin(theta)^2+sin(theta)^4*r^2+cos(theta)^4*r^2)");
+            var cc = Zero * gg;
+            Assert.AreEqual("0", cc.ToString());
+
+            var kk = SymbolicVariable.Parse("(cos(theta)^2+sin(theta)^2)/(2*cos(theta)^2*r^2*sin(theta)^2+sin(theta)^4*r^2+cos(theta)^4*r^2)");
+            var ll = One * kk;
+            Assert.AreEqual(kk.ToString(), ll.ToString());
+
+            var we = SymbolicVariable.Parse("5*sin(x)^4^x");
+            var rs = we.Differentiate("x");
+            Assert.AreEqual("5*sin(x)^(4^x)*log(sin(x))*log(4)*4^x+5*sin(x)^(4^x-1)*cos(x)*4^x", rs.ToString());
+            Assert.AreEqual(1, rs.InvolvedSymbols.Length);
         }
     }
 }

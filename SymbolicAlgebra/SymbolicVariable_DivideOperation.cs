@@ -23,11 +23,19 @@ namespace SymbolicAlgebra
             // x^2/(y-x)  ==>  
             if (b.AddedTerms.Count > 0)
             {
+                if (a.Equals(b)) return new SymbolicVariable("1");
 
                 //multiply divided term by this value
-                SourceTerm.DividedTerm = Multiply(SourceTerm.DividedTerm, b);
+                if (!a.IsZero)
+                {
+                    SourceTerm.DividedTerm = Multiply(SourceTerm.DividedTerm, b);
 
-                return SourceTerm;
+                    return SourceTerm;
+                }
+                else
+                {
+                    return new SymbolicVariable("0");
+                }
             }
 
 
@@ -310,7 +318,10 @@ namespace SymbolicAlgebra
 
                 // there are still terms to be consumed 
                 //   this new term is a sub term in b and will be added to all terms of a.
-                TargetSubTerm = b.AddedTerms.ElementAt(subIndex).Value;
+                TargetSubTerm = (SymbolicVariable)b.AddedTerms.ElementAt(subIndex).Value.Clone();
+
+                TargetSubTerm.DividedTerm = b.DividedTerm;   // this line is important because I extracted this added term from a bigger term with the same divided term
+                                                            // and when I did this the extracted term lost its divided term 
 
                 total = total + Divide(a, TargetSubTerm);
                 subIndex = subIndex + 1;  //increase     

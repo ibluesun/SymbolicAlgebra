@@ -272,7 +272,37 @@ namespace SymbolicAlgebra
                 return v;
             }
 
-            if (op == "^") return SymbolicVariable.SymbolicPower(left, right);
+            if (op == "^")
+            {
+
+                // This will be right associative operator
+                // which means if more than one power appeared like this 3^2^4  then it will be processed like this 3^(2^4)
+
+                if (eop.Next.Next != null)
+                {
+                    if (eop.Next.Operation == "^")
+                    {
+                        short iskip;
+                        var powerResult = SymbolicVariable.SymbolicPower(
+                            left
+                            , ArithExpression(eop.Next, out iskip)
+                            );
+
+                        skip += iskip;
+                        return powerResult;
+                    }
+                    else
+                    {
+                        return SymbolicVariable.SymbolicPower(left, right);
+                    }
+                }
+                else
+                {
+                    return SymbolicVariable.SymbolicPower(left, right);
+                }
+                
+            }
+
             if (op == "*") return SymbolicVariable.Multiply(left, right);
             if (op == "/") return SymbolicVariable.Divide(left, right);
             if (op == "+") return SymbolicVariable.Add(left, right);
@@ -293,7 +323,35 @@ namespace SymbolicAlgebra
             skip = 1;
 
 
-            if (op == "^") return Expression.Power(left, right);
+            if (op == "^")
+            {
+                // This will be right associative operator
+                // which means if more than one power appeared like this 3^2^4  then it will be processed like this 3^(2^4)
+
+                if (eop.Next.Next != null)
+                {
+                    if (eop.Next.Operation == "^")
+                    {
+                        short iskip;
+                        var powerResult = Expression.Power(
+                            left
+                            , ArithExpression(eop.Next, out iskip)
+                            );
+
+                        skip += iskip;
+                        return powerResult;
+                    }
+                    else
+                    {
+                        return Expression.Power(left, right);
+                    }
+                }
+                else
+                {
+                    return Expression.Power(left, right);
+                }
+            }
+
             if (op == "*") return Expression.Multiply(left, right);
             if (op == "/") return Expression.Divide(left, right);
             if (op == "+") return Expression.Add(left, right);
@@ -717,7 +775,9 @@ namespace SymbolicAlgebra
         {
             PrepareExecute();
 
-            var pcount = parameters.Count();
+            var pcount = this.InvolvedSymbols.Length;
+            
+            if (parameters.Length < pcount) throw new SymbolicException(string.Format("Feeded parameters are less than the required parameters of the expression {0} expected where {1} feeded", pcount, parameters.Length));
 
             if (pcount == 0) return ((Func<double>)FunctionDelegate)();
 

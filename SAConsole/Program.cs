@@ -15,7 +15,7 @@ namespace SAConsole
 
             string copyright = @"Symbolic Algebra Console
 Copyright 2012 at Lost Particles.
-Version 0.83
+Version 0.84
 All Rights Reserved for Ahmed Sadek the Auther of the library.
 
 Ahmed.Sadek@LostParticles.net

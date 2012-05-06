@@ -1004,9 +1004,13 @@ namespace SymbolicAlgebra
                 {
                     // coeffecient part  like 3^x  {remember coeffecient may be raised to symbol}
                     if (CoeffecientPowerTerm.IsMultiValue || CoeffecientPowerTerm.IsMultiTerm)
+                    {
                         rr = rr + "^(" + CoeffecientPowerText + ")";
+                    }
                     else
-                        rr = rr + "^" + CoeffecientPowerText;  
+                    {
+                        rr = rr + "^" + CoeffecientPowerText;
+                    }
 
                     if (!string.IsNullOrEmpty(result))
                         result = rr + "*" + result;
@@ -1634,7 +1638,7 @@ namespace SymbolicAlgebra
         {
             get
             {
-                Func<string, List<string>> pgh = (key) =>
+                Func<string, string[]> pgh = (key) =>
                     {
                         List<string> fs = new List<string> { key };
                         int i = 0;
@@ -1647,7 +1651,10 @@ namespace SymbolicAlgebra
 
                                 var vps = TextTools.ExtractFunctionParameters(fs[i]);
 
-                                fs[i] = vps[0]; //first parameter
+                                if (vps.Length > 0)
+                                    fs[i] = vps[0]; //first parameter
+                                else 
+                                    fs[i] = string.Empty;
 
                                 // many parameters may be  u, e, sin(f)  etc..
                                 // add the extra parameter to the list of discovered symbols
@@ -1660,7 +1667,8 @@ namespace SymbolicAlgebra
                             }
                             i++;
                         }
-                        return fs;
+
+                        return fs.Where(s => string.IsNullOrEmpty(s) == false).ToArray();
                     };
 
                 List<string> symbols = new List<string>();
