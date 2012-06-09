@@ -1318,8 +1318,12 @@ namespace SymbolicAlgebraUnitTesting
             bb = SymbolicVariable.Parse("4.45e+2");
             Assert.AreEqual("445", bb.ToString());
 
+            
+
             bb = SymbolicVariable.Parse("-120*t^3+180*t^2+1.06581410364015E-14*t+-30");
             Assert.AreEqual(bb.InvolvedSymbols.Length, 1);
+
+            double r = bb.Execute(2);
 
         }
     }

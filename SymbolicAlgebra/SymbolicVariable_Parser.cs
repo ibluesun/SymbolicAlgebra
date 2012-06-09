@@ -518,6 +518,13 @@ namespace SymbolicAlgebra
                         {
                             TokenBuilder.Append(expression[ix]);
                         }
+                        else if (ix > 1
+                            && char.ToUpper(expression[ix - 1]) == 'E' && char.IsDigit(expression[ix - 2])
+                            && (expression[ix] == '-' || expression[ix] == '+'))
+                        {
+                            // case of 3e+2 4e-2  all cases with e in it.
+                            TokenBuilder.Append(expression[ix]);
+                        }
                         else if (expression[ix] == '(')
                         {
                             PLevels.Push(1);
@@ -538,7 +545,7 @@ namespace SymbolicAlgebra
                             // tokenize   when we reach any operator  or open '(' parenthesis 
 
                             redundantFunction(discoveredParameters);
-                            
+
                             TokenBuilder = new StringBuilder();
 
                             ep.Operation = expression[ix].ToString();

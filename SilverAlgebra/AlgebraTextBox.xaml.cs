@@ -27,7 +27,8 @@ All rights reserved for Ahmed Sadek
 
 Ahmed.Sadek@Lostparticles.net
 
-Depends on SymbolicAlgebra Open Source Library http://SymbolicAlgebra.CodePlex.com
+Depends on SymbolicAlgebra Open Source Library 
+http://SymbolicAlgebra.CodePlex.com
 
 SA> x+x   will produce 2*x
 
