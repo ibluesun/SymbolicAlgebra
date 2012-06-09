@@ -13,9 +13,10 @@ namespace SAConsole
             string line = string.Empty;
 
 
-            string copyright = @"Symbolic Algebra Console
+            string copyright =
+@"Symbolic Algebra Console
 Copyright 2012 at Lost Particles.
-Version 0.84
+Version 0.85
 All Rights Reserved for Ahmed Sadek the Auther of the library.
 
 Ahmed.Sadek@LostParticles.net
@@ -29,7 +30,6 @@ SA> x+x   will produce 2*x
 SA> (x^2+2*x)|x   will produce  2*x+x
 
 Enjoy
-
 ";
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(copyright);

@@ -94,10 +94,17 @@ namespace SymbolicAlgebra
                         {
                             TokenBuilder.Append(expr[ix]);
                         }
+                        else if (ix > 1 
+                            && char.ToUpper(expr[ix - 1]) == 'E' && char.IsDigit(expr[ix - 2])
+                            && (expr[ix] == '-' || expr[ix] == '+'))
+                        {
+                            // case of 3e+2 4e-2  all cases with e in it.
+                            TokenBuilder.Append(expr[ix]);
+                        }
                         else if (expr[ix] == '(')
                         {
                             PLevels.Push(1);
-                            var bb = ix>0?separators.Contains(expr[ix-1]):true;
+                            var bb = ix > 0 ? separators.Contains(expr[ix - 1]) : true;
                             if (!bb)
                             {
                                 //the previous charachter is normal word which indicates we reached a function
