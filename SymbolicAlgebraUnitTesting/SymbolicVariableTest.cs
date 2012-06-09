@@ -1305,6 +1305,24 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("5*sin(x)^(4^x)*log(sin(x))*log(4)*4^x+5*sin(x)^(4^x-1)*cos(x)*4^x", rs.ToString());
             Assert.AreEqual(1, rs.InvolvedSymbols.Length);
         }
+
+        [TestMethod]
+        public void Issues15Test()
+        {
+            // When parsing 4e-2 the parsing go wrong because it consider 4e a unit and -2 another unit
+
+            var bb = SymbolicVariable.Parse("4e-2");
+
+            Assert.AreEqual("0.04", bb.ToString());
+
+            bb = SymbolicVariable.Parse("4.45e+2");
+            Assert.AreEqual("445", bb.ToString());
+
+            bb = SymbolicVariable.Parse("-120*t^3+180*t^2+1.06581410364015E-14*t+-30");
+            Assert.AreEqual(bb.InvolvedSymbols.Length, 1);
+
+        }
     }
+
 }
 

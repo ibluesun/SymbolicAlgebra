@@ -1,3 +1,7 @@
+Symbolic Algebra [0.85]
+------------------------
+- (Fixed) When parsing 4e-2 the parsing go wrong because it consider 4e a unit and -2 another unit 
+
 Symbolic Algebra [0.84]
 ------------------------
 - Executing the symbolic variable instance will ignore any extra parameters you feed into it.
