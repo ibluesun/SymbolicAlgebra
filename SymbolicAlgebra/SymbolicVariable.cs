@@ -8,11 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace SymbolicAlgebra
 {
-    #if SILVERLIGHT
     public partial class SymbolicVariable
-    #else
-    public partial class SymbolicVariable : ICloneable
-    #endif
     {
 
         /// <summary>
@@ -491,7 +487,7 @@ namespace SymbolicAlgebra
             {
                 for (int i = 1; i < functionNames.Length; i++)
                 {
-                    if (this.Symbol.Equals(functionNames[i] + "(" + iparms + ")", StringComparison.InvariantCultureIgnoreCase))
+                    if (this.Symbol.Equals(functionNames[i] + "(" + iparms + ")", StringComparison.OrdinalIgnoreCase))
                     {
                         this.SymbolPower += 1;
                     }
@@ -603,7 +599,7 @@ namespace SymbolicAlgebra
         /// so representaion of (1/y+1/x) = y^-1+x^-1
         /// however 1/x+1/(x+Y)  doesn't share the same denominator so that ExtraTerms now contain 1/(x+y)
         /// </summary>
-        public List<ExtraTerm> ExtraTerms
+        internal List<ExtraTerm> ExtraTerms
         {
             get
             {
@@ -633,7 +629,7 @@ namespace SymbolicAlgebra
         /// <summary>
         /// Multiplied terms in the term other that original symbol letter.
         /// </summary>
-        public Dictionary<string, HybridVariable> FusedSymbols
+        internal Dictionary<string, HybridVariable> FusedSymbols
         {
             get
             {
@@ -645,7 +641,7 @@ namespace SymbolicAlgebra
         /// <summary>
         /// Multiplied terms in the term other than the original coeffecient
         /// </summary>
-        public Dictionary<double, HybridVariable> FusedConstants
+        internal Dictionary<double, HybridVariable> FusedConstants
         {
             get
             {
@@ -865,7 +861,7 @@ namespace SymbolicAlgebra
             {
                 string g = WholeValueBaseKey;
 
-                if (g.Contains('|')) return g.Substring(g.IndexOf('|') + 1);
+                if (g.Contains("|")) return g.Substring(g.IndexOf('|') + 1);
                 else return g;
                 
             }
@@ -1166,7 +1162,7 @@ namespace SymbolicAlgebra
                 {
                     // ix ==== 0
 
-                    var c = (SymbolicVariable)this.Clone();
+                    var c = this.Clone();
                     c._AddedTerms = null;
                     return c;
                 }
@@ -1758,7 +1754,7 @@ namespace SymbolicAlgebra
 
         #region ICloneable Members
 
-        public object Clone()
+        public SymbolicVariable Clone()
         {
             
             SymbolicVariable clone = new SymbolicVariable(this.Symbol);
@@ -1769,13 +1765,13 @@ namespace SymbolicAlgebra
             clone._SymbolPower = this._SymbolPower;
 
             if (this._SymbolPowerTerm != null)
-                clone._SymbolPowerTerm = (SymbolicVariable)this._SymbolPowerTerm.Clone();
+                clone._SymbolPowerTerm = this._SymbolPowerTerm.Clone();
 
             if (this._CoeffecientPowerTerm != null)
-                clone._CoeffecientPowerTerm = (SymbolicVariable)this._CoeffecientPowerTerm.Clone();
+                clone._CoeffecientPowerTerm = this._CoeffecientPowerTerm.Clone();
 
             if (this._BaseVariable != null)
-                clone._BaseVariable = (SymbolicVariable)this._BaseVariable.Clone();
+                clone._BaseVariable = this._BaseVariable.Clone();
 
             foreach (var av in AddedTerms)
             {
@@ -1798,7 +1794,7 @@ namespace SymbolicAlgebra
             }
 
             if(this._DividedTerm!=null) 
-                clone._DividedTerm = (SymbolicVariable)this._DividedTerm.Clone();
+                clone._DividedTerm = this._DividedTerm.Clone();
 
             return clone;
         }

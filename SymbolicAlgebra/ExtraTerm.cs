@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SymbolicAlgebra
 {
-    public class ExtraTerm
+    internal class ExtraTerm
     {
         public SymbolicVariable Term;
         public bool Negative;

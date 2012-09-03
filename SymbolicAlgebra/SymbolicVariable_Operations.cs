@@ -1,11 +1,7 @@
 ﻿using System;
 namespace SymbolicAlgebra
 {
-#if SILVERLIGHT
     public partial class SymbolicVariable
-#else
-    public partial class SymbolicVariable : ICloneable
-#endif
     {
         
         /// <summary>
@@ -17,7 +13,7 @@ namespace SymbolicAlgebra
         {
             if (power == 0) return SymbolicVariable._One;
 
-            SymbolicVariable total = (SymbolicVariable)this.Clone();
+            SymbolicVariable total = this.Clone();
             int pw = Math.Abs(power);
             while (pw > 1)
             {
@@ -49,7 +45,7 @@ namespace SymbolicAlgebra
         {
             if (Math.Floor(power) == power) return Power((int)power);
 
-            SymbolicVariable p = (SymbolicVariable)this.Clone();
+            SymbolicVariable p = this.Clone();
             if (p.IsOneTerm)
             {
                 // raise the coeffecient and symbol

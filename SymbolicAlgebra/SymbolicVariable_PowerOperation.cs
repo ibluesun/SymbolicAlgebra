@@ -5,11 +5,7 @@ using System.Text;
 
 namespace SymbolicAlgebra
 {
-#if SILVERLIGHT
     public partial class SymbolicVariable
-#else
-    public partial class SymbolicVariable : ICloneable
-#endif
     {
 
         /// <summary>
@@ -19,7 +15,7 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public SymbolicVariable RaiseToSymbolicPower(SymbolicVariable b)
         {
-            var an = (SymbolicVariable)this.Clone();
+            var an = this.Clone();
 
             //if the value is only having coeffecient then there is no need to instantiate the powerterm
 

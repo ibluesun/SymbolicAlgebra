@@ -1,3 +1,10 @@
+Symbolic Algebra [0.86]
+------------------------
+- Converted the library into Portable Library (vs 2010 portable tools RC)
+      Targetting (.NET for Store Apps, Silverlight 4 and higher, .NET framework 4 and higher).
+- Removed IClonable and all casting from the Clone method
+- Removed pointers to the library from silver algebra and added the reference to the library directly
+
 Symbolic Algebra [0.85]
 ------------------------
 - (Fixed) When parsing 4e-2 the parsing go wrong because it consider 4e a unit and -2 another unit 
