@@ -6,18 +6,14 @@ using System.Globalization;
 
 namespace SymbolicAlgebra
 {
-#if SILVERLIGHT
     public partial class SymbolicVariable
-#else
-    public partial class SymbolicVariable : ICloneable
-#endif
     {
 
         public static SymbolicVariable Divide(SymbolicVariable a, SymbolicVariable b)
         {
             if (a == null || b == null) return null;
 
-            SymbolicVariable SourceTerm = (SymbolicVariable)a.Clone();
+            SymbolicVariable SourceTerm = a.Clone();
 
             // if the divided term is more than on term
             // x^2/(y-x)  ==>  
@@ -39,7 +35,7 @@ namespace SymbolicAlgebra
             }
 
 
-            SymbolicVariable TargetSubTerm = (SymbolicVariable)b.Clone();
+            SymbolicVariable TargetSubTerm = b.Clone();
 
 
             TargetSubTerm._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
@@ -84,7 +80,7 @@ namespace SymbolicAlgebra
                     else SourceTerm.Symbol = TargetSubTerm.Symbol; 
                     
                     SourceTerm.SymbolPower = -1 * TargetSubTerm.SymbolPower;
-                    if (TargetSubTerm.SymbolPowerTerm != null) SourceTerm._SymbolPowerTerm = -1 * (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone();
+                    if (TargetSubTerm.SymbolPowerTerm != null) SourceTerm._SymbolPowerTerm = -1 * TargetSubTerm.SymbolPowerTerm.Clone();
 
                     //fuse the fusedvariables in b into sv
                     foreach (var bfv in TargetSubTerm.FusedSymbols)
@@ -318,7 +314,7 @@ namespace SymbolicAlgebra
 
                 // there are still terms to be consumed 
                 //   this new term is a sub term in b and will be added to all terms of a.
-                TargetSubTerm = (SymbolicVariable)b.AddedTerms.ElementAt(subIndex).Value.Clone();
+                TargetSubTerm = b.AddedTerms.ElementAt(subIndex).Value.Clone();
 
                 TargetSubTerm.DividedTerm = b.DividedTerm;   // this line is important because I extracted this added term from a bigger term with the same divided term
                                                             // and when I did this the extracted term lost its divided term 

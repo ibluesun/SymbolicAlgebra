@@ -6,11 +6,7 @@ using System.Globalization;
 
 namespace SymbolicAlgebra
 {
-#if SILVERLIGHT
     public partial class SymbolicVariable
-#else
-    public partial class SymbolicVariable : ICloneable
-#endif
     {
         /// <summary>
         /// Multiply two symbolic variables
@@ -25,15 +21,15 @@ namespace SymbolicAlgebra
             if (a.IsZero) return new SymbolicVariable("0");
             if (b.IsZero) return new SymbolicVariable("0");
 
-            if (a.IsOne) return (SymbolicVariable)b.Clone();
-            if (b.IsOne) return (SymbolicVariable)a.Clone();
+            if (a.IsOne) return b.Clone();
+            if (b.IsOne) return a.Clone();
 
-            SymbolicVariable TargetSubTerm = (SymbolicVariable)b.Clone();
+            SymbolicVariable TargetSubTerm = b.Clone();
 
             TargetSubTerm._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
             // or to make sure nothing bad happens {my idiot design :S)
 
-            SymbolicVariable SourceTerm = (SymbolicVariable)a.Clone();
+            SymbolicVariable SourceTerm = a.Clone();
             if (a.BaseEquals(TargetSubTerm))
             {
                 #region Symbols are Equal (I mean 2*x^3 = 2*X^3)
@@ -81,7 +77,7 @@ namespace SymbolicAlgebra
 
                     SourceTerm.SymbolPower = TargetSubTerm.SymbolPower;
                     if (TargetSubTerm.SymbolPowerTerm != null) 
-                        SourceTerm._SymbolPowerTerm = (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone();
+                        SourceTerm._SymbolPowerTerm = TargetSubTerm.SymbolPowerTerm.Clone();
                     else 
                         SourceTerm._SymbolPowerTerm = null;
 
@@ -212,7 +208,7 @@ namespace SymbolicAlgebra
                             new HybridVariable
                             {
                                 NumericalVariable = TargetSubTerm.SymbolPower,
-                                SymbolicVariable = TargetSubTerm.SymbolPowerTerm == null ? null : (SymbolicVariable)TargetSubTerm.SymbolPowerTerm.Clone()
+                                SymbolicVariable = TargetSubTerm.SymbolPowerTerm == null ? null : TargetSubTerm.SymbolPowerTerm.Clone()
                             });                            
                         
 
@@ -311,7 +307,7 @@ namespace SymbolicAlgebra
 
                 // there are still terms to be consumed 
                 //   this new term is a sub term in b and will be added to all terms of a.
-                TargetSubTerm = (SymbolicVariable) b.AddedTerms.ElementAt(subIndex).Value.Clone();
+                TargetSubTerm =  b.AddedTerms.ElementAt(subIndex).Value.Clone();
 
                 
                 TargetSubTerm.DividedTerm = b.DividedTerm;   // this line is important because I extracted this added term from a bigger term with the same divided term
@@ -441,7 +437,7 @@ namespace SymbolicAlgebra
                                     new HybridVariable
                                     {
                                         NumericalVariable = 1, // power
-                                        SymbolicVariable = (SymbolicVariable)cst.ConstantPower.Clone()
+                                        SymbolicVariable = cst.ConstantPower.Clone()
                                     });
                             }
                             else
@@ -505,7 +501,7 @@ namespace SymbolicAlgebra
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <returns><see cref="SymbolicVariable"/></returns>
-        public static SymbolicVariable Multiply(HybridVariable a, SymbolicVariable b)
+        internal static SymbolicVariable Multiply(HybridVariable a, SymbolicVariable b)
         {
             if (a.SymbolicVariable != null) return Multiply(a.SymbolicVariable, b);
             else return Multiply(new SymbolicVariable(a.NumericalVariable.ToString()), b);

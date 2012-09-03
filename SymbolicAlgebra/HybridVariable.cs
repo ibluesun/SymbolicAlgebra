@@ -11,11 +11,7 @@ namespace SymbolicAlgebra
     /// Symbolic + Numerical  value
     /// currently used in Fused Variables as the power term for the symbol in dictionary.
     /// </summary>
-    #if SILVERLIGHT
-    public struct HybridVariable 
-    #else
-    public struct HybridVariable : ICloneable
-    #endif
+    internal struct HybridVariable 
     {
         
         public SymbolicVariable SymbolicVariable;
@@ -141,7 +137,7 @@ namespace SymbolicAlgebra
             HybridVariable hv = new HybridVariable();
             hv.NumericalVariable = this.NumericalVariable;
             if (this.SymbolicVariable != null)
-                hv.SymbolicVariable = (SymbolicVariable)this.SymbolicVariable.Clone();
+                hv.SymbolicVariable = this.SymbolicVariable.Clone();
             return hv;
         }
 

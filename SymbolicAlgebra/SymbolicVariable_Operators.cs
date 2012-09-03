@@ -5,11 +5,7 @@ using System.Text;
 
 namespace SymbolicAlgebra
 {
-#if SILVERLIGHT
     public partial class SymbolicVariable
-#else
-    public partial class SymbolicVariable : ICloneable
-#endif
     {
 
         /// <summary>
@@ -24,7 +20,7 @@ namespace SymbolicAlgebra
 
             if (!a.DividedTerm.Equals( b.DividedTerm))
             {
-                SymbolicVariable a_b = (SymbolicVariable)a.Clone();
+                SymbolicVariable a_b = a.Clone();
                 bool econsumed = false;
                 if (a_b.ExtraTerms.Count > 0)
                 {
@@ -43,7 +39,7 @@ namespace SymbolicAlgebra
                 if (!econsumed)
                 {
                     // add in the extra terms
-                    SymbolicVariable positive_b = (SymbolicVariable)b.Clone();
+                    SymbolicVariable positive_b = b.Clone();
                     a_b.ExtraTerms.Add(new ExtraTerm { Term = positive_b, Negative = false });
                 }
                 AdjustZeroCoeffecientTerms(ref a_b);
@@ -52,10 +48,10 @@ namespace SymbolicAlgebra
             }
 
 
-            SymbolicVariable subB = (SymbolicVariable)b.Clone();
+            SymbolicVariable subB = b.Clone();
             int sub = -1;
 
-            SymbolicVariable sv = (SymbolicVariable)a.Clone();
+            SymbolicVariable sv = a.Clone();
             NewPart:
             
 
@@ -101,7 +97,7 @@ namespace SymbolicAlgebra
             {
                 if (av.Value.BaseEquals(subB))
                 {
-                    var iv = (SymbolicVariable)a.AddedTerms[av.Key].Clone();
+                    var iv = a.AddedTerms[av.Key].Clone();
 
                     if (iv.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
                     {
@@ -138,7 +134,7 @@ namespace SymbolicAlgebra
 
                 if (pv == null)
                 {
-                    pv = (SymbolicVariable)subB.Clone();
+                    pv = subB.Clone();
 
                     var SubTerms = pv._AddedTerms; // store them for later use.
                     pv._AddedTerms = null;
@@ -197,7 +193,7 @@ namespace SymbolicAlgebra
 
             if (!a.DividedTerm.Equals(b.DividedTerm))
             {
-                SymbolicVariable a_b = (SymbolicVariable)a.Clone();
+                SymbolicVariable a_b = a.Clone();
                 bool econsumed = false;
                 if (a_b.ExtraTerms.Count > 0)
                 {
@@ -216,7 +212,7 @@ namespace SymbolicAlgebra
                 if (!econsumed)
                 {
                     // add in the extra terms
-                    var negative_b = ((SymbolicVariable)b.Clone());
+                    var negative_b = b.Clone();
                     
                     a_b.ExtraTerms.Add(new ExtraTerm { Term = negative_b, Negative = true });
                 }
@@ -226,10 +222,10 @@ namespace SymbolicAlgebra
             }
 
 
-            SymbolicVariable subB = (SymbolicVariable)b.Clone();
+            SymbolicVariable subB = b.Clone();
             int sub = -1;
 
-            SymbolicVariable sv = (SymbolicVariable)a.Clone();
+            SymbolicVariable sv = a.Clone();
         NewPart:
 
             
@@ -271,7 +267,7 @@ namespace SymbolicAlgebra
             {
                 if (av.Value.BaseEquals(subB))
                 {
-                    var iv = (SymbolicVariable)a.AddedTerms[av.Key].Clone();
+                    var iv = a.AddedTerms[av.Key].Clone();
 
                     if (iv.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
                     {
@@ -309,7 +305,7 @@ namespace SymbolicAlgebra
 
                 if (pv == null)
                 {
-                    pv = (SymbolicVariable)subB.Clone();
+                    pv = subB.Clone();
                     pv.Coeffecient *= -1;
 
                     var SubTerms = pv._AddedTerms; // store them for later use.

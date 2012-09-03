@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace SymbolicAlgebra
 {
-    public static class FunctionDiff
+    internal static class FunctionDiff
     {
 
         public static readonly string[] FFunctions = { "exp", "sin", "sinh", "cos", "cosh", "tan", "tanh", "sec", "sech", "csc", "csch", "cot", "coth" };
@@ -24,80 +24,80 @@ namespace SymbolicAlgebra
 
             string func = function.FunctionName;
 
-            if (string.Equals(func, "exp", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "exp", StringComparison.OrdinalIgnoreCase))
             {
                 negative = false;
                 return new string[] { "exp" };
             }
 
 
-            if (string.Equals(func, "sin", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "sin", StringComparison.OrdinalIgnoreCase))
             {
                 negative = false;
                 return new string[] { "cos" };
             }
 
-            if (string.Equals(func, "sinh", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "sinh", StringComparison.OrdinalIgnoreCase))
             {
                 negative = false;
                 return new string[] { "cosh" };
             }
 
-            if (string.Equals(func, "cos", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "cos", StringComparison.OrdinalIgnoreCase))
             {
                 negative = true;
                 return new string[] { "sin" };
             }
 
-            if (string.Equals(func, "cosh", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "cosh", StringComparison.OrdinalIgnoreCase))
             {
                 negative = false;
                 return new string[] { "sinh" };
             }
 
-            if (string.Equals(func, "tan", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "tan", StringComparison.OrdinalIgnoreCase))
             {
                 negative = false;
                 return new string[] { "sec", "sec" };
             }
 
-            if (string.Equals(func, "tanh", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "tanh", StringComparison.OrdinalIgnoreCase))
             {
                 negative = false;
                 return new string[] { "sech", "sech" };
             }
 
-            if (string.Equals(func, "sec", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "sec", StringComparison.OrdinalIgnoreCase))
             {
                 negative = false;
                 return new string[] { "sec", "tan" };
             }
 
-            if (string.Equals(func, "sech", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "sech", StringComparison.OrdinalIgnoreCase))
             {
                 negative = true;
                 return new string[] { "sech", "tanh" };
             }
 
-            if (string.Equals(func, "csc", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "csc", StringComparison.OrdinalIgnoreCase))
             {
                 negative = true;
                 return new string[] { "csc", "cot" };
             }
 
-            if (string.Equals(func, "csch", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "csch", StringComparison.OrdinalIgnoreCase))
             {
                 negative = true;
                 return new string[] { "csch", "coth" };
             }
 
-            if (string.Equals(func, "cot", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "cot", StringComparison.OrdinalIgnoreCase))
             {
                 negative = true;
                 return new string[] { "csc", "csc" };
             }
 
-            if (string.Equals(func, "coth", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "coth", StringComparison.OrdinalIgnoreCase))
             {
                 negative = true;
                 return new string[] { "csch", "csch" };
@@ -119,36 +119,36 @@ namespace SymbolicAlgebra
 
             var dpa = pa.Differentiate(parameter);
 
-            
-            if (string.Equals(func, "asin", StringComparison.InvariantCultureIgnoreCase))
+
+            if (string.Equals(func, "asin", StringComparison.OrdinalIgnoreCase))
             {                
                 //asin(x) → 1 / sqrt(1-x^2) 
                 
                 return SymbolicVariable.Parse(dpa.ToString() + "/sqrt(1-(" + ps.ToString() + "))");
             }
 
-            if (string.Equals(func, "acos", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "acos", StringComparison.OrdinalIgnoreCase))
             {
                 
                 return SymbolicVariable.Parse("-" + dpa.ToString() + "/sqrt(1-(" + ps.ToString() + "))");
             }
 
-            if (string.Equals(func, "atan", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "atan", StringComparison.OrdinalIgnoreCase))
             {
                 return SymbolicVariable.Parse(dpa.ToString() + "/(" + ps.ToString() + "+1)");
             }
 
-            if (string.Equals(func, "acot", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "acot", StringComparison.OrdinalIgnoreCase))
             {
                 return SymbolicVariable.Parse("-" + dpa.ToString() + "/(" + ps.ToString() + "+1)");
             }
 
-            if (string.Equals(func, "asec", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "asec", StringComparison.OrdinalIgnoreCase))
             {
                 return SymbolicVariable.Parse(dpa.ToString() + "/(sqrt(1-1/(" + ps.ToString() + "))*" + ps.ToString() + ")");
             }
 
-            if (string.Equals(func, "acsc", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "acsc", StringComparison.OrdinalIgnoreCase))
             {
                 return SymbolicVariable.Parse("-" + dpa.ToString() + "/(sqrt(1-1/(" + ps.ToString() + "))*" + ps.ToString() + ")");
             }
@@ -156,35 +156,35 @@ namespace SymbolicAlgebra
 
 
             #region hyperbolic functions
-            if (string.Equals(func, "asinh", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "asinh", StringComparison.OrdinalIgnoreCase))
             {
                 //asin(x) → 1 / sqrt(x^2+1) 
 
                 return SymbolicVariable.Parse(dpa.ToString() + "/sqrt(" + ps.ToString() + "+1)");
             }
 
-            if (string.Equals(func, "acosh", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "acosh", StringComparison.OrdinalIgnoreCase))
             {
                 return SymbolicVariable.Parse("-" + dpa.ToString() + "/sqrt(" + ps.ToString() + "-1)");
             }
 
-            if (string.Equals(func, "atanh", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "atanh", StringComparison.OrdinalIgnoreCase))
             {
                 
                 return SymbolicVariable.Parse(dpa.ToString() + "/(1-(" + ps.ToString() + "))");
             }
 
-            if (string.Equals(func, "acoth", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "acoth", StringComparison.OrdinalIgnoreCase))
             {
                 return SymbolicVariable.Parse("-" + dpa.ToString() + "/(" + ps.ToString() + "-1)");
             }
 
-            if (string.Equals(func, "asech", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "asech", StringComparison.OrdinalIgnoreCase))
             {
                 return SymbolicVariable.Parse("-" + dpa.ToString() + "/(sqrt(1/" + ps.ToString() + "-1)*" + ps.ToString() + ")");
             }
 
-            if (string.Equals(func, "acsch", StringComparison.InvariantCultureIgnoreCase))
+            if (string.Equals(func, "acsch", StringComparison.OrdinalIgnoreCase))
             {
                 return SymbolicVariable.Parse("-" + dpa.ToString() + "/(sqrt(1/" + ps.ToString() + "+1)*" + ps.ToString() + ")");
             }

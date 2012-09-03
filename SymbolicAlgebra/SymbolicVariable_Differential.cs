@@ -7,11 +7,7 @@ using System.Diagnostics;
 
 namespace SymbolicAlgebra
 {
-#if SILVERLIGHT
     public partial class SymbolicVariable
-#else
-    public partial class SymbolicVariable : ICloneable
-#endif
     {
         const string lnText = "log";
 
@@ -22,7 +18,7 @@ namespace SymbolicAlgebra
         /// <param name="parameter"></param>
         private static SymbolicVariable DiffTerm(SymbolicVariable term, string parameter)
         {
-            var sv = (SymbolicVariable)term.Clone();
+            var sv = term.Clone();
 
             bool symbolpowercontainParameter = false;
             if (sv._SymbolPowerTerm != null)
@@ -122,7 +118,7 @@ namespace SymbolicAlgebra
                 {
                     if (sv.IsFunction)
                     {
-                        var fv = (SymbolicVariable)sv.Clone();
+                        var fv = sv.Clone();
 
                         // remove the power term in this copied function term
                         fv._SymbolPowerTerm = null;
@@ -191,10 +187,6 @@ namespace SymbolicAlgebra
                                 // the function is not a special function like sin, cos, and log.
                                 // search for the function in the running context.
 
-                                #if  SILVERLIGHT
-                                #else
-                                Debug.Print("Diff(" + fv + ")");
-                                #endif
 
                                 var extendedFunction = Functions.Keys.FirstOrDefault(c => c.StartsWith(fv.FunctionName, StringComparison.OrdinalIgnoreCase));
                                 if (!string.IsNullOrEmpty(extendedFunction))
@@ -310,7 +302,7 @@ namespace SymbolicAlgebra
 
             Action<SymbolicVariable> SpliBaseTerm = (rr) =>
             {
-                var basicterm = (SymbolicVariable)rr.Clone();
+                var basicterm = rr.Clone();
                 basicterm._FusedConstants = null;
                 basicterm._FusedSymbols = null;
                 
@@ -337,7 +329,7 @@ namespace SymbolicAlgebra
 
             Action<SymbolicVariable> SpliFusedConstants = (rr) =>
             {
-                var basicterm = (SymbolicVariable)rr.Clone();
+                var basicterm = rr.Clone();
 
                 var FCConstants = basicterm._FusedConstants;
 
@@ -346,7 +338,7 @@ namespace SymbolicAlgebra
                 foreach (var FC in FCConstants)
                 {
                     SymbolicVariable CoeffecientOnly = new SymbolicVariable("");
-                    CoeffecientOnly._CoeffecientPowerTerm = (SymbolicVariable)FC.Value.SymbolicVariable.Clone();
+                    CoeffecientOnly._CoeffecientPowerTerm = FC.Value.SymbolicVariable.Clone();
                     CoeffecientOnly.Coeffecient = FC.Key;
 
                     MultipliedTerms.Add(new MultipliedTerm( CoeffecientOnly));
@@ -355,7 +347,7 @@ namespace SymbolicAlgebra
 
             Action<SymbolicVariable> SplitFusedSymbols = (rr) =>
             {
-                var basicterm = (SymbolicVariable)rr.Clone();
+                var basicterm = rr.Clone();
 
                 var FSymbols = basicterm._FusedSymbols;
 
@@ -366,7 +358,7 @@ namespace SymbolicAlgebra
                     var ss = new SymbolicVariable(FS.Key);
                     ss.SymbolPower = FS.Value.NumericalVariable;
                     if (FS.Value.SymbolicVariable != null)
-                        ss._SymbolPowerTerm = (SymbolicVariable)FS.Value.SymbolicVariable.Clone();
+                        ss._SymbolPowerTerm = FS.Value.SymbolicVariable.Clone();
 
                     MultipliedTerms.Add(new MultipliedTerm( ss));
                 }
@@ -451,7 +443,7 @@ namespace SymbolicAlgebra
         {
 
 
-            SymbolicVariable result = (SymbolicVariable)this.Clone();
+            SymbolicVariable result = this.Clone();
 
             Dictionary<string, SymbolicVariable> OtherAddedTerms = result._AddedTerms;
             result._AddedTerms = null;
