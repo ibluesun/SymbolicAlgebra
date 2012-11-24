@@ -1326,6 +1326,25 @@ namespace SymbolicAlgebraUnitTesting
             double r = bb.Execute(2);
 
         }
+
+
+        [TestMethod]
+        public void Issues16Test()
+        {
+            var v1 = SymbolicVariable.Parse("5*t1");
+            var v2 = SymbolicVariable.Parse("3/t1");
+            var vv = SymbolicVariable.Add(v1, v2);
+
+            Assert.AreEqual("5*t1+3/t1", vv.ToString());
+
+            var vm = SymbolicVariable.Subtract(v1, v2);
+            Assert.AreEqual("5*t1-3/t1", vm.ToString());
+
+            var g = SymbolicVariable.Add(vv, vm);
+            Assert.AreEqual("10*t1", g.ToString());
+
+
+        }
     }
 
 }

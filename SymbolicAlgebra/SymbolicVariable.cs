@@ -1280,12 +1280,16 @@ namespace SymbolicAlgebra
                     {
                         if (_SymbolPowerTerm.Equals(sv._SymbolPowerTerm)) return true;
                     }
+                    else if (this.SymbolPower != sv.SymbolPower)
+                    {
+                        return false;
+                    }
                     else
                     {
                         // one of the terms is  null or the both are numbers.
 
                         if (this.SymbolPowerText.Equals(sv.SymbolPowerText, StringComparison.OrdinalIgnoreCase))
-                            return true;   
+                            return true;
                     }
 
                 }

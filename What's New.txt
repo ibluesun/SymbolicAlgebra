@@ -1,3 +1,9 @@
+Symbolic Algebra [0.87]
+------------------------
+- Solving the expression with one variable.
+- Fixed 5*t1 + 3/t1  to produce 5*t1+3/t1  because t1^1 as a base is not equal to t1^-1 as another base.
+- Solving the expression with many variables by selecting one variable.  // Assert.AreEqual("2.5*u-2/r+1.5*h", v.Solve("x").ToString());
+
 Symbolic Algebra [0.86]
 ------------------------
 - Converted the library into Portable Library (vs 2010 portable tools RC)

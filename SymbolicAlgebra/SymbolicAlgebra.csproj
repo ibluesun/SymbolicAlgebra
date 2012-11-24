@@ -52,6 +52,7 @@
     <Compile Include="ExtraTerm.cs" />
     <Compile Include="FunctionDiff.cs" />
     <Compile Include="HybridVariable.cs" />
+    <Compile Include="MathExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SymbolicException.cs" />
     <Compile Include="SymbolicVariable.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="SymbolicVariable_Operators.cs" />
     <Compile Include="SymbolicVariable_Parser.cs" />
     <Compile Include="SymbolicVariable_PowerOperation.cs" />
+    <Compile Include="SymbolicVariable_Solver.cs" />
     <Compile Include="TextTools.cs" />
   </ItemGroup>
   <ItemGroup>
