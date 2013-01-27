@@ -194,8 +194,17 @@ namespace SymbolicAlgebra
             string expression = sb.ToString();
             double coe;
 
-            //try the numbers first
-            if (double.TryParse(expression, out coe))
+            // try infinity first
+            if (expression.Equals("Infinity", StringComparison.OrdinalIgnoreCase) || expression.Equals("inf", StringComparison.OrdinalIgnoreCase))
+            {
+                coe = double.PositiveInfinity;
+                Symbol = string.Empty;
+                if (rem != 0.0) Coeffecient = -1 * coe;
+                else Coeffecient = coe;
+                SymbolPower = 0;
+            }
+            //then the numbers first
+            else if (double.TryParse(expression, out coe))
             {
                 Symbol = string.Empty;
                 if (rem != 0.0) Coeffecient = -1 * coe;

@@ -1,3 +1,9 @@
+Symbolic Algebra [0.881]
+-----------------------
+- Getting coefficient of arbitary variable with certain power.
+- Infinity or  Inf     is treated as double.Infininty  in code   (this to ensure that inf*x + 5*x gets calculated right)
+
+
 Symbolic Algebra [0.87]
 ------------------------
 - Solving the expression with one variable.

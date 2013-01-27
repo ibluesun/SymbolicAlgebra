@@ -1345,6 +1345,22 @@ namespace SymbolicAlgebraUnitTesting
 
 
         }
+
+
+
+        [TestMethod]
+        public void TestingInfinity()
+        {
+            var inf = new SymbolicVariable("inf");
+            Assert.AreEqual(double.PositiveInfinity, inf.Coeffecient);
+
+            inf = new SymbolicVariable("infinity");
+            Assert.AreEqual(double.PositiveInfinity, inf.Coeffecient);
+
+            inf = new SymbolicVariable("infinity") * SymbolicVariable.NegativeOne;
+            Assert.AreEqual(double.NegativeInfinity, inf.Coeffecient);
+
+        }
     }
 
 }
