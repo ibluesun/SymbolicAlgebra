@@ -31,7 +31,8 @@ namespace SymbolicAlgebra
         {
             // "5*t1+3/t2"  ==>  5*t1 = -3/t2  ==>  t1  = (-3/t2)*5   
 
-            if (_ExtraTerms != null && _ExtraTerms.Count > 0) throw new SymbolicException("can't solve expression with extra terms that hold terms with different denominator");
+            if (_ExtraTerms != null && _ExtraTerms.Count > 0) 
+                throw new SymbolicException("can't solve expression with extra terms that hold terms with different denominator");
 
             // Algorithm:
             // search for the term with variable in it 
@@ -133,7 +134,34 @@ namespace SymbolicAlgebra
                     }
                 }
             }
+            return cf;
+        }
 
+        /// <summary>
+        /// Returs the coefficient of variable with certain power
+        /// </summary>
+        /// <param name="variable"></param>
+        /// <param name="power"></param>
+        /// <returns></returns>
+        public double? CoefficientOf(string variable, double power)
+        {
+            double? cf = null;
+
+            if (this.Symbol.Equals(variable, StringComparison.OrdinalIgnoreCase) && this.SymbolPower == power)
+            {
+                if (CoeffecientPowerTerm == null) cf = Coeffecient;
+            }
+
+            if (!cf.HasValue)
+            {
+                foreach (var t in AddedTerms)
+                {
+                    if (t.Value.Symbol.Equals(variable, StringComparison.OrdinalIgnoreCase) && t.Value.SymbolPower == power)
+                    {
+                        if (t.Value.CoeffecientPowerTerm == null) cf = t.Value.Coeffecient;
+                    }
+                }
+            }
             return cf;
         }
     }
