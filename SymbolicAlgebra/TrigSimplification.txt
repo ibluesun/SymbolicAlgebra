@@ -1,0 +1,51 @@
+﻿Trigonometric Simplification
+----------------------------
+
+The algorithm of simplifying  sin(x)^2 + cos(x)^2   
+a separate function for this simplification is introduced.
+
+
+Algorithm:
+---------
+
+make a stack for certain parameter like  g, or x   as trigonometric functions has a certain parameter
+
+
+case                       Simplification
+-----------------------|-------------------
+
+Sin(x)^2+cos(x)^2              1
+
+sin(g)^2+cos(x)^2             N/A
+
+-sin(x)^2+cos(x)^2          2*cos(x)^2-1
+
+sin(x)^2-cos(x)^2           1-2*cos(x)^2
+
+
+-- some extracted rules
+
+sin(x)^2 = 1-cos(x)^2  then   -cos(x)^2 = sin(x)^2 - 1
+cos(x)^2 = 1-sin(x)^2  then   -sin(x)^2 = cos(x)^2 - 1
+
+
+1] Loop 1:  convert all negative square trig functions into its corresponding positive parts
+2] Loop 2:  loop through trig square functions 
+
+make struct for ParameterSquareTrig (Parameter, Sin_2_Count, Cos_2_Count)
+
+sin^2  found     increase Sin_2_Count
+cos^2  found     increase Cos_2_Count
+
+3] Final Calculation Operation	
+
+	if(Sin_2_Count > 0 && Cos_2_Count > 0)
+	{
+		value = value -sin^2-cos^2+1
+
+		Decrease 1 from Sin_2_Count  
+		Decrease 1 from Cos_2_Count
+
+	}
+
+

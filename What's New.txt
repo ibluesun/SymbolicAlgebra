@@ -1,3 +1,7 @@
+Symbolic Algebra [0.89]
+-----------------------
+- Started to implement the Trigonometric simplfy algorithm
+
 Symbolic Algebra [0.881]
 -----------------------
 - Getting coefficient of arbitary variable with certain power.

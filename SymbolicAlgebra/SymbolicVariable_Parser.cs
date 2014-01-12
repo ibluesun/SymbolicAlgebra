@@ -36,6 +36,8 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public static SymbolicVariable Parse(string expression)
         {
+            
+
             var r = from zr in expression.Split(':', '=')
                     where string.IsNullOrWhiteSpace(zr)==false
                     select zr.Trim();
@@ -88,7 +90,23 @@ namespace SymbolicAlgebra
                     {
                         if ((expr[ix] == '-' || expr[ix] == '+') && ix == 0)
                         {
-                            TokenBuilder.Append(expr[ix]);
+                            if (expr[ix] == '-')
+                            {
+                                // in case of -x  for example ..this will converted into operations
+                                //  of -1 * x
+                                ep.SymbolicExpression = SymbolicVariable.NegativeOne;
+                                ep.Operation = "*";
+
+                                ep.Next = new SymbolicExpressionOperator();
+                                ep = ep.Next;           // advance the reference to the next node to make the linked list.
+
+                                TokenBuilder = new StringBuilder();
+                            }
+                            else
+                            {
+                                // append the normal token
+                                TokenBuilder.Append(expr[ix]);
+                            }
                         }
                         else if (ix > 1 
                             && char.ToUpper(expr[ix - 1]) == 'E' && char.IsDigit(expr[ix - 2])
