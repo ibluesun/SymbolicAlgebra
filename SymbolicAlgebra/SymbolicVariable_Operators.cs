@@ -18,6 +18,8 @@ namespace SymbolicAlgebra
         {
             if (a == null || b == null) return null;
 
+            // check for the denominator part .. if it is not the same .. you will have to put the whole
+            //  symbolic variable in the extra term.
             if (!a.DividedTerm.Equals( b.DividedTerm))
             {
                 SymbolicVariable a_b = a.Clone();
@@ -120,6 +122,7 @@ namespace SymbolicAlgebra
                     }
                     else
                     {
+                        /* do nothing */
                     }
                 }
             }
@@ -172,12 +175,12 @@ namespace SymbolicAlgebra
             }
 
             AdjustSpecialFunctions(ref sv);
+
             AdjustZeroPowerTerms(sv);
             AdjustZeroCoeffecientTerms(ref sv);
 
 
             return sv;
-
         }
 
 

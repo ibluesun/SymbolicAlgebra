@@ -65,11 +65,13 @@
     <Compile Include="SymbolicVariable_Operators.cs" />
     <Compile Include="SymbolicVariable_Parser.cs" />
     <Compile Include="SymbolicVariable_PowerOperation.cs" />
+    <Compile Include="SymbolicVariable_Simplify.cs" />
     <Compile Include="SymbolicVariable_Solver.cs" />
     <Compile Include="TextTools.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Architecture.txt" />
+    <Content Include="TrigSimplification.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SymbolicAlgebra.snk" />

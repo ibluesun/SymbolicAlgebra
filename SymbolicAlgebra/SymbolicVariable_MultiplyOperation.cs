@@ -432,13 +432,21 @@ namespace SymbolicAlgebra
                             // Add Target coefficient symbol to the fused symbols in source, with key as the coefficient number itself.
                             if (cst.ConstantPower != null)
                             {
-                                SourceTerm.FusedConstants.Add(
-                                    cst.ConstantValue,
-                                    new HybridVariable
-                                    {
-                                        NumericalVariable = 1, // power
-                                        SymbolicVariable = cst.ConstantPower.Clone()
-                                    });
+                                if (SourceTerm.IsNegativeOne)
+                                {
+                                    SourceTerm.Coeffecient = -1 * cst.ConstantValue;
+                                    SourceTerm._CoeffecientPowerTerm = cst.ConstantPower;
+                                }
+                                else
+                                {
+                                    SourceTerm.FusedConstants.Add(
+                                        cst.ConstantValue,
+                                        new HybridVariable
+                                        {
+                                            NumericalVariable = 1, // power
+                                            SymbolicVariable = cst.ConstantPower.Clone()
+                                        });
+                                }
                             }
                             else
                             {

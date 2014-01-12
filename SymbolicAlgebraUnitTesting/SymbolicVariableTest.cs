@@ -859,6 +859,7 @@ namespace SymbolicAlgebraUnitTesting
             
             var ns = SymbolicVariable.Parse("-6.6^w");
             Assert.AreEqual("-6.6^w", ns.ToString());
+
             g = SymbolicVariable.Multiply(g, ns);
             Assert.AreEqual("2^(x+z+v)*3^(x+y+u)*-6.6^w", g.ToString());
 
@@ -1360,6 +1361,43 @@ namespace SymbolicAlgebraUnitTesting
             inf = new SymbolicVariable("infinity") * SymbolicVariable.NegativeOne;
             Assert.AreEqual(double.NegativeInfinity, inf.Coeffecient);
 
+        }
+
+
+
+        [TestMethod]
+        public void Issues17Test()
+        {
+            // when entering -sin(x)^2   produce sin(x)^2  which is wrong
+
+            var ss = SymbolicVariable.Parse("-Sin(x)^2");
+
+            Assert.AreEqual("-Sin(x)^2", ss.ToString());
+
+
+        }
+
+
+
+        /// <summary>
+        ///A test for TrigSimplify
+        ///</summary>
+        [TestMethod]
+        public void TrigSimplifyTest()
+        {
+            SymbolicVariable Test = SymbolicVariable.Parse("Cos(x)^2+Sin(x)^2");
+
+            SymbolicVariable Simplified = SymbolicVariable.TrigSimplify(Test);
+
+            Assert.AreEqual("1", Simplified.ToString());
+
+            Test = SymbolicVariable.Parse("a^2*alpha^2*sin(alpha*t)^2+a^2*alpha^2*cos(alpha*t)^2+b^2");
+
+            Simplified = SymbolicVariable.TrigSimplify(Test);
+
+            Assert.AreEqual("a^2*alpha^2+b^2", Simplified.ToString());
+
+            Test = SymbolicVariable.Parse("(sin(phi)^2+cos(phi)^2)*sin(theta)^2+cos(theta)^2");
         }
     }
 
