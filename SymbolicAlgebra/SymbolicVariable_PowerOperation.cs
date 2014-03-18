@@ -33,7 +33,17 @@ namespace SymbolicAlgebra
                 {
                     if (an._SymbolPowerTerm == null)
                     {
-                        if (an.SymbolPower != 0) an._SymbolPowerTerm =  an.SymbolPower * b;
+                        if (an.SymbolPower != 0)
+                        {
+                            if (b.IsOneTerm & b.IsCoeffecientOnly)
+                            {
+                                an.SymbolPower = an.SymbolPower * b.Coeffecient;
+                            }
+                            else
+                            {
+                                an._SymbolPowerTerm = an.SymbolPower * b;
+                            }
+                        }
                     }
                     else
                     {
