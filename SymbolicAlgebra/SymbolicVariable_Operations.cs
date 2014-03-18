@@ -78,12 +78,13 @@ namespace SymbolicAlgebra
 
         public static SymbolicVariable Pow(SymbolicVariable a, int power)
         {
-            return a.Power(power);
+            return a.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
         }
 
         public static SymbolicVariable Pow(SymbolicVariable a, double power)
         {
-            return a.Power(power);
+
+            return a.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
         }
 
 

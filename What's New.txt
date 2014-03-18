@@ -1,3 +1,8 @@
+Symbolic Algebra [0.8.91]
+-----------------------
+- Changed the Pow  function to call RaiseToSymbolicPower
+
+
 Symbolic Algebra [0.89]
 -----------------------
 - Started to implement the Trigonometric simplfy algorithm
