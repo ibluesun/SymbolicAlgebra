@@ -1,3 +1,9 @@
+Symbolic Algebra [0.8.92]
+-----------------------
+- Made all ToString use CultureInfo.InvariantCulture
+- special handling for NaN to be in coefficient 
+-   special handling for NaN and Infinity when parsing symbolic variable for execution.
+
 Symbolic Algebra [0.8.91]
 -----------------------
 - Changed the Pow  function to call RaiseToSymbolicPower

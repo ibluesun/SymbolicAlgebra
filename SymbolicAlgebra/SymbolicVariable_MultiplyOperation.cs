@@ -110,13 +110,13 @@ namespace SymbolicAlgebra
                             if (SourceTerm._SymbolPowerTerm == null)
                             {
                                 // transfer the numerical power into symbolic variable mode
-                                SourceTerm._SymbolPowerTerm = new SymbolicVariable(SourceTerm.SymbolPower.ToString());
+                                SourceTerm._SymbolPowerTerm = new SymbolicVariable(SourceTerm.SymbolPower.ToString(CultureInfo.InvariantCulture));
                                 // also revert the original symbol power into 1  for validation after this
                                 SourceTerm.SymbolPower = 1;
                             }
                             if (TargetSubTerm._SymbolPowerTerm == null)
                             {
-                                TargetSubTerm._SymbolPowerTerm = new SymbolicVariable(TargetSubTerm.SymbolPower.ToString());
+                                TargetSubTerm._SymbolPowerTerm = new SymbolicVariable(TargetSubTerm.SymbolPower.ToString(CultureInfo.InvariantCulture));
                                 TargetSubTerm.SymbolPower = 1;
                             }
 
@@ -414,7 +414,7 @@ namespace SymbolicAlgebra
                         // 27*3^x = 3^3*3^x = 3^(3+x)
                         var cpower = cst.ConstantPower;
                         if (cpower == null) cpower = new SymbolicVariable("1");
-                        SourceTerm._CoeffecientPowerTerm = SymbolicVariable.Add(new SymbolicVariable(sbase.ToString()), cpower);
+                        SourceTerm._CoeffecientPowerTerm = SymbolicVariable.Add(new SymbolicVariable(sbase.ToString(CultureInfo.InvariantCulture)), cpower);
                         SourceTerm.Coeffecient = cst.ConstantValue;
 
                     }
@@ -472,13 +472,13 @@ namespace SymbolicAlgebra
                                 {
                                     if (SourceTerm.Coeffecient == SucceededConstant.Value)
                                     {
-                                        SourceTerm._CoeffecientPowerTerm += new SymbolicVariable(ower.ToString());
+                                        SourceTerm._CoeffecientPowerTerm += new SymbolicVariable(ower.ToString(CultureInfo.InvariantCulture));
                                     }
                                     else
                                     {
                                         var rr = SourceTerm.FusedConstants[SucceededConstant.Value];
 
-                                        rr.SymbolicVariable += new SymbolicVariable(ower.ToString());
+                                        rr.SymbolicVariable += new SymbolicVariable(ower.ToString(CultureInfo.InvariantCulture));
                                         SourceTerm.FusedConstants[SucceededConstant.Value] = rr;
                                     }
 
@@ -512,7 +512,7 @@ namespace SymbolicAlgebra
         internal static SymbolicVariable Multiply(HybridVariable a, SymbolicVariable b)
         {
             if (a.SymbolicVariable != null) return Multiply(a.SymbolicVariable, b);
-            else return Multiply(new SymbolicVariable(a.NumericalVariable.ToString()), b);
+            else return Multiply(new SymbolicVariable(a.NumericalVariable.ToString(CultureInfo.InvariantCulture)), b);
         }
 
     

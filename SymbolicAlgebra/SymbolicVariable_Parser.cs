@@ -439,7 +439,15 @@ namespace SymbolicAlgebra
                 else
                 {
                     double constant;
-                    if (double.TryParse(TokenBuilder.ToString(), out constant))
+                    if (TokenBuilder.ToString().Equals("Infinity", StringComparison.OrdinalIgnoreCase) || TokenBuilder.ToString().Equals("inf", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ep.DynamicExpression = Expression.Constant(double.PositiveInfinity, typeof(double));
+                    }
+                    else if (TokenBuilder.ToString().Equals("NaN", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ep.DynamicExpression = Expression.Constant(double.NaN, typeof(double));
+                    }
+                    else if (double.TryParse(TokenBuilder.ToString(), out constant))
                     {
                         ep.DynamicExpression = Expression.Constant(constant, typeof(double));
                     }
