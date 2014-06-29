@@ -203,7 +203,14 @@ namespace SymbolicAlgebra
                 else Coeffecient = coe;
                 SymbolPower = 0;
             }
-            //then the numbers first
+            // then try Not a Number NaN   second
+            else if (expression.Equals("NaN", StringComparison.OrdinalIgnoreCase))
+            {
+                Symbol = string.Empty;
+                Coeffecient = double.NaN;
+                SymbolPower = 0;
+            }
+            //then the numbers at last :) :)
             else if (double.TryParse(expression, out coe))
             {
                 Symbol = string.Empty;
@@ -350,10 +357,10 @@ namespace SymbolicAlgebra
                                         SymbolicVariable final = null;
 
                                         // first coefficient power * log(coefficient)
-                                        final = Multiply(first_constant, new SymbolicVariable("log(" + logparam.Coeffecient.ToString() + ")"));
+                                        final = Multiply(first_constant, new SymbolicVariable("log(" + logparam.Coeffecient.ToString(CultureInfo.InvariantCulture) + ")"));
                                         for (int i = 0; i < logparam.FusedConstants.Count; i++)
                                         {
-                                            final = Add(final, Multiply(fusedConstants[i], new SymbolicVariable("log(" + logparam.FusedConstants.ElementAt(i).Key.ToString() + ")")));
+                                            final = Add(final, Multiply(fusedConstants[i], new SymbolicVariable("log(" + logparam.FusedConstants.ElementAt(i).Key.ToString(CultureInfo.InvariantCulture) + ")")));
                                         }
 
                                         // continue with symbols
@@ -669,7 +676,7 @@ namespace SymbolicAlgebra
             double power = FusedConstants.ElementAt(i).Value.NumericalVariable;
             SymbolicVariable powerTerm = FusedConstants.ElementAt(i).Value.SymbolicVariable;
 
-            string variableName = FusedConstants.ElementAt(i).Key.ToString();
+            string variableName = FusedConstants.ElementAt(i).Key.ToString(CultureInfo.InvariantCulture);
             if (powerTerm != null)
             {
                 string powerTermText = powerTerm.ToString();
@@ -695,7 +702,7 @@ namespace SymbolicAlgebra
             double power = FusedConstants.ElementAt(i).Value.NumericalVariable;
             SymbolicVariable powerTerm = FusedConstants.ElementAt(i).Value.SymbolicVariable;
 
-            string variableName = FusedConstants.ElementAt(i).Key.ToString();
+            string variableName = FusedConstants.ElementAt(i).Key.ToString(CultureInfo.InvariantCulture);
 
             if (powerTerm != null)
             {
