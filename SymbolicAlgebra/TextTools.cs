@@ -53,7 +53,7 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public static string[] WordsFromExpression(string expression)
         {
-            char[] separators = { '^', '*', '/', '+', '-', '(', '|' };
+            char[] separators = { '^', '*', '/', '+', '-', '(', '|', '<', '>', '=' };
             char[] seps = { '^', '*', '/', '+', '-', '|' };
             expression = expression.Replace(" ", "");
 
@@ -160,8 +160,9 @@ namespace SymbolicAlgebra
             TokenBuilder = null;
 
 
+
             var ff = from z in results
-                     where char.IsDigit(z, 0) == false
+                     where string.IsNullOrEmpty(z)==false && char.IsDigit(z, 0) == false
                      select z;
 
             return ff.ToArray();
