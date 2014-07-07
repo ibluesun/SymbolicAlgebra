@@ -38,7 +38,7 @@ namespace SymbolicAlgebra
         {
             
 
-            var r = from zr in expression.Split(':', '=')
+            var r = from zr in expression.Split(new string[]{":="}, StringSplitOptions.RemoveEmptyEntries)
                     where string.IsNullOrWhiteSpace(zr)==false
                     select zr.Trim();
             
@@ -378,6 +378,13 @@ namespace SymbolicAlgebra
             if (op == "+") return Expression.Add(left, right);
             if (op == "-") return Expression.Subtract(left, right);
 
+            if (op == "<") return Expression.LessThan(left, right);
+            if (op == ">") return Expression.GreaterThan(left, right);
+            if (op == "<=") return Expression.LessThanOrEqual(left, right);
+            if (op == ">=") return Expression.GreaterThanOrEqual(left, right);
+            if (op == "=") return Expression.Equal(left, right);
+            if (op == "<>") return Expression.NotEqual(left, right);
+
 
             throw new NotSupportedException("Not Supported Operator '" + op + "'");
         }
@@ -398,8 +405,9 @@ namespace SymbolicAlgebra
             expression = expression.TrimStart('-');  // remove any trailing minuses
 
 
-            char[] separators = { '^', '*', '/', '+', '-', '(' };
-            char[] seps = { '^', '*', '/', '+', '-' };
+            char[] separators = { '^', '*', '/', '+', '-', '(', '<', '>', '=' };
+
+            char[] operators = { '^', '*', '/', '+', '-' };
 
 
             expression = expression.Replace(" ", "");
@@ -472,7 +480,9 @@ namespace SymbolicAlgebra
                                         , System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static
                                         );
                             else if (fname.Equals("log", StringComparison.OrdinalIgnoreCase))
-                                targetfunction = typeof(Math).GetMethod("Log", new Type[]{typeof(double)});
+                                targetfunction = typeof(Math).GetMethod("Log", new Type[] { typeof(double) });
+                            else if (fname.Equals("iif", StringComparison.OrdinalIgnoreCase))
+                                targetfunction = typeof(CoLogic).GetMethod("IIF", new Type[] { typeof(bool), typeof(double), typeof(double) });
                             else
                                 targetfunction = typeof(Math).GetMethod(
                                     fname
@@ -538,28 +548,38 @@ namespace SymbolicAlgebra
                     {
                         if ((expression[ix] == '-' || expression[ix] == '+') && ix == 0)
                         {
+                            // add first character if - or +  
                             TokenBuilder.Append(expression[ix]);
                         }
                         else if (ix > 1
                             && char.ToUpper(expression[ix - 1]) == 'E' && char.IsDigit(expression[ix - 2])
                             && (expression[ix] == '-' || expression[ix] == '+'))
                         {
+                            // test previous charachter if E    and charachter before it to be digit and current character is - or + 
+                            //    then we are in sceintific representation of number
+
                             // case of 3e+2 4e-2  all cases with e in it.
+
                             TokenBuilder.Append(expression[ix]);
                         }
                         else if (expression[ix] == '(')
                         {
+                            // either we reached a function of expression group.
                             PLevels.Push(1);
-                            var bb = ix > 0 ? separators.Contains(expression[ix - 1]) : true;
-                            if (!bb)
+
+                            // test for something other than separator in previous charachter
+                            var OperatorBehind = ix > 0 ? separators.Contains(expression[ix - 1]) : true;
+
+                            if (!OperatorBehind)
                             {
                                 //the previous charachter is normal word which indicates we reached a function
                                 FunctionContext = true;
                                 TokenBuilder.Append(expression[ix]);
                             }
                         }
-                        else if (seps.Contains(expression[ix - 1]) && (expression[ix] == '-' || expression[ix] == '+'))
+                        else if (operators.Contains(expression[ix - 1]) && (expression[ix] == '-' || expression[ix] == '+'))
                         {
+                            // the case in which last charachter was another operator and followed by current (-) or (+)
                             TokenBuilder.Append(expression[ix]);
                         }
                         else
@@ -571,6 +591,17 @@ namespace SymbolicAlgebra
                             TokenBuilder = new StringBuilder();
 
                             ep.Operation = expression[ix].ToString();
+
+                            if (expression[ix] == '<' || expression[ix] == '>')
+                            {
+                                // check for equal sign after this 
+                                if (expression[ix + 1] == '=')
+                                {
+                                    ep.Operation += "=";
+                                    ix++;
+                                }
+                            }
+
                             ep.Next = new DynamicExpressionOperator();
                             ep = ep.Next;           // advance the reference to the next node to make the linked list.
                         }
@@ -630,8 +661,12 @@ namespace SymbolicAlgebra
 
             string[] Group2 = { "+", "-" };
 
+            string[] Group3 = { "<", "<=", ">", ">=" };
+
+            string[] Group4 = { "=", "<>" };
+
             /// Operator Groups Ordered by Priorities.
-            string[][] OperatorGroups = { Group, Group1, Group2 };
+            string[][] OperatorGroups = { Group, Group1, Group2, Group3, Group4 };
 
             foreach (var opg in OperatorGroups)
             {

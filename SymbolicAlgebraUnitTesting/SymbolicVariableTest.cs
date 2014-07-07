@@ -1399,6 +1399,32 @@ namespace SymbolicAlgebraUnitTesting
 
             Test = SymbolicVariable.Parse("(sin(phi)^2+cos(phi)^2)*sin(theta)^2+cos(theta)^2");
         }
+
+        [TestMethod]
+        public void IIF_ExecuteTest()
+        {
+            SymbolicVariable iif = SymbolicVariable.Parse("IIF(x <= 5, x^2, x^3)");
+
+            Assert.AreEqual<string>(iif.InvolvedSymbols[0], "x");
+
+            Assert.AreEqual(iif.Execute(3), 3 * 3);
+            Assert.AreEqual(iif.Execute(5), 5 * 5);
+            Assert.AreEqual(iif.Execute(6), 6 * 6 * 6);
+
+
+            var ComplexIIf = SymbolicVariable.Parse("IIF(x*y <= 20, 0, IIF(x<5, 1, 2))");
+
+            Assert.AreEqual(ComplexIIf.Execute(4, 5), 0);
+            Assert.AreEqual(ComplexIIf.Execute(4, 6), 1);
+            Assert.AreEqual(ComplexIIf.Execute(6, 4), 2);
+
+
+            var iif2 = SymbolicVariable.Parse("IIF(x+y<10, x*y, x/y)");
+
+            Assert.AreEqual(iif2.Execute(2, 3), 2.0 * 3.0);
+            Assert.AreEqual(iif2.Execute(8, 9), 8.0 / 9.0);
+
+        }
     }
 
 }

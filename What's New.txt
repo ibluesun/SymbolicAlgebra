@@ -1,3 +1,8 @@
+Symbolic Algebra [0.8.93]
+-----------------------
+- Introducing IIF function in symbolic variable to be handy when executing the expression
+     IIF(x+y<10, x*y, x/y)      which looks like the good old IIF of VBA
+
 Symbolic Algebra [0.8.92]
 -----------------------
 - Made all ToString use CultureInfo.InvariantCulture
