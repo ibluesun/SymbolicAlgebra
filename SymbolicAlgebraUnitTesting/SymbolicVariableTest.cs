@@ -1425,6 +1425,24 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual(iif2.Execute(8, 9), 8.0 / 9.0);
 
         }
+
+        [TestMethod]
+        public void Issue18Test()
+        {
+            // an error occur when expression begins with -ve sign
+            // -27*x^3   had 2 issues
+            //   a]  the negative sign has taken the 27  to be -27 as a word in InvolvedSymbols
+            //   b]  the negative sign dropped in the evaluating of parameter expression
+
+            var iif = SymbolicVariable.Parse("IIF(x>45,---27*x^3,-50)");
+
+            var actual = iif.Execute(50);
+            
+            Assert.AreEqual(-3375000, actual);
+
+            Assert.AreEqual(-50.0, iif.Execute(40));
+
+        }
     }
 
 }
