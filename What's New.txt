@@ -1,3 +1,8 @@
+Symbolic Algebra [0.8.94]
+-------------------------
+- Fixed an issue appeared in IIF parsing of parameters.
+
+
 Symbolic Algebra [0.8.93]
 -----------------------
 - Introducing IIF function in symbolic variable to be handy when executing the expression

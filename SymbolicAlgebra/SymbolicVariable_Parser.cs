@@ -401,8 +401,13 @@ namespace SymbolicAlgebra
                 expression = this.ToString();
             }
 
+            bool NegativeExpression = false;
 
-            expression = expression.TrimStart('-');  // remove any trailing minuses
+            if (expression.StartsWith("-"))
+            {
+                NegativeExpression = true;
+                expression = expression.TrimStart('-');  // remove any trailing minuses
+            }
 
 
             char[] separators = { '^', '*', '/', '+', '-', '(', '<', '>', '=' };
@@ -709,7 +714,14 @@ namespace SymbolicAlgebra
                 }
             }
 
-            return Root.DynamicExpression;
+            Expression FinalExpression;
+
+            if (NegativeExpression)
+                FinalExpression = Expression.Multiply(Expression.Constant(-1.0, typeof(double)), Root.DynamicExpression);
+            else 
+                FinalExpression = Root.DynamicExpression;
+
+            return FinalExpression;
 
         }
 
@@ -727,17 +739,17 @@ namespace SymbolicAlgebra
             {
                 var t0 = this[0];
                 DynamicBody = this[0].ParseDynamicExpression(ref DynamicParameters);
-                if (t0.IsNegative)
-                    DynamicBody = Expression.Multiply(Expression.Constant(-1.0), DynamicBody);
+                //if (t0.IsNegative)
+                //    DynamicBody = Expression.Multiply(Expression.Constant(-1.0), DynamicBody);
 
                 // i will parse each term alone.  // so that i have more control over the parse
                 for (int tc = 1; tc < TermsCount; tc++)
                 {
                     var rt = this[tc];
 
-                    if (rt.IsNegative)
-                        DynamicBody = Expression.Subtract(DynamicBody, rt.ParseDynamicExpression(ref DynamicParameters));
-                    else
+                    //if (rt.IsNegative)
+                    //    DynamicBody = Expression.Subtract(DynamicBody, rt.ParseDynamicExpression(ref DynamicParameters));
+                    //else
                         DynamicBody = Expression.Add(DynamicBody, rt.ParseDynamicExpression(ref DynamicParameters));
                 }
 

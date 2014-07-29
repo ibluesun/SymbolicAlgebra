@@ -73,7 +73,8 @@ namespace SymbolicAlgebra
                     {
                         if ((expression[ix] == '-' || expression[ix] == '+') && ix == 0)
                         {
-                            TokenBuilder.Append(expression[ix]);
+                            //TokenBuilder.Append(expression[ix]);
+                            // ignore the leading sign .. in this function we want the words only
                         }
                         else if (expression[ix] == '(')
                         {
