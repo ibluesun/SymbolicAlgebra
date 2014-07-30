@@ -12,7 +12,8 @@ namespace SymbolicAlgebra
     {
         public static readonly string[] AvailableFunctions = { "Sec", "Csc", "Cot", "Sech", "Csch", "Coth" ,
                                                                  "ACosh", "ASinh", "ATanh",
-                                                             "ASec", "ACsc", "ACot", "ASech", "ACsch", "ACoth"};
+                                                             "ASec", "ACsc", "ACot", "ASech", "ACsch", "ACoth"
+                                                             , "Int"};
 
 
         public static double Sec(double x)
@@ -98,6 +99,13 @@ acot(x) = atan(1 / x)
         public static double Acoth(double x)
         {
             return Atanh(1.0 / x);
+        }
+
+
+        public static double Int(double x)
+        {
+            var result = (int)x;
+            return result;
         }
 
 

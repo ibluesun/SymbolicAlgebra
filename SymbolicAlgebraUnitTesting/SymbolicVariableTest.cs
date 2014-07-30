@@ -1443,6 +1443,18 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual(-50.0, iif.Execute(40));
 
         }
+
+
+        [TestMethod]
+        public void TestIntFunction()
+        {
+
+            var ii = SymbolicVariable.Parse("Int(x)");
+
+            var actual = ii.Execute(3.0/4.0);
+
+            Assert.AreEqual(0, actual);
+        }
     }
 
 }
