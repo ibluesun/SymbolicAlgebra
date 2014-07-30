@@ -846,6 +846,7 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public double Execute()
         {
+            PrepareExecute();
             return ((Func<double>)FunctionDelegate)();
         }
 
