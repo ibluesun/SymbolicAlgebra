@@ -1,3 +1,10 @@
+Symbolic Algebra [0.8.96]
+-------------------------
+- math constants appear with percentage sign before it %pi  == 3.14  and golden ratio %phi
+   and ofcourse  %e  
+   unknown constants will return 0  :) :) 
+
+
 Symbolic Algebra [0.8.95]
 -------------------------
 - Added Int  function to get the integer of the passed parameter.

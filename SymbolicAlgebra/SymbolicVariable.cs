@@ -1602,6 +1602,15 @@ namespace SymbolicAlgebra
             }
         }
 
+        public bool IsConstant
+        {
+            get
+            {
+                if (Symbol.StartsWith("%")) return true;
+                return false;
+            }
+        }
+
         public bool IsMultiTerm
         {
             get
@@ -1689,7 +1698,8 @@ namespace SymbolicAlgebra
                             i++;
                         }
 
-                        return fs.Where(s => string.IsNullOrEmpty(s) == false).ToArray();
+                        // return all words that are not null and doesn't start with percentage sign
+                        return fs.Where(s => (string.IsNullOrEmpty(s) == false && s.StartsWith("%") == false)).ToArray();
                     };
 
                 List<string> symbols = new List<string>();

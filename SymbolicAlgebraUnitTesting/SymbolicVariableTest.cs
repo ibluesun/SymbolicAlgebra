@@ -1455,6 +1455,29 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual(0, actual);
         }
+
+
+
+        [TestMethod]
+        public void PiConstant()
+        {
+            var pi = new SymbolicVariable("%pi");
+
+            Assert.AreEqual(pi.InvolvedSymbols.Length, 0);
+            Assert.AreEqual(Math.PI, pi.Execute());
+
+            var sinpi_2 = new SymbolicVariable("sin(%pi/2)");
+
+            Assert.AreEqual(pi.InvolvedSymbols.Length, 0);
+
+            Assert.AreEqual(Math.Sin(Math.PI / 2), sinpi_2.Execute());
+
+            var e = new SymbolicVariable("%e");
+            Assert.AreEqual(Math.E, e.Execute());
+
+
+            
+        }
     }
 
 }
