@@ -460,6 +460,11 @@ namespace SymbolicAlgebra
                     {
                         ep.DynamicExpression = Expression.Constant(double.NaN, typeof(double));
                     }
+                    else if (TokenBuilder[0] == '%')
+                    {
+                        // constant 
+                        ep.DynamicExpression = Expression.Constant(MathConstants.Constant(TokenBuilder.ToString().TrimStart('%')), typeof(double));
+                    }
                     else if (double.TryParse(TokenBuilder.ToString(), out constant))
                     {
                         ep.DynamicExpression = Expression.Constant(constant, typeof(double));
@@ -512,7 +517,7 @@ namespace SymbolicAlgebra
                                 if (!string.IsNullOrEmpty(fn))
                                 {
                                     // this is good  because we have a body.
-                                    ep.DynamicExpression = Functions[fn].ParseDynamicExpression(ref parameters);   
+                                    ep.DynamicExpression = Functions[fn].ParseDynamicExpression(ref parameters);
                                 }
                                 else
                                 {

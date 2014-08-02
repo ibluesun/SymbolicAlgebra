@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MathConstants.cs" />
     <Compile Include="CoLogic.cs" />
     <Compile Include="CoMath.cs" />
     <Compile Include="ExtraTerm.cs" />
