@@ -586,6 +586,14 @@ namespace SymbolicAlgebra
         SymbolicVariable _DividedTerm;
 
 
+        /*
+         in _FusedSymbols  the string key contains the mathmatical expression
+          while the value of HybridVariable type contains its power  wether it was numerical or symbolic
+         
+         so calculation is done on the string part
+         the string key part can be function or normal variable.
+         
+         */
 
         /// <summary>
         /// a*x^2*y^3*z^7  I mean {y^3, and z^7}
@@ -694,6 +702,7 @@ namespace SymbolicAlgebra
 
             return result;
         }
+
         private string GetConstantAbsoluteBaseValue(int i)
         {
 
@@ -756,7 +765,13 @@ namespace SymbolicAlgebra
             {
                 // variable exist 
                 if (power != 1) result = variableName + "^" + power.ToString(CultureInfo.InvariantCulture);
-                else result = variableName;
+                else
+                {
+                    if (TextTools.TopLevelExist(variableName, '+') == true || TextTools.TopLevelExist(variableName, '-') == true)
+                        result = "(" + variableName + ")";
+                    else
+                        result = variableName;
+                }
             }
             
             return result;    
@@ -805,6 +820,104 @@ namespace SymbolicAlgebra
         private double GetFusedPower(int i)
         {
             return FusedSymbols.ElementAt(i).Value.NumericalVariable;
+        }
+
+
+
+        public string GetFusedKey(int i)
+        {
+            var fs = FusedSymbols.ElementAt(i);
+
+            return fs.Key;
+        }
+
+        /// <summary>
+        /// Gets a fused term as symbolic variable with its power
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public SymbolicVariable GetFusedTerm(int i)
+        {
+            var fs = FusedSymbols.ElementAt(i);
+            SymbolicVariable ft = SymbolicVariable.Parse(fs.Key);
+
+            if (fs.Value.SymbolicVariable != null) return ft.RaiseToSymbolicPower(fs.Value.SymbolicVariable);
+            else return ft.Power(fs.Value.NumericalVariable);
+        }
+
+        /// <summary>
+        /// Gets fused constants as symbolic variables with their powers
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public SymbolicVariable GetConstantTerm(int i)
+        {
+            var fs = FusedConstants.ElementAt(i);
+            SymbolicVariable ft = new SymbolicVariable(fs.Key.ToString());
+
+            if (fs.Value.SymbolicVariable != null) return ft.RaiseToSymbolicPower(fs.Value.SymbolicVariable);
+            else return ft.Power(fs.Value.NumericalVariable);
+        }
+
+
+
+
+        /// <summary>
+        /// gets the current term without any additional fused or added terms 
+        /// </summary>
+        /// <returns></returns>
+        public SymbolicVariable GetTheStrippedVariable()
+        {
+            var stripped = new SymbolicVariable(this.Symbol);
+
+            stripped._SymbolPower = this._SymbolPower;
+
+            if (this._SymbolPowerTerm != null)
+                stripped._SymbolPowerTerm = this._SymbolPowerTerm.Clone();
+
+
+            return stripped;
+        }
+
+        /// <summary>
+        /// gets the coefficient in its own instance.
+        /// </summary>
+        /// <returns></returns>
+        public SymbolicVariable GetTheStrippedCoefficient()
+        {
+            var stripped =  new SymbolicVariable(Coeffecient.ToString());
+
+            if (this._CoeffecientPowerTerm != null)
+                stripped._CoeffecientPowerTerm = this._CoeffecientPowerTerm.Clone();
+
+            return stripped;
+
+        }
+
+        /// <summary>
+        /// gets this term multiplied variables but as a list of variables
+        /// </summary>
+        /// <returns></returns>
+        public SymbolicVariable[] GetMultipliedTerms()
+        {
+            List<SymbolicVariable> MultilpiedTerms = new List<SymbolicVariable>();
+
+            MultilpiedTerms.Add(this.GetTheStrippedCoefficient());
+
+            MultilpiedTerms.Add(this.GetTheStrippedVariable());
+
+            for (int ifsx = 0; ifsx < this.FusedConstants.Count; ifsx++)
+            {
+                MultilpiedTerms.Add(this.GetConstantTerm(ifsx));
+            }
+
+            for (int ifsx = 0; ifsx < this.FusedSymbols.Count; ifsx++)
+            {
+                MultilpiedTerms.Add(this.GetFusedTerm(ifsx));
+            }
+
+
+            return MultilpiedTerms.ToArray();
         }
 
         #endregion
@@ -978,7 +1091,7 @@ namespace SymbolicAlgebra
                 else
                 {
                     if (pp >= 0)
-                        result += "*" + GetSymbolBaseValue(i);
+                        result += "*" + GetSymbolBaseValue(i) + "";
                     else
                     {
                         var sabv = GetSymbolAbsoluteBaseValue(i);
@@ -1063,9 +1176,6 @@ namespace SymbolicAlgebra
             // continue with the rest of constants
             for (int i = 0; i < FusedConstants.Count; i++)
             {
-
-                
-
                 double pp = GetFusedConstantPower(i);
 
                 if (string.IsNullOrEmpty(result))
@@ -1160,7 +1270,7 @@ namespace SymbolicAlgebra
 
 
         /// <summary>
-        /// Returns the symbolic variable as a pure terms without
+        /// Returns the symbolic variable as separated terms that share the same divisor  (this doesn't include extra terms)
         /// </summary>
         /// <param name="ix"></param>
         /// <returns></returns>

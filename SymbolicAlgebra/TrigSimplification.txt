@@ -41,11 +41,59 @@ cos^2  found     increase Cos_2_Count
 
 	if(Sin_2_Count > 0 && Cos_2_Count > 0)
 	{
-		value = value -sin^2-cos^2+1
+		value = value -sin^2-co	s^2+1
 
 		Decrease 1 from Sin_2_Count  
 		Decrease 1 from Cos_2_Count
 
 	}
 
+
+2014-09-02
+
+I made yesterday a function that maps the variables in the expression  called SymbolicVariable.GetCommonFactorsMap()
+
+the function returns map of symbolicvariable occurence in the expression
+
+ex:   4*x*y+4*x+5*sin(x)
+
+4     =>  0  1
+x     =>  0  1
+y     =>  0
+5     =>  2
+sin(x)=>  2
+
+
+this is the first step to simplify the expression before getting simplifying it with trigsimplify
+
+now consider this case   of three terms expression
+
+a^2*alpha^2*sin(alpha*t)^2   +  a^2*alpha^2*cos(alpha*t)^2  +   b^2          
+
+[1,					{ 0, 1, 2}
+[a^2,				{ 0, 1}
+[alpha^2,			{ 0, 1}
+[sin(alpha*t)^2,	{ 0 }
+[cos(alpha*t)^2,	{ 1 }
+[b^2,				{ 2 }
+
+the expression should be simplified to a^2* alpha^2 * (sin(alpha*t)^2 + cos(alpha*t)^2) + b^2
+
+how can this be happen
+looking into indices of a^2 and alpha^2  we find that they share the same indices { 0, 1}
+then they are common factors  and should be grouped into single SymbolicVariable
+
+what about taking them with multi steps
+
+consider c*x*(a+b)   ==  c*(x*a+x*b) == c*x*a+c*x*+b
+c => {0 1}
+x => {0 1}
+
+take c and remove it from the terms   obtain    c*(x*a+x*b)   
+
+orrrr
+
+in each term   check if it contains one of the variables that their indices is more than > 1
+
+if it contains such a variable  remove it  and copy it into temporar storage
 

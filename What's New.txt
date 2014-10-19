@@ -1,3 +1,18 @@
+Symbolic Algebra [0.8.97]
+-------------------------
+- I am continuing the code of simplification of trigonometry however i discovered that I have to find the common factors
+ first to simplify the expression.
+
+- function GetCommonFactorsMap  gets the occurence of each variable in all terms for example  a*sin(x)+a*cos(x)  result in map of a=>{0,1}
+ the function is used then in finding common factors
+
+- FactorWithCommonFactor  function returns the factorized expression (no test with extra terms yet)
+
+- TrigSimplify  uses FactorWithCommonFactor function to get the simplifications of Sin^2+Cos^2 into 1
+
+
+
+
 Symbolic Algebra [0.8.96]
 -------------------------
 - math constants appear with percentage sign before it %pi  == 3.14  and golden ratio %phi

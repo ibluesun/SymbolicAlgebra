@@ -1379,26 +1379,9 @@ namespace SymbolicAlgebraUnitTesting
 
 
 
-        /// <summary>
-        ///A test for TrigSimplify
-        ///</summary>
-        [TestMethod]
-        public void TrigSimplifyTest()
-        {
-            SymbolicVariable Test = SymbolicVariable.Parse("Cos(x)^2+Sin(x)^2");
 
-            SymbolicVariable Simplified = SymbolicVariable.TrigSimplify(Test);
 
-            Assert.AreEqual("1", Simplified.ToString());
 
-            Test = SymbolicVariable.Parse("a^2*alpha^2*sin(alpha*t)^2+a^2*alpha^2*cos(alpha*t)^2+b^2");
-
-            Simplified = SymbolicVariable.TrigSimplify(Test);
-
-            Assert.AreEqual("a^2*alpha^2+b^2", Simplified.ToString());
-
-            Test = SymbolicVariable.Parse("(sin(phi)^2+cos(phi)^2)*sin(theta)^2+cos(theta)^2");
-        }
 
         [TestMethod]
         public void IIF_ExecuteTest()
@@ -1477,6 +1460,121 @@ namespace SymbolicAlgebraUnitTesting
 
 
             
+        }
+
+
+
+
+        [TestMethod]
+        public void TestGetCommonFactorsMap()
+        {
+
+            var ex = SymbolicVariable.Parse("a*cos(x)^2+8*x+a*sin(x)^2+c");
+
+            var map = ex.GetCommonFactorsMap();
+
+            var a = new SymbolicVariable("a");
+
+            var a_existence = map[a];
+
+            Assert.AreEqual<int>(0, a_existence[0]);
+            Assert.AreEqual<int>(2, a_existence[1]);
+
+
+            var ex2 = SymbolicVariable.Parse("a*c*v*5*x + c*v + d*v*u + u*h*s + v*d*h*s + v*a*c*Q");
+            var map2 = ex2.GetCommonFactorsMap();
+
+            var c = new SymbolicVariable("c");
+            var d = new SymbolicVariable("d");
+            var v = new SymbolicVariable("v");
+            var u = new SymbolicVariable("u");
+            var h = new SymbolicVariable("h");
+            var s = new SymbolicVariable("s");
+
+            Assert.AreEqual<int>(0, map2[a][0]);
+            Assert.AreEqual<int>(5, map2[a][1]);
+
+            Assert.AreEqual<int>(0, map2[c][0]);
+            Assert.AreEqual<int>(1, map2[c][1]);
+            Assert.AreEqual<int>(5, map2[c][2]);
+
+            Assert.AreEqual<int>(0, map2[v][0]);
+            Assert.AreEqual<int>(1, map2[v][1]);
+            Assert.AreEqual<int>(2, map2[v][2]);
+            Assert.AreEqual<int>(4, map2[v][3]);
+            Assert.AreEqual<int>(5, map2[v][4]);
+
+            Assert.AreEqual<int>(2, map2[d][0]);
+            Assert.AreEqual<int>(4, map2[d][1]);
+
+            Assert.AreEqual<int>(3, map2[h][0]);
+            Assert.AreEqual<int>(4, map2[h][1]);
+
+            Assert.AreEqual<int>(3, map2[s][0]);
+            Assert.AreEqual<int>(4, map2[s][1]);
+
+            var Test = SymbolicVariable.Parse("a^2*alpha^2*sin(alpha*t)^2+a^2*alpha^2*cos(alpha*t)^2+b^2");
+            var tmap = Test.GetCommonFactorsMap();
+
+
+            // the following expression has a divded term that needs to be taken into account
+            var cc = SymbolicVariable.Parse("(sin(x)^4-cos(x)^4)/(sin(x)^2-cos(x)^2)");
+            var ccmap = cc.GetCommonFactorsMap();
+        }
+
+        [TestMethod]
+        public void FactorCommonFactorTest()
+        {
+            var sv = SymbolicVariable.Parse("a*x+a*y+z");
+            var result = SymbolicVariable.FactorWithCommonFactor(sv);
+
+            Assert.AreEqual("a*(x+y)+z", result.ToString());
+
+            var rr = SymbolicVariable.Parse("a*b*c*f + a*b*s + a*b*c*h");
+            var rr_result = SymbolicVariable.FactorWithCommonFactor(rr);
+            Assert.AreEqual("a*b*(c*f+s+c*h)", rr_result.ToString());
+
+
+            var trig = SymbolicVariable.Parse("a^2*alpha^2*sin(alpha*t)^2+a^2*alpha^2*cos(alpha*t)^2+b^2");
+            var trig_result = SymbolicVariable.FactorWithCommonFactor(trig);
+
+            Assert.AreEqual("a^2*alpha^2*(sin(alpha*t)^2+cos(alpha*t)^2)+b^2", trig_result.ToString());
+
+
+            var Test = SymbolicVariable.Parse("(sin(phi)^2+cos(phi)^2)*sin(theta)^2+cos(theta)^2");
+            var factored = SymbolicVariable.FactorWithCommonFactor(Test);
+
+            Assert.AreEqual("sin(theta)^2*(sin(phi)^2+cos(phi)^2)+cos(theta)^2", factored.ToString());
+
+        }
+
+
+        /// <summary>
+        ///A test for TrigSimplify
+        ///</summary>
+        [TestMethod]
+        public void TrigSimplifyTest()
+        {
+            
+            SymbolicVariable Test = SymbolicVariable.Parse("Cos(x)^2+Sin(x)^2");
+
+            SymbolicVariable Simplified = SymbolicVariable.TrigSimplify(Test);
+
+            Assert.AreEqual("1", Simplified.ToString());
+
+            Test = SymbolicVariable.Parse("a^2*alpha^2*sin(alpha*t)^2+a^2*alpha^2*cos(alpha*t)^2+b^2");
+
+            Simplified = SymbolicVariable.TrigSimplify(Test);
+
+            Assert.AreEqual("a^2*alpha^2+b^2", Simplified.ToString());
+
+            Test = SymbolicVariable.Parse("(sin(phi)^2+cos(phi)^2)*sin(theta)^2+cos(theta)^2");
+            Simplified = SymbolicVariable.TrigSimplify(Test);
+            Assert.AreEqual("1", Simplified.ToString());
+
+
+            Simplified = SymbolicVariable.TrigSimplify(SymbolicVariable.Zero);
+
         }
     }
 
