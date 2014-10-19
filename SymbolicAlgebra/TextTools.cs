@@ -15,11 +15,23 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public static string[] ComaSplit(string expression)
         {
+            return Split(expression, ',');
+        }
+
+
+        /// <summary>
+        /// split the text with splitter character and ignore between parenthesis
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <param name="splitter"></param>
+        /// <returns></returns>
+        public static string[] Split(string expression, char splitter)
+        {
             int Split = 0;
             List<string> all = new List<string>();
 
             int i = 0;
-            
+
             StringBuilder SplitedText = new StringBuilder();
 
             while (i < expression.Length)
@@ -27,7 +39,7 @@ namespace SymbolicAlgebra
                 if (expression[i] == '(') Split++;
                 if (expression[i] == ')') Split--;
 
-                if (Split==0 & expression[i] == ',')
+                if (Split == 0 & expression[i] == splitter)
                 {
                     all.Add(SplitedText.ToString());
                     SplitedText = new StringBuilder();
@@ -43,6 +55,33 @@ namespace SymbolicAlgebra
             all.Add(SplitedText.ToString());
 
             return all.ToArray();
+        }
+
+        /// <summary>
+        /// Finds explicit character in the string top level that is not in parenthesis 
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <param name="character"></param>
+        /// <returns></returns>
+        public static bool TopLevelExist(string expression, char character)
+        {
+            int i = 0;
+            int Split = 0;
+
+            while (i < expression.Length)
+            {
+                if (expression[i] == '(') Split++;
+                if (expression[i] == ')') Split--;
+
+                if (Split == 0 & expression[i] == character)
+                {
+                    return true;
+                }
+                
+                i++;
+            }
+
+            return false;
         }
 
 

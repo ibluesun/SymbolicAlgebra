@@ -2,21 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace SAConsole
 {
     class Program
     {
         static string Prompt = "SAC> ";
+
+        
+
         static void Main(string[] args)
         {
             string line = string.Empty;
+            Type ts = typeof(SymbolicAlgebra.SymbolicVariable);
 
+            var lib_ver = (AssemblyFileVersionAttribute)ts.Assembly.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false)[0];
 
-            string copyright =
-@"Symbolic Algebra Console
-Copyright 2012 at Lost Particles.
-Version 0.89
+            string copyright = @"Symbolic Algebra Console
+Copyright 2012 at Lost Particles.";
+
+            copyright += "\nVersion " + lib_ver.Version + @"
 All Rights Reserved for Ahmed Sadek the Auther of the library.
 
 Ahmed.Sadek@LostParticles.net
