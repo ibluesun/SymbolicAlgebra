@@ -21,7 +21,7 @@ namespace SilverAlgebra
         {
             InitializeComponent();
             string copyright =
-@"Silver Algebra 0.89  Alpha Edition
+@"Silver Algebra 0.897  Alpha Edition
 Copyright (c) 2010-2013 at Lost Particles Network [LPN]
 All rights reserved for Ahmed Sadek 
 
