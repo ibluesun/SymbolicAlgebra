@@ -1,3 +1,11 @@
+Symbolic Algebra [0.8.975]
+--------------------------
+- Fixed error when getting common map for zero .. checking _AddedTerms for if not null and then proceed
+
+- Fixed simplification in inner expressions if it can be factorized then it should take a full cycle of trigonometric simplification.
+
+
+
 Symbolic Algebra [0.8.97]
 -------------------------
 - I am continuing the code of simplification of trigonometry however i discovered that I have to find the common factors
