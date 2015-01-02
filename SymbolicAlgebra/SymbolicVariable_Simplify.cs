@@ -96,7 +96,9 @@ namespace SymbolicAlgebra
             {
                 while (pst.Cos_2_Count > 0 && pst.Sin_2_Count > 0)
                 {
-                    SimplifiedResult = SymbolicVariable.Add(SimplifiedResult, pst.NegativeSimplifyValue);
+                    var tttt = SymbolicVariable.Add(SimplifiedResult, pst.NegativeSimplifyValue);
+
+                    SimplifiedResult = tttt;
 
                     pst.Cos_2_Count--;
                     pst.Sin_2_Count--;
@@ -117,31 +119,33 @@ namespace SymbolicAlgebra
             SymbolicVariable total = SymbolicVariable.Zero.Clone();
 
             // facorized expressions contain their terms in the multiplied symbols
-            for (int i=0; i<factorized.TermsCount; i++)
+            for (int i = 0; i < factorized.TermsCount; i++)
             {
                 // go through each term 
                 var term = factorized[i];
 
-                for (int fui=0;fui <term.FusedSymbols.Count;fui++)
+                for (int fui = 0; fui < term.FusedSymbols.Count; fui++)
                 {
                     var ss = term.GetFusedTerm(fui);
                     var sp = ss;
-                    if(!ss.IsOneTerm)
+                    if (!ss.IsOneTerm)
                     {
-                        sp = PartialTrigSimplify(ss);
-                        if (sp.IsOne)
+                        if (ss.CanBeFactored())
+                            sp = TrigSimplify(ss);
+                        else
+                            sp = PartialTrigSimplify(ss);
+                        if (sp.IsOne)  // if equals 1  then remove it
                         {
                             // remove this fused symbol from the structure
                             term._FusedSymbols.Remove(term.GetFusedKey(fui));
                         }
                         else
                         {
-                                                        
-                            // replace with the new value.
+
+                            // replace with the new value in the fused symbols.
                             term._FusedSymbols.Add(sp.ToString(), term._FusedSymbols[term.GetFusedKey(fui)]);
 
                             term._FusedSymbols.Remove(term.GetFusedKey(fui));
-
                         }
                     }
                 }
@@ -194,8 +198,9 @@ namespace SymbolicAlgebra
             List<SymbolicVariable[]> bo2bo2 = new List<SymbolicVariable[]>();
 
             bo2bo2.Add(this.GetMultipliedTerms());
-            foreach (var aterm in _AddedTerms)
-                bo2bo2.Add(aterm.Value.GetMultipliedTerms());
+
+            if (_AddedTerms != null)
+                foreach (var aterm in _AddedTerms) bo2bo2.Add(aterm.Value.GetMultipliedTerms());
 
             // now i have the matrix of multiplied terms.
             /*
@@ -257,6 +262,24 @@ namespace SymbolicAlgebra
             return CommonFactorsMap;
         }
 
+        /// <summary>
+        /// Test if the current expression can be factored.
+        /// </summary>
+        /// <returns></returns>
+        public bool CanBeFactored()
+        {
+            var map = this.GetCommonFactorsMap();
+
+
+            // get all keys  sorted by number of elements
+
+            var keys = (from mk in map
+                        orderby mk.Value.Count descending
+                        where mk.Key.Equals(One) == false && mk.Value.Count > 1
+                        select mk.Key).ToArray();
+
+            return keys.Length > 0;            
+        }
 
         /// <summary>
         /// Factor the expression.

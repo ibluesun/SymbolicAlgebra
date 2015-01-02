@@ -1520,6 +1520,8 @@ namespace SymbolicAlgebraUnitTesting
             // the following expression has a divded term that needs to be taken into account
             var cc = SymbolicVariable.Parse("(sin(x)^4-cos(x)^4)/(sin(x)^2-cos(x)^2)");
             var ccmap = cc.GetCommonFactorsMap();
+
+            var zmapp = SymbolicVariable.Parse("0").GetCommonFactorsMap();
         }
 
         [TestMethod]
@@ -1546,6 +1548,8 @@ namespace SymbolicAlgebraUnitTesting
 
             Assert.AreEqual("sin(theta)^2*(sin(phi)^2+cos(phi)^2)+cos(theta)^2", factored.ToString());
 
+            var spz = SymbolicVariable.FactorWithCommonFactor(SymbolicVariable.Parse("0"));
+
         }
 
 
@@ -1556,7 +1560,7 @@ namespace SymbolicAlgebraUnitTesting
         public void TrigSimplifyTest()
         {
             
-            SymbolicVariable Test = SymbolicVariable.Parse("Cos(x)^2+Sin(x)^2");
+            SymbolicVariable Test = SymbolicVariable.Parse("cos(x)^2+sin(x)^2");
 
             SymbolicVariable Simplified = SymbolicVariable.TrigSimplify(Test);
 
@@ -1573,8 +1577,22 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("1", Simplified.ToString());
 
 
+            var Test2 = SymbolicVariable.Parse("cos(phi)^2*cos(theta)^2 + sin(phi)^2*cos(theta)^2 + sin(theta)^2");
+            var Simplified2 = SymbolicVariable.TrigSimplify(Test2);
+            Assert.AreEqual("1", Simplified2.ToString());
+
+
             Simplified = SymbolicVariable.TrigSimplify(SymbolicVariable.Zero);
 
+
+            var spz = SymbolicVariable.TrigSimplify(SymbolicVariable.Parse("0"));
+
+
+            var trie = SymbolicVariable.Parse("r^2*cos(phi)^2*cos(theta)^2+r^2*sin(phi)^2*cos(theta)^2+r^2*sin(theta)^2");
+
+            var trie_s = SymbolicVariable.TrigSimplify(trie);
+
+            Assert.AreEqual("r^2", trie_s.ToString());
         }
     }
 
