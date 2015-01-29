@@ -17,7 +17,7 @@ namespace SymbolicAlgebra
 
             // if the divided term is more than on term
             // x^2/(y-x)  ==>  
-            if (b.AddedTerms.Count > 0)
+            if (b.AddedTerms.Count > 0 || (b._ExtraTerms != null && b._ExtraTerms.Count > 0))
             {
                 if (a.Equals(b)) return new SymbolicVariable("1");
 
@@ -39,6 +39,7 @@ namespace SymbolicAlgebra
 
 
             TargetSubTerm._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
+            TargetSubTerm._ExtraTerms = null;
             // or to make sure nothing bad happens {my idiot design :S)
 
             if (a.BaseEquals(TargetSubTerm))
@@ -284,9 +285,11 @@ namespace SymbolicAlgebra
                 Dictionary<string, SymbolicVariable> newAddedVariables = new Dictionary<string, SymbolicVariable>(StringComparer.OrdinalIgnoreCase);
                 foreach (var vv in SourceTerm.AddedTerms)
                 {
-                    var newv = Divide (vv.Value , TargetSubTerm);
-                    newAddedVariables.Add(newv.WholeValueBaseKey, newv);
+                    // get rid of divided term here because I already include it for the source term above
+                    var TSubTerm = TargetSubTerm.Numerator;
 
+                    var newv = Divide(vv.Value, TSubTerm);
+                    newAddedVariables.Add(newv.WholeValueBaseKey, newv);
                 }
                 SourceTerm._AddedTerms = newAddedVariables;
             }
@@ -297,7 +300,10 @@ namespace SymbolicAlgebra
                 List<ExtraTerm> newExtraTerms = new List<ExtraTerm>();
                 foreach (var et in SourceTerm.ExtraTerms)
                 {
-                    var newe = Divide(et.Term, TargetSubTerm);
+                    var eterm = et.Term;
+                    if (et.Negative) eterm = Multiply(NegativeOne, eterm);
+
+                    var newe = Divide(eterm, TargetSubTerm);
                     newExtraTerms.Add(new ExtraTerm { Term = newe });
                 }
                 SourceTerm._ExtraTerms = newExtraTerms;
@@ -327,7 +333,10 @@ namespace SymbolicAlgebra
             int extraIndex = 0;
             while (extraIndex < b.ExtraTerms.Count)
             {
-                TargetSubTerm = b.ExtraTerms[extraIndex].Term;
+                var eTerm = b.ExtraTerms[extraIndex];
+                TargetSubTerm = eTerm.Term;
+                if (eTerm.Negative) TargetSubTerm = Multiply(NegativeOne, TargetSubTerm);
+
                 var TargetTermSubTotal = Divide(a, TargetSubTerm);
                 total = Add(total, TargetTermSubTotal);
                 extraIndex++;

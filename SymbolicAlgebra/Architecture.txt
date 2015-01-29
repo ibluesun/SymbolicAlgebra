@@ -10,20 +10,31 @@ ax^p   where  a:Coeffecient
 			  p: power
 
 contains 
-   1) Coeffecient Part   	(native double value)
-   2) Symbol             	(any valid text)
-   3) SymbolPower        	(Power of the symbol )
-   4) SymbolPowerTerm    	(SymbolicVariable instance [override the SymbolPower when used])
+	1) Coeffecient Part   	(native double value)
+	2) Symbol             	(any valid text)
+	3) SymbolPower        	(Power of the symbol )
+	4) SymbolPowerTerm    	(SymbolicVariable instance [override the SymbolPower when used])
                          	This is for the usage of raising power to symbols and not native values.
-   5) CoeffecientPowerTerm  (SymbolicVariable instance of Coeffecient Part)
+	5) CoeffecientPowerTerm  (SymbolicVariable instance of Coeffecient Part)
 
-   6) FusedSymbols			(for multiplied variables in the same term)
-   7) FusedConstants		(for multiplied coeffecients that have symbolic constants)
+	6) FusedSymbols			(for multiplied variables in the same term)
+	7) FusedConstants		(for multiplied coeffecients that have symbolic constants)
+
+	8) AddedTerms           (
+								SymbolicVariable instances that is added or subtracted from the original term 
+								they are included in the same expression
+								think of it as linked list
+							)
+
+	9) ExtraTerms			( 
+								Another terms but do not share the same divisor of the primary pattern
+							)
 
 
 Definitions:
 Multi Term:  Symbolic variables that contains plus or minus  other symbolic variables
           i.e.    x+2*y-5*z
+
 
 
 

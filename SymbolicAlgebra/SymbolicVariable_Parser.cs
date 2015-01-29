@@ -18,6 +18,25 @@ namespace SymbolicAlgebra
             public SymbolicExpressionOperator Next;
 
             public SymbolicVariable SymbolicExpression;
+
+            public string DebugView
+            {
+                get
+                {
+                    string gg = SymbolicExpression.ToString();
+
+                    gg += Operation;
+
+                    if (Next != null) gg += " ...";
+                    return gg;
+
+                }
+            }
+
+            public override string ToString()
+            {
+                return DebugView;
+            }
         }
 
         private class DynamicExpressionOperator
@@ -72,6 +91,8 @@ namespace SymbolicAlgebra
             //    +  Addition
             //    -  Subtraction
 
+
+            bool NextGroupIsNegativeSign = false;
             
             // Tokenization is done by separating with operators
             SymbolicExpressionOperator Root = new SymbolicExpressionOperator();
@@ -126,9 +147,37 @@ namespace SymbolicAlgebra
                                 TokenBuilder.Append(expr[ix]);
                             }
                         }
-                        else if (seps.Contains(expr[ix - 1]) && (expr[ix] == '-' || expr[ix] == '+'))
-                        {
-                            TokenBuilder.Append(expr[ix]);
+                        else if (
+                            seps.Contains(expr[ix - 1])
+                            && (expr[ix] == '-' || expr[ix] == '+')
+                            )
+                        {                                
+                            if (expr[ix + 1] == '(')
+                            {
+                                // so this sign is glued to the next parentheisis group
+
+                                TokenBuilder.Append(expr[ix]);
+
+                                // now TokenBuilder contains all signs before this
+
+                                // and we need to preserve the information about next group
+                                //   that it has a sign.
+
+                                string signs = TokenBuilder.ToString();
+                                
+                                int nve = signs.ToCharArray().Count(sign => sign == '-');
+
+                                if ((nve % 2.0) != 0)
+                                {
+                                    // negative sign
+                                    NextGroupIsNegativeSign = true;
+                                }
+                                TokenBuilder.Clear();
+                            }
+                            else
+                            {
+                                TokenBuilder.Append(expr[ix]);
+                            }
                         }
                         else
                         {
@@ -136,6 +185,13 @@ namespace SymbolicAlgebra
                             if (Inner)
                             {
                                 ep.SymbolicExpression = Parse(TokenBuilder.ToString());
+
+                                if (NextGroupIsNegativeSign)
+                                {
+                                    ep.SymbolicExpression = SymbolicVariable.Multiply(SymbolicVariable.NegativeOne, ep.SymbolicExpression);
+
+                                    NextGroupIsNegativeSign = false;
+                                }
                                 Inner = false;
                             }
                             else
@@ -193,6 +249,13 @@ namespace SymbolicAlgebra
             if (Inner)
             {
                 ep.SymbolicExpression = Parse(TokenBuilder.ToString());
+                if (NextGroupIsNegativeSign)
+                {
+                    ep.SymbolicExpression = SymbolicVariable.Multiply(SymbolicVariable.NegativeOne, ep.SymbolicExpression);
+
+                    NextGroupIsNegativeSign = false;
+                }
+
                 Inner = false;
             }
             else
