@@ -1,3 +1,16 @@
+Symbolic Algebra [0.8.98]
+------------------------------
+- apparently fixed something that I can't remember now .. (this is a headache I should always write what I've done so far)
+Issues 19 Test 
+- Fixed an error when raising to a negative power group 4*x^-(h^6-4*x^2)
+- Fixed multiplication and division error in Extra terms involvement.
+- Fixed multiplication error when multiply multi term to a term with divided term.
+- Fixed divide error when dividing expression over a term with extra terms (that have another divisors)
+- prevented trig simplification in case of expression with extra terms (for now)
+Now I am going to check-in this .. then I will try to use github instead of codeplex.
+
+
+
 Symbolic Algebra [0.8.975]
 --------------------------
 - Fixed error when getting common map for zero .. checking _AddedTerms for if not null and then proceed

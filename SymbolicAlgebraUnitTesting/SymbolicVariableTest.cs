@@ -1581,18 +1581,149 @@ namespace SymbolicAlgebraUnitTesting
             var Simplified2 = SymbolicVariable.TrigSimplify(Test2);
             Assert.AreEqual("1", Simplified2.ToString());
 
-
             Simplified = SymbolicVariable.TrigSimplify(SymbolicVariable.Zero);
 
-
             var spz = SymbolicVariable.TrigSimplify(SymbolicVariable.Parse("0"));
-
-
             var trie = SymbolicVariable.Parse("r^2*cos(phi)^2*cos(theta)^2+r^2*sin(phi)^2*cos(theta)^2+r^2*sin(theta)^2");
 
             var trie_s = SymbolicVariable.TrigSimplify(trie);
-
             Assert.AreEqual("r^2", trie_s.ToString());
+
+        }
+
+        [TestMethod]
+        public void AdvancedFactorizationTest()
+        {
+            var gg = SymbolicVariable.Parse("(cos(x)^2+sin(x)^2)^5");
+            var gg_s = SymbolicVariable.TrigSimplify(gg);
+
+            Assert.AreEqual("1", gg_s.ToString());
+        }
+
+
+        [TestMethod]
+        public void Issue19Test()
+        {
+            // parsing error when minus sign is followed by open parentthesis
+            var g = SymbolicVariable.Parse("4*x^-(h^6-4*x^2)");
+
+            Assert.AreEqual("4*x^(-h^6+4*x^2)", g.ToString());
+
+            g = SymbolicVariable.Parse("4^-(3*x-8*y^6)*u^---+-+(x^-(h^6-4*x^2))");
+
+            Assert.AreEqual("4^(-3*x+8*y^6)*u^(x^(-h^6+4*x^2))", g.ToString());
+
+
+            g = SymbolicVariable.Parse("sqrt(1-z^2/(x^2+y^2+z^2))^2");
+
+            var gp = SymbolicVariable.Parse(g.ToString());
+
+            var lolo = SymbolicVariable.Add(SymbolicVariable.One, gp);
+
+            Assert.AreEqual( "2-z^2/(x^2+y^2+z^2)", lolo.ToString());
+
+            lolo = SymbolicVariable.Subtract(SymbolicVariable.One, gp);
+
+            Assert.AreEqual("z^2/(x^2+y^2+z^2)", lolo.ToString());
+
+
+            var pl = SymbolicVariable.Parse("(x^2)");
+            var pr = SymbolicVariable.Parse("(1-z^2/(x^2+y^2))");
+            var p = SymbolicVariable.Multiply(pl, pr);
+            Assert.AreEqual("x^2-x^2*z^2/(x^2+y^2)", p.ToString());
+
+
+            pl = SymbolicVariable.Parse("(x^2+y^2)");
+            pr = SymbolicVariable.Parse("1-z^2/(x^2+y^2)");
+            p = SymbolicVariable.Multiply(pl, pr);
+            Assert.AreEqual("x^2+y^2+(-x^2*z^2-y^2*z^2)/(x^2+y^2)", p.ToString());
+
+
+            p = SymbolicVariable.Parse("(x^2+y^2+z^2)^3*sqrt(1-z^2/(x^2+y^2+z^2))^2");
+            Assert.AreEqual("x^6+3*y^2*x^4+3*z^2*x^4+3*y^4*x^2+6*z^2*y^2*x^2+3*z^4*x^2+y^6+3*z^2*y^4+3*z^4*y^2+z^6+(-x^6*z^2-3*y^2*x^4*z^2-3*z^4*x^4-3*y^4*x^2*z^2-6*z^4*y^2*x^2-3*z^6*x^2-y^6*z^2-3*z^4*y^4-3*z^6*y^2-z^8)/(x^2+y^2+z^2)", p.ToString());
+
+
+
+            
+
+            var t1 = SymbolicVariable.Parse("x^2/sqrt(x^2+y^2+z^2)^2");
+            var t2 = SymbolicVariable.Parse("z^2*x^2/(x^2+y^2+z^2)^3/sqrt(1-z^2/(x^2+y^2+z^2))^2");
+            var t2a = SymbolicVariable.Parse("z^2*x^2/((x^2+y^2+z^2)^3*sqrt(1-z^2/(x^2+y^2+z^2))^2)");
+
+            // t2 should be equal to t2a  because they are the same expression.
+
+            // lets partition the problem more
+            // for t2
+            var t2_1 = SymbolicVariable.Parse("z^2*x^2");
+            var t2_2 = SymbolicVariable.Parse("(x^2+y^2+z^2)^3");
+            var t2_3 = SymbolicVariable.Parse("sqrt(1-z^2/(x^2+y^2+z^2))^2");
+
+            var t2_op1 = SymbolicVariable.Divide(t2_1, t2_2);
+            Assert.AreEqual("z^2*x^2/(x^6+3*y^2*x^4+3*z^2*x^4+3*y^4*x^2+6*z^2*y^2*x^2+3*z^4*x^2+y^6+3*z^2*y^4+3*z^4*y^2+z^6)", t2_op1.ToString());
+
+            var t2_op2 = SymbolicVariable.Divide(t2_op1, t2_3);
+            Assert.AreEqual("z^2*x^2/(x^6+3*y^2*x^4+3*z^2*x^4+3*y^4*x^2+6*z^2*y^2*x^2+3*z^4*x^2+y^6+3*z^2*y^4+3*z^4*y^2+z^6+(-x^6*z^2-3*y^2*x^4*z^2-3*z^4*x^4-3*y^4*x^2*z^2-6*z^4*y^2*x^2-3*z^6*x^2-y^6*z^2-3*z^4*y^4-3*z^6*y^2-z^8)/(x^2+y^2+z^2))", t2_op2.ToString());
+
+
+            // for t2a
+            var t2a1 = SymbolicVariable.Parse("z^2*x^2");
+            var t2a2 = SymbolicVariable.Parse("((x^2+y^2+z^2)^3*sqrt(1-z^2/(x^2+y^2+z^2))^2)");
+
+            var t2at = SymbolicVariable.Divide(t2a1, t2a2);
+            Assert.AreEqual(t2.ToString(), t2a.ToString());
+            Assert.AreEqual(t2_op2.ToString(), t2at.ToString());
+            var t3 = SymbolicVariable.Parse("y^2/x^4/(y^4/x^4+2*y^2/x^2+1)");
+
+
+            p = SymbolicVariable.Parse("x^2/sqrt(x^2+y^2+z^2)^2+z^2*x^2/(x^2+y^2+z^2)^3/sqrt(1-z^2/(x^2+y^2+z^2))^2+y^2/x^4/(y^4/x^4+2*y^2/x^2+1)");
+            Assert.AreEqual("x^2/(x^2+y^2+z^2)+z^2*x^2/(x^6+3*y^2*x^4+3*z^2*x^4+3*y^4*x^2+6*z^2*y^2*x^2+3*z^4*x^2+y^6+3*z^2*y^4+3*z^4*y^2+z^6+(-x^6*z^2-3*y^2*x^4*z^2-3*z^4*x^4-3*y^4*x^2*z^2-6*z^4*y^2*x^2-3*z^6*x^2-y^6*z^2-3*z^4*y^4-3*z^6*y^2-z^8)/(x^2+y^2+z^2))+y^2/x^4/(y^4/x^4+2*y^2/x^2+1)", p.ToString());
+        }
+
+
+        [TestMethod]
+        public void ReRorderNegativeSymbolsTest()
+        {
+            var g = SymbolicVariable.Parse("5/a");
+
+            SymbolicVariable rr;
+
+            var result = SymbolicVariable.ReOrderNegativeSymbols(g, out rr);
+
+            Assert.AreEqual("a", result.ToString());
+
+            g = SymbolicVariable.Parse("4*x^-2*y^6*u^-4");
+            result = SymbolicVariable.ReOrderNegativeSymbols(g, out rr);
+            Assert.AreEqual("x^2*u^4", result.ToString());
+
+
+            g = SymbolicVariable.Parse("4*x^-(h^6-4*x^2)");
+            result = SymbolicVariable.ReOrderNegativeSymbols(g, out rr);
+            Assert.AreEqual("1", result.ToString());
+
+        }
+
+        [TestMethod]
+        public void UnifyDenominatorsTest()
+        {
+            var p = SymbolicVariable.Parse("5/a+6/b");
+
+            var s = SymbolicVariable.UnifyDenominators(p);
+
+            Assert.AreEqual("(5*b+6*a)/(a*b)", s.ToString());
+
+
+            p = SymbolicVariable.Parse("a/(x-y)+b/(x+y)");
+            s = SymbolicVariable.UnifyDenominators(p);
+            Assert.AreEqual("(x*a+y*a+x*b-y*b)/(x^2-y^2)", s.ToString());
+
+
+
+            p = SymbolicVariable.Parse("z^2*x^2/(x^2+y^2+z^2)^3/sqrt(1-z^2/(x^2+y^2+z^2))^2");
+            s = SymbolicVariable.UnifyDenominators(p);
+
+            Assert.AreEqual("", s.ToString());
+
+
         }
     }
 

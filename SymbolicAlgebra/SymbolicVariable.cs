@@ -623,7 +623,7 @@ namespace SymbolicAlgebra
         /// so representaion of (1/y+1/x) = y^-1+x^-1
         /// however 1/x+1/(x+Y)  doesn't share the same denominator so that ExtraTerms now contain 1/(x+y)
         /// </summary>
-        internal List<ExtraTerm> ExtraTerms
+        public List<ExtraTerm> ExtraTerms
         {
             get
             {
@@ -649,6 +649,26 @@ namespace SymbolicAlgebra
             }
         }
 
+        /// <summary>
+        /// Gets the current variable without divided term part and without extra terms.
+        /// </summary>
+        public SymbolicVariable Numerator
+        {
+            get
+            {
+                var h = this.Clone(true);
+                h._DividedTerm = null;
+                return h;
+            }
+        }
+
+        public SymbolicVariable Denominator
+        {
+            get
+            {
+                return DividedTerm;
+            }
+        }
 
         /// <summary>
         /// Multiplied terms in the term other that original symbol letter.
@@ -1712,6 +1732,9 @@ namespace SymbolicAlgebra
             }
         }
 
+        /// <summary>
+        /// True if the variable starts with '%'
+        /// </summary>
         public bool IsConstant
         {
             get
@@ -1899,7 +1922,7 @@ namespace SymbolicAlgebra
 
         #region ICloneable Members
 
-        public SymbolicVariable Clone()
+        public SymbolicVariable Clone(bool excludeExtraTerms = false)
         {
             
             SymbolicVariable clone = new SymbolicVariable(this.Symbol);
@@ -1933,9 +1956,12 @@ namespace SymbolicAlgebra
                 clone.FusedConstants.Add(fc.Key, (HybridVariable)fc.Value.Clone());
             }
 
-            foreach (var et in ExtraTerms)
+            if (excludeExtraTerms == false)
             {
-                clone.ExtraTerms.Add(et);
+                foreach (var et in ExtraTerms)
+                {
+                    clone.ExtraTerms.Add(et.Clone());
+                }
             }
 
             if(this._DividedTerm!=null) 

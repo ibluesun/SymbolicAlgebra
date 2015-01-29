@@ -130,6 +130,24 @@ namespace SymbolicAlgebra
 
         }
 
+        public bool IsNegative
+        {
+            get
+            {
+                if (SymbolicVariable != null)
+                {
+                    return SymbolicVariable.IsNegative;
+                }
+                else if (NumericalVariable < 0)
+                {
+                    return true;
+                }
+                else
+                    return false;
+                
+            }
+        }
+
         #region ICloneable Members
 
         public object Clone()

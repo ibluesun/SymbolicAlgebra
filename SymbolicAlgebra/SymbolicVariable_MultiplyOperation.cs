@@ -27,6 +27,7 @@ namespace SymbolicAlgebra
             SymbolicVariable TargetSubTerm = b.Clone();
 
             TargetSubTerm._AddedTerms = null;   // remove added variables to prevent its repeated calculations in second passes
+            TargetSubTerm._ExtraTerms = null;   // remove the extra terms also
             // or to make sure nothing bad happens {my idiot design :S)
 
             SymbolicVariable SourceTerm = a.Clone();
@@ -277,7 +278,10 @@ namespace SymbolicAlgebra
                 Dictionary<string, SymbolicVariable> newAddedVariables = new Dictionary<string, SymbolicVariable>(StringComparer.OrdinalIgnoreCase);
                 foreach (var vv in SourceTerm.AddedTerms)
                 {
-                    var newv = Multiply(vv.Value, TargetSubTerm);
+                    // get rid of divided term here because I already include it for the source term above
+                    var TSubTerm = TargetSubTerm.Numerator;
+                    
+                    var newv = Multiply(vv.Value, TSubTerm);
 
                     newAddedVariables.Add(newv.WholeValueBaseKey, newv);
                 }
@@ -290,7 +294,10 @@ namespace SymbolicAlgebra
                 List<ExtraTerm> newExtraTerms = new List<ExtraTerm>();
                 foreach (var et in SourceTerm.ExtraTerms)
                 {
-                    var newe = Multiply(et.Term, TargetSubTerm);
+                    var eterm = et.Term;
+                    if (et.Negative) eterm = Multiply(NegativeOne, eterm);
+
+                    var newe = Multiply(eterm, TargetSubTerm);
                     newExtraTerms.Add(new ExtraTerm { Term = newe });
                 }
                 SourceTerm._ExtraTerms = newExtraTerms;
@@ -324,7 +331,9 @@ namespace SymbolicAlgebra
             int extraIndex = 0;
             while (extraIndex < b.ExtraTerms.Count)
             {
-                TargetSubTerm = b.ExtraTerms[extraIndex].Term;
+                var eTerm = b.ExtraTerms[extraIndex];
+                TargetSubTerm = eTerm.Term;
+                if (eTerm.Negative) TargetSubTerm = Multiply(NegativeOne, TargetSubTerm);
                 var TargetTermSubTotal = Multiply(a, TargetSubTerm);
                 total = Add(total, TargetTermSubTotal);
                 extraIndex++;

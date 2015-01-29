@@ -5,9 +5,14 @@ using System.Text;
 
 namespace SymbolicAlgebra
 {
-    internal class ExtraTerm
+    public class ExtraTerm
     {
         public SymbolicVariable Term;
         public bool Negative;
+
+        public ExtraTerm Clone()
+        {
+            return new ExtraTerm { Term = this.Term.Clone(), Negative = this.Negative };
+        }
     }
 }

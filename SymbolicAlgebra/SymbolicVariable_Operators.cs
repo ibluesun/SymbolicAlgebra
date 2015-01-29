@@ -174,6 +174,18 @@ namespace SymbolicAlgebra
                 }
             }
 
+
+            // reaching here indicates that we didn't sum up the value to any of the target extra terms
+            // so we need to include extra terms here
+            if (b._ExtraTerms != null && b._ExtraTerms.Count > 0)
+            {
+                // add extra terms of b into sv
+                foreach (var eb in b._ExtraTerms)
+                {
+                    sv.ExtraTerms.Add(eb.Clone());
+                }
+            }
+
             AdjustSpecialFunctions(ref sv);
 
             AdjustZeroPowerTerms(sv);
@@ -346,6 +358,21 @@ namespace SymbolicAlgebra
                     //   this new term is a sub term in b and will be added to all terms of a.
                     subB = b.AddedTerms.ElementAt(sub).Value;
                     goto NewPart;
+                }
+            }
+
+            // reaching here indicates that we didn't sum up the value to any of the target extra terms
+            // so we need to include extra terms here
+            if (b._ExtraTerms != null && b._ExtraTerms.Count > 0)
+            {
+                // add extra terms of b into sv
+                foreach (var eb in b._ExtraTerms)
+                {
+                    var eeb = eb.Clone();
+
+                    if (eeb.Negative) eeb.Negative = false;  // -- == +
+
+                    sv.ExtraTerms.Add(eeb);
                 }
             }
 

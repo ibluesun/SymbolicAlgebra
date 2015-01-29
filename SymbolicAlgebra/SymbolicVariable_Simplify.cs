@@ -111,9 +111,16 @@ namespace SymbolicAlgebra
         }
 
 
-
+        /// <summary>
+        /// Trys to simplify the expression with trigonemtric rules.
+        /// </summary>
+        /// <param name="sv"></param>
+        /// <returns></returns>
         public static SymbolicVariable TrigSimplify(SymbolicVariable sv)
         {
+            if (sv.ExtraTerms.Count > 0) return sv.Clone(); //prevent simplification in case of extra terms 
+
+
             var factorized = FactorWithCommonFactor(sv);
 
             SymbolicVariable total = SymbolicVariable.Zero.Clone();
@@ -295,7 +302,7 @@ namespace SymbolicAlgebra
 
             var keys = (from mk in map
                        orderby mk.Value.Count descending
-                       where mk.Key.Equals(One) == false && mk.Value.Count > 1
+                       where mk.Key.Equals(One) == false && mk.Value.Count > 1 && mk.Key.IsCoeffecientOnly == false
                        select mk.Key).ToArray();
 
 
@@ -384,5 +391,141 @@ namespace SymbolicAlgebra
 
             return result;
         }
+
+
+
+        /// <summary>
+        /// Reorders the negative symbols and gets them into DividedTerm object.
+        /// for example 4*x^-2*y^6*u^-4  will get u^4*x^2  and 5/a  will get a
+        /// works only in single term doesn't include extra terms
+        /// </summary>
+        /// <param name="sVariable">source symbolic variable (processed in one term only)</param>
+        /// <param name="reOrderedVariable"></param>
+        /// <returns></returns>
+        public static SymbolicVariable ReOrderNegativeSymbols(SymbolicVariable sVariable, out SymbolicVariable reOrderedVariable)
+        {
+            SymbolicVariable denominator = SymbolicVariable.One.Clone();
+
+            reOrderedVariable = sVariable.Clone();
+
+            if (sVariable.SymbolPower < 0)
+            {
+                // transfer symbols into the divided term
+                denominator.SymbolPower = Math.Abs(sVariable.SymbolPower);
+                denominator.Symbol = sVariable.Symbol;
+                
+                if (sVariable._SymbolPowerTerm != null) //include the symbol power term also but invert its sign
+                    denominator._SymbolPowerTerm = SymbolicVariable.Multiply(SymbolicVariable.NegativeOne, sVariable._SymbolPowerTerm);
+
+
+                // fix the reordered variable by removing this symbol information because it will appear later 
+                //   in the divided term.
+
+                reOrderedVariable.SymbolPower = 0 ;
+                reOrderedVariable._SymbolPowerTerm = null;
+                reOrderedVariable.Symbol = string.Empty;
+
+
+            }
+
+            foreach (var fs in sVariable.FusedSymbols)
+            {
+                if (fs.Value.IsNegative)
+                {
+                    var siv = new SymbolicVariable(fs.Key);
+                    if (fs.Value.SymbolicVariable != null)
+                        siv._SymbolPowerTerm =
+                            SymbolicVariable.Multiply(SymbolicVariable.NegativeOne, fs.Value.SymbolicVariable);
+                    else
+                        siv.SymbolPower = Math.Abs(fs.Value.NumericalVariable);
+
+                    denominator = SymbolicVariable.Multiply(denominator, siv);  // accumulate negative power symbols here
+
+                    // remove this fused symbol from reOrdered variable
+                    reOrderedVariable.FusedSymbols.Remove(fs.Key);
+                }
+            }
+
+
+            reOrderedVariable.DividedTerm = SymbolicVariable.Multiply(reOrderedVariable.DividedTerm, denominator);
+
+            return denominator;
+        }
+
+        /// <summary>
+        /// Converts the symbolic variable into a state of separate simle terms with different denominators
+        /// </summary>
+        /// <param name="sv"></param>
+        /// <returns></returns>
+        public static SymbolicVariable[] SeparateWithDifferentDenominators(SymbolicVariable sv)
+        {
+            List<SymbolicVariable> SeparatedVariabls = new List<SymbolicVariable>();
+
+            for (int i = 0; i < sv.TermsCount; i++)
+            {
+                SymbolicVariable ordered;
+                SymbolicVariable.ReOrderNegativeSymbols(sv[i], out ordered);
+
+                SeparatedVariabls.Add(ordered);
+            }
+
+            foreach (var eTerm in sv.ExtraTerms)
+            {
+                for (int i = 0; i < eTerm.Term.TermsCount; i++)
+                {
+                    SymbolicVariable ordered;
+                    SymbolicVariable.ReOrderNegativeSymbols(eTerm.Term[i], out ordered);
+
+                    if (eTerm.Negative)
+                    {
+                        ordered = SymbolicVariable.Multiply(SymbolicVariable.NegativeOne, ordered);
+                    }
+
+                    SeparatedVariabls.Add(ordered);
+                }
+
+            }
+
+            return SeparatedVariabls.ToArray();
+        }
+
+        /// <summary>
+        /// Works on expressions of extra terms to get an expression unified in denominator 
+        /// </summary>
+        /// <param name="sv"></param>
+        /// <returns></returns>
+        public static SymbolicVariable UnifyDenominators(SymbolicVariable sv)
+        {
+            var terms = SeparateWithDifferentDenominators(sv);
+
+            SymbolicVariable OrderedVariable = SymbolicVariable.Zero;
+
+            foreach (var exTerm in terms)
+            {
+
+                // multipy the OrderedVariable divided term in the target extra term
+
+                var exNumerator = SymbolicVariable.Multiply(OrderedVariable.DividedTerm, exTerm.Numerator);
+                var exDenominator = SymbolicVariable.Multiply(OrderedVariable.DividedTerm, exTerm.Denominator);
+
+                var OrdNumerator = SymbolicVariable.Multiply(exTerm.Denominator, OrderedVariable.Numerator);
+
+
+                OrderedVariable = SymbolicVariable.Add(OrdNumerator, exNumerator);
+
+                OrderedVariable._DividedTerm = exDenominator;
+
+
+            }
+
+
+            return OrderedVariable;
+        }
+
+        public static SymbolicVariable Simplify(SymbolicVariable sv)
+        {
+            return UnifyDenominators(sv);
+        }
+    
     }
 }
