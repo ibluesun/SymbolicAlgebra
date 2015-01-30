@@ -40,7 +40,7 @@ namespace SilverAlgebra
 
                 s.ValueChanged += new RoutedPropertyChangedEventHandler<double>(Sliders_ValueChanged);
 
-                ParametersPanel.Children.Add(new Label { Content = p });
+                ParametersPanel.Children.Add(new TextBlock { Text = p });
                 ParametersPanel.Children.Add(s);
             }
 

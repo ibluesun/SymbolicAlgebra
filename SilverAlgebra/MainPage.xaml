@@ -15,23 +15,23 @@
         <toolkit:Expander  IsExpanded="True" Height="Auto" ExpandDirection="Right" >
             <toolkit:DockPanel LastChildFill="True" >
                 <toolkit:WrapPanel toolkit:DockPanel.Dock="Top" Background="Yellow" Margin="0,2,0,5">
-                    <sdk:Label Content="Expression: " />
+                    <TextBlock Text="Expression: " />
                     <TextBox x:Name="ExpressionTextBox" Text="(5*sin(x)^4)|x" Background="LightYellow" />
                 </toolkit:WrapPanel>
                 <toolkit:WrapPanel toolkit:DockPanel.Dock="Top">
-                    <sdk:Label>Minimum</sdk:Label>
+                    <TextBlock>Minimum</TextBlock>
                     <TextBox x:Name="MinimumTextBox" Text="-10" Margin="5,0,5,2" />
-                    <sdk:Label>Maximum</sdk:Label>
+                    <TextBlock>Maximum</TextBlock>
                     <TextBox x:Name="MaximumTextBox" Text="10"  Margin="5,0,5,2" />
-                    <sdk:Label>Interval</sdk:Label>
+                    <TextBlock>Interval</TextBlock>
                     <TextBox x:Name="IntervalTextBox" Text="0.1"  Margin="5,0,5,2"  />
-                    <sdk:Label>Variable</sdk:Label>
+                    <TextBlock>Variable</TextBlock>
                     <TextBox x:Name="VariableTextBox" Text="x"  Margin="5,0,5,2" ></TextBox>
                     <Button x:Name="EvaluateButton" Click="EvaluateButton_Click"  Margin="5,0,5,2" >Evaluate</Button>
                 </toolkit:WrapPanel>
 
                 <toolkit:WrapPanel toolkit:DockPanel.Dock="Top" Background="Yellow" Margin="0,5,0,2">
-                    <sdk:Label Content="Result: " />
+                    <TextBlock Text="Result: " />
                     <TextBlock x:Name="ExpressionResult"  />
                     
                 </toolkit:WrapPanel>

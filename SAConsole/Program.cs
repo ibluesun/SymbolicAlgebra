@@ -9,7 +9,6 @@ namespace SAConsole
     class Program
     {
         static string Prompt = "SAC> ";
-
         
 
         static void Main(string[] args)
@@ -20,13 +19,13 @@ namespace SAConsole
             var lib_ver = (AssemblyFileVersionAttribute)ts.Assembly.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false)[0];
 
             string copyright = @"Symbolic Algebra Console
-Copyright 2012 at Lost Particles.";
+Copyright 2012-2015 at Lost Particles.
+";
 
             copyright += "\nVersion " + lib_ver.Version + @"
 All Rights Reserved for Ahmed Sadek the Auther of the library.
 
 Ahmed.Sadek@LostParticles.net
-Ahmed.Amara@Gmail.com
 -----------------------------
 Type :Q  to Quit
 

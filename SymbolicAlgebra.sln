@@ -1,13 +1,12 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicAlgebra", "SymbolicAlgebra\SymbolicAlgebra.csproj", "{08B658DC-9295-4098-BD45-37311FEA3AC6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicAlgebraUnitTesting", "SymbolicAlgebraUnitTesting\SymbolicAlgebraUnitTesting.csproj", "{4E0623D0-E713-4209-9F11-9DF8A8047A5E}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BEEA9115-EFEA-40CA-B997-8B6BAAD1AD4A}"
 	ProjectSection(SolutionItems) = preProject
 		Local.testsettings = Local.testsettings
+		README.MD = README.MD
 		SymbolicAlgebra.vsmdi = SymbolicAlgebra.vsmdi
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 		What's New.txt = What's New.txt
@@ -20,10 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Inspection", "Inspection", 
 		Old Code for differentiating.txt = Old Code for differentiating.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAConsole", "SAConsole\SAConsole.csproj", "{572D3BE3-30D1-4F47-8282-AF7D956AE844}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverAlgebra", "SilverAlgebra\SilverAlgebra.csproj", "{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "D3", "D3", "{D14A5B7D-35F4-4E5C-9FA9-F141C18B0F30}"
 	ProjectSection(SolutionItems) = preProject
 		D3\DynamicDataDisplay.BingMaps.Silverlight.dll = D3\DynamicDataDisplay.BingMaps.Silverlight.dll
@@ -33,29 +28,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "D3", "D3", "{D14A5B7D-35F4-
 		D3\System.Reactive.dll = D3\System.Reactive.dll
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicAlgebra", "SymbolicAlgebra\SymbolicAlgebra.csproj", "{08B658DC-9295-4098-BD45-37311FEA3AC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicAlgebraUnitTesting", "SymbolicAlgebraUnitTesting\SymbolicAlgebraUnitTesting.csproj", "{4E0623D0-E713-4209-9F11-9DF8A8047A5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAConsole", "SAConsole\SAConsole.csproj", "{572D3BE3-30D1-4F47-8282-AF7D956AE844}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverAlgebra", "SilverAlgebra\SilverAlgebra.csproj", "{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}"
+EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 5
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs02
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = SymbolicAlgebra\\SymbolicAlgebra.csproj
-		SccProjectName1 = SymbolicAlgebra
-		SccLocalPath1 = SymbolicAlgebra
-		SccProjectUniqueName2 = SymbolicAlgebraUnitTesting\\SymbolicAlgebraUnitTesting.csproj
-		SccProjectTopLevelParentUniqueName2 = SymbolicAlgebra.sln
-		SccProjectName2 = SymbolicAlgebraUnitTesting
-		SccLocalPath2 = SymbolicAlgebraUnitTesting
-		SccProjectUniqueName3 = SAConsole\\SAConsole.csproj
-		SccProjectName3 = SAConsole
-		SccLocalPath3 = SAConsole
-		SccProjectUniqueName4 = SilverAlgebra\\SilverAlgebra.csproj
-		SccProjectName4 = SilverAlgebra
-		SccLocalPath4 = SilverAlgebra
-	EndGlobalSection
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = SymbolicAlgebra.vsmdi
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -111,5 +92,8 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4E0623D0-E713-4209-9F11-9DF8A8047A5E} = {E893C5B5-EE00-4675-8621-B1849564A26B}
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = SymbolicAlgebra.vsmdi
 	EndGlobalSection
 EndGlobal

@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace SilverAlgebra
 {
@@ -20,9 +21,14 @@ namespace SilverAlgebra
         public AlgebraTextBox()
         {
             InitializeComponent();
+
+            Type ts = typeof(SymbolicAlgebra.SymbolicVariable);
+
+            var lib_ver = (AssemblyFileVersionAttribute)ts.Assembly.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false)[0];
+
             string copyright =
-@"Silver Algebra 0.897  Alpha Edition
-Copyright (c) 2010-2013 at Lost Particles Network [LPN]
+@"Silver Algebra  " + lib_ver.Version + @"  Alpha Edition
+Copyright (c) 2010-2015 at Lost Particles Network [LPN]
 All rights reserved for Ahmed Sadek 
 
 Ahmed.Sadek@Lostparticles.net
