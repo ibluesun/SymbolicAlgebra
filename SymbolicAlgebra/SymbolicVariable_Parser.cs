@@ -928,8 +928,14 @@ namespace SymbolicAlgebra
             PrepareExecute();
 
             var pcount = this.InvolvedSymbols.Length;
-            
-            if (parameters.Length < pcount) throw new SymbolicException(string.Format("Feeded parameters are less than the required parameters of the expression {0} expected where {1} feeded", pcount, parameters.Length));
+
+            if (parameters.Length < pcount)
+            {
+                string es =
+                    string.Format("Feeded parameters are less than the required parameters of the expression {0} expected where {1} feeded\nExpression: {3}", pcount, parameters.Length, this.ToString());
+
+                throw new SymbolicException(es);
+            }
 
             if (pcount == 0) return ((Func<double>)FunctionDelegate)();
 
