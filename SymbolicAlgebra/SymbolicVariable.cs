@@ -873,7 +873,7 @@ namespace SymbolicAlgebra
         public SymbolicVariable GetConstantTerm(int i)
         {
             var fs = FusedConstants.ElementAt(i);
-            SymbolicVariable ft = new SymbolicVariable(fs.Key.ToString());
+            SymbolicVariable ft = new SymbolicVariable(fs.Key.ToString(CultureInfo.InvariantCulture));
 
             if (fs.Value.SymbolicVariable != null) return ft.RaiseToSymbolicPower(fs.Value.SymbolicVariable);
             else return ft.Power(fs.Value.NumericalVariable);
@@ -905,7 +905,7 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public SymbolicVariable GetTheStrippedCoefficient()
         {
-            var stripped =  new SymbolicVariable(Coeffecient.ToString());
+            var stripped =  new SymbolicVariable(Coeffecient.ToString(CultureInfo.InvariantCulture));
 
             if (this._CoeffecientPowerTerm != null)
                 stripped._CoeffecientPowerTerm = this._CoeffecientPowerTerm.Clone();

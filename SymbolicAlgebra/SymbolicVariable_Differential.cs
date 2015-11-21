@@ -239,7 +239,7 @@ namespace SymbolicAlgebra
                         // hint: the coeffecient only term has power of 1 or symbolic power should exist in case of raise to symbolic power
 
                         // get log(coeffeniect)
-                        var log = new SymbolicVariable(lnText + "(" + sv.Coeffecient.ToString() + ")");
+                        var log = new SymbolicVariable(lnText + "(" + sv.Coeffecient.ToString(CultureInfo.InvariantCulture) + ")");
                         var dp = sv._CoeffecientPowerTerm.Differentiate(parameter);
                         sv = SymbolicVariable.Multiply(log, SymbolicVariable.Multiply(dp, sv));
                     }
