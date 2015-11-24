@@ -211,7 +211,7 @@ namespace SymbolicAlgebra
                 SymbolPower = 0;
             }
             //then the numbers at last :) :)
-            else if (double.TryParse(expression, out coe))
+            else if (double.TryParse(expression, NumberStyles.Any, CultureInfo.InvariantCulture, out coe))
             {
                 Symbol = string.Empty;
                 if (rem != 0.0) Coeffecient = -1 * coe;
@@ -1794,6 +1794,127 @@ namespace SymbolicAlgebra
         }
 
 
+        public string[] GetInvolvedSymbols()
+        {
+            Func<string, string[]> pgh = (key) =>
+            {
+                List<string> fs = new List<string> { key };
+                int i = 0;
+                while (i < fs.Count)
+                {
+                    // this loop extract the inner parameters from the enclosed function calls as f(g(n(x)))
+                    while (FunctionRegex.Match(fs[i]).Success)
+                    {
+                        fs[i] = FunctionRegex.Match(fs[i]).Groups["parameters"].Value;
+
+                        var vps = TextTools.ExtractFunctionParameters(fs[i]);
+
+                        if (vps.Length > 0)
+                            fs[i] = vps[0]; //first parameter
+                        else
+                            fs[i] = string.Empty;
+
+                        // many parameters may be  u, e, sin(f)  etc..
+                        // add the extra parameter to the list of discovered symbols
+                        for (int vpi = 1; vpi < vps.Length; vpi++)
+                            fs.Add(vps[vpi]);
+
+                        // we note here that the dynamic list of fs has been increased  and we 
+                        // will conduct the test again of current fs[i] to see if it is a function or not.
+                        // so we are adding undiscovered symbols to later passes when i is increasing after this loop.
+                    }
+                    i++;
+                }
+
+                // return all words that are not null and doesn't start with percentage sign
+                return fs.Where(s => (string.IsNullOrEmpty(s) == false && s.StartsWith("%") == false)).ToArray();
+            };
+
+            List<string> symbols = new List<string>();
+
+            if (_BaseVariable == null)
+            {
+                if (!string.IsNullOrEmpty(this.Symbol))
+                {
+                    var fs = pgh(this.Symbol);
+                    foreach (var f in fs)
+                    {
+                        if (!symbols.Contains(f, StringComparer.OrdinalIgnoreCase))
+                            symbols.Add(f);
+                    }
+                }
+            }
+            else
+            {
+                symbols.AddRange(this._BaseVariable.InvolvedSymbols);
+            }
+
+            // fused or multiplied symbols
+            foreach (var fsm in FusedSymbols)
+            {
+                var fs = pgh(fsm.Key);
+                foreach (var f in fs)
+                {
+                    if (!symbols.Contains(f, StringComparer.OrdinalIgnoreCase))
+                        symbols.Add(f);
+                }
+
+                if (fsm.Value.SymbolicVariable != null)
+                {
+                    foreach (string ss in fsm.Value.SymbolicVariable.InvolvedSymbols)
+                    {
+                        if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                            symbols.Add(ss);
+                    }
+                }
+            }
+
+            // primary symbol
+            if (this.SymbolPowerTerm != null)
+            {
+                foreach (string ss in this.SymbolPowerTerm.InvolvedSymbols)
+                {
+                    if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                        symbols.Add(ss);
+                }
+            }
+
+            // fused constants powers
+            foreach (var fc in FusedConstants)
+            {
+                if (fc.Value.SymbolicVariable != null)
+                {
+                    foreach (string ss in fc.Value.SymbolicVariable.InvolvedSymbols)
+                    {
+                        if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                            symbols.Add(ss);
+                    }
+                }
+            }
+
+            // coeffiecient power term
+            if (this.CoeffecientPowerTerm != null)
+            {
+                foreach (string ss in this.CoeffecientPowerTerm.InvolvedSymbols)
+                {
+                    if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                        symbols.Add(ss);
+                }
+            }
+
+            foreach (SymbolicVariable term in this.AddedTerms.Values)
+            {
+                foreach (string ss in term.InvolvedSymbols)
+                {
+                    if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
+                        symbols.Add(ss);
+                }
+            }
+            symbols.Sort();
+            return symbols.ToArray();
+
+        }
+
         /// <summary>
         /// returns all the symbols involved in this object
         /// </summary>
@@ -1801,122 +1922,7 @@ namespace SymbolicAlgebra
         {
             get
             {
-                Func<string, string[]> pgh = (key) =>
-                    {
-                        List<string> fs = new List<string> { key };
-                        int i = 0;
-                        while (i < fs.Count)
-                        {
-                            // this loop extract the inner parameters from the enclosed function calls as f(g(n(x)))
-                            while (FunctionRegex.Match(fs[i]).Success)
-                            {
-                                fs[i] = FunctionRegex.Match(fs[i]).Groups["parameters"].Value;
-
-                                var vps = TextTools.ExtractFunctionParameters(fs[i]);
-
-                                if (vps.Length > 0)
-                                    fs[i] = vps[0]; //first parameter
-                                else 
-                                    fs[i] = string.Empty;
-
-                                // many parameters may be  u, e, sin(f)  etc..
-                                // add the extra parameter to the list of discovered symbols
-                                for (int vpi = 1; vpi < vps.Length; vpi++)
-                                    fs.Add(vps[vpi]);
-
-                                // we note here that the dynamic list of fs has been increased  and we 
-                                // will conduct the test again of current fs[i] to see if it is a function or not.
-                                // so we are adding undiscovered symbols to later passes when i is increasing after this loop.
-                            }
-                            i++;
-                        }
-
-                        // return all words that are not null and doesn't start with percentage sign
-                        return fs.Where(s => (string.IsNullOrEmpty(s) == false && s.StartsWith("%") == false)).ToArray();
-                    };
-
-                List<string> symbols = new List<string>();
-
-                if (_BaseVariable == null)
-                {
-                    if (!string.IsNullOrEmpty(this.Symbol))
-                    {
-                        var fs = pgh(this.Symbol);
-                        foreach (var f in fs)
-                        {
-                            if (!symbols.Contains(f, StringComparer.OrdinalIgnoreCase))
-                                symbols.Add(f);
-                        }
-                    }
-                }
-                else
-                {
-                    symbols.AddRange(this._BaseVariable.InvolvedSymbols);
-                }
-
-                // fused or multiplied symbols
-                foreach (var fsm in FusedSymbols)
-                {
-                    var fs = pgh(fsm.Key);
-                    foreach (var f in fs)
-                    {
-                        if (!symbols.Contains(f, StringComparer.OrdinalIgnoreCase))
-                            symbols.Add(f);
-                    }
-
-                    if (fsm.Value.SymbolicVariable != null)
-                    {
-                        foreach (string ss in fsm.Value.SymbolicVariable.InvolvedSymbols)
-                        {
-                            if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
-                                symbols.Add(ss);
-                        }
-                    }
-                }
-
-                // primary symbol
-                if (this.SymbolPowerTerm != null)
-                {
-                    foreach (string ss in this.SymbolPowerTerm.InvolvedSymbols)
-                    {
-                        if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
-                            symbols.Add(ss);
-                    }
-                }
-
-                // fused constants powers
-                foreach (var fc in FusedConstants)
-                {
-                    if (fc.Value.SymbolicVariable != null)
-                    {
-                        foreach (string ss in fc.Value.SymbolicVariable.InvolvedSymbols)
-                        {
-                            if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
-                                symbols.Add(ss);
-                        }
-                    }
-                }
-
-                // coeffiecient power term
-                if (this.CoeffecientPowerTerm != null)
-                {
-                    foreach (string ss in this.CoeffecientPowerTerm.InvolvedSymbols)
-                    {
-                        if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
-                            symbols.Add(ss);
-                    }
-                }
-
-                foreach (SymbolicVariable term in this.AddedTerms.Values)
-                {
-                    foreach (string ss in term.InvolvedSymbols)
-                    {
-                        if (!symbols.Contains(ss, StringComparer.OrdinalIgnoreCase))
-                            symbols.Add(ss);
-                    }
-                }
-                symbols.Sort();
-                return symbols.ToArray();
+                return this.GetInvolvedSymbols();
             }
         }
 

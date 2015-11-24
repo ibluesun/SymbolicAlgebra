@@ -528,7 +528,7 @@ namespace SymbolicAlgebra
                         // constant 
                         ep.DynamicExpression = Expression.Constant(MathConstants.Constant(TokenBuilder.ToString().TrimStart('%')), typeof(double));
                     }
-                    else if (double.TryParse(TokenBuilder.ToString(), out constant))
+                    else if (double.TryParse(TokenBuilder.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out constant))
                     {
                         ep.DynamicExpression = Expression.Constant(constant, typeof(double));
                     }
@@ -927,12 +927,12 @@ namespace SymbolicAlgebra
         {
             PrepareExecute();
 
-            var pcount = this.InvolvedSymbols.Length;
+            var pcount = this.GetInvolvedSymbols().Length;
 
             if (parameters.Length < pcount)
             {
                 string es =
-                    string.Format("Feeded parameters are less than the required parameters of the expression {0} expected where {1} feeded\nExpression: {3}", pcount, parameters.Length, this.ToString());
+                    string.Format("Feeded parameters are less than the required parameters of the expression {0} expected where {1} feeded\nExpression: {2}", pcount, parameters.Length, this.ToString());
 
                 throw new SymbolicException(es);
             }
