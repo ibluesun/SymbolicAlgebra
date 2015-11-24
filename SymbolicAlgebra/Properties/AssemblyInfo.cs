@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Lost Particles Network http://www.lostparticles.net")]
 [assembly: AssemblyProduct("Symbolic Algebra")]
-[assembly: AssemblyCopyright("Copyright © Lost Particles 2010-2012")]
+[assembly: AssemblyCopyright("Copyright © Lost Particles 2010-2016")]
 [assembly: AssemblyTrademark("Lost particles is an internet domain name owned by Ahmed Sadek")]
 [assembly: AssemblyCulture("")]
 
