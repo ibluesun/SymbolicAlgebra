@@ -27,11 +27,5 @@ or use `|` operator in the **Parse** method.
 
 `var p = SymbolicVariable.Parse("(sin(x)^3+cos(x)^5-x^3*y-3) | x");`
 
-
-
-
-
-
-
-
- 
+# License
+The repo is available as open source under the terms of the MIT License.
