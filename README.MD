@@ -25,7 +25,7 @@ Use **Parse** Method
 `p.Differentiate("x");` which carry differentiation to the x parameter.
 or use `|` operator in the **Parse** method.
 
-`vap p = SymbolicVariable.Parse("(sin(x)^3+cos(x)^5-x^3*y-3) | x");`
+`var p = SymbolicVariable.Parse("(sin(x)^3+cos(x)^5-x^3*y-3) | x");`
 
 
 
