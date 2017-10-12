@@ -1308,7 +1308,7 @@ namespace SymbolicAlgebra
                 {
                     // ix ==== 0
 
-                    var c = this.Clone();
+                    var c = this.Clone(true);
                     c._AddedTerms = null;
                     return c;
                 }

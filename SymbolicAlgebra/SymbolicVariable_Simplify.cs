@@ -453,7 +453,7 @@ namespace SymbolicAlgebra
         }
 
         /// <summary>
-        /// Converts the symbolic variable into a state of separate simle terms with different denominators
+        /// Converts the symbolic variable into a state of separate simple terms with different denominators
         /// </summary>
         /// <param name="sv"></param>
         /// <returns></returns>
@@ -461,16 +461,22 @@ namespace SymbolicAlgebra
         {
             List<SymbolicVariable> SeparatedVariabls = new List<SymbolicVariable>();
 
-            for (int i = 0; i < sv.TermsCount; i++)
+
+            var svclone = sv.Clone(true);
+            var divisor = svclone._DividedTerm;
+            svclone._DividedTerm = SymbolicVariable.One;
+            for (int i = 0; i < svclone.TermsCount; i++)
             {
                 SymbolicVariable ordered;
-                SymbolicVariable.ReOrderNegativeSymbols(sv[i], out ordered);
-
+                SymbolicVariable.ReOrderNegativeSymbols(svclone[i], out ordered);
+                ordered._DividedTerm = SymbolicVariable.Multiply(divisor, ordered._DividedTerm);
                 SeparatedVariabls.Add(ordered);
             }
 
-            foreach (var eTerm in sv.ExtraTerms)
+            var extraTerms = sv.ExtraTerms;
+            foreach (var eTerm in extraTerms)
             {
+                /*
                 for (int i = 0; i < eTerm.Term.TermsCount; i++)
                 {
                     SymbolicVariable ordered;
@@ -483,7 +489,9 @@ namespace SymbolicAlgebra
 
                     SeparatedVariabls.Add(ordered);
                 }
+                */
 
+                SeparatedVariabls.AddRange(SeparateWithDifferentDenominators(eTerm.Term));
             }
 
             return SeparatedVariabls.ToArray();
@@ -502,23 +510,33 @@ namespace SymbolicAlgebra
 
             foreach (var exTerm in terms)
             {
+                var proTerm = exTerm.Clone();
+                if (exTerm._DividedTerm.ExtraTerms.Count > 0)
+                {
+                    // the denominator needs to be unified also
 
+                    var unif = UnifyDenominators(exTerm._DividedTerm);
+
+                    proTerm._DividedTerm = unif.Numerator;
+
+                    proTerm = SymbolicVariable.Multiply(proTerm, unif.Denominator);
+                }
+                
                 // multipy the OrderedVariable divided term in the target extra term
 
-                var exNumerator = SymbolicVariable.Multiply(OrderedVariable.DividedTerm, exTerm.Numerator);
-                var exDenominator = SymbolicVariable.Multiply(OrderedVariable.DividedTerm, exTerm.Denominator);
+                var exNumerator = SymbolicVariable.Multiply(OrderedVariable.DividedTerm, proTerm.Numerator);
+                var exDenominator = SymbolicVariable.Multiply(OrderedVariable.DividedTerm, proTerm.Denominator);
 
-                var OrdNumerator = SymbolicVariable.Multiply(exTerm.Denominator, OrderedVariable.Numerator);
+                var OrdNumerator = SymbolicVariable.Multiply(proTerm.Denominator, OrderedVariable.Numerator);
 
 
                 OrderedVariable = SymbolicVariable.Add(OrdNumerator, exNumerator);
 
                 OrderedVariable._DividedTerm = exDenominator;
-
-
+                
             }
 
-
+            
             return OrderedVariable;
         }
 

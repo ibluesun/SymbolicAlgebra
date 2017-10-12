@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BEEA9115-EFEA-40CA-B997-8B6BAAD1AD4A}"
 	ProjectSection(SolutionItems) = preProject
@@ -33,8 +33,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SymbolicAlgebraUnitTesting", "SymbolicAlgebraUnitTesting\SymbolicAlgebraUnitTesting.csproj", "{4E0623D0-E713-4209-9F11-9DF8A8047A5E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAConsole", "SAConsole\SAConsole.csproj", "{572D3BE3-30D1-4F47-8282-AF7D956AE844}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SilverAlgebra", "SilverAlgebra\SilverAlgebra.csproj", "{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -76,22 +74,15 @@ Global
 		{572D3BE3-30D1-4F47-8282-AF7D956AE844}.Release|Mixed Platforms.Build.0 = Release|x86
 		{572D3BE3-30D1-4F47-8282-AF7D956AE844}.Release|x86.ActiveCfg = Release|x86
 		{572D3BE3-30D1-4F47-8282-AF7D956AE844}.Release|x86.Build.0 = Release|x86
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Release|Any CPU.Build.0 = Release|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{40B570A3-4D9D-4EF4-A3D0-99FFEB81FD25}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4E0623D0-E713-4209-9F11-9DF8A8047A5E} = {E893C5B5-EE00-4675-8621-B1849564A26B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4505CC08-1C00-4394-BA4D-491677634426}
 	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = SymbolicAlgebra.vsmdi

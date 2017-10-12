@@ -18,8 +18,8 @@ namespace SAConsole
 
             var lib_ver = (AssemblyFileVersionAttribute)ts.Assembly.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false)[0];
 
-            string copyright = @"Symbolic Algebra Console
-Copyright 2012-2015 at Lost Particles.
+            string copyright = $@"Symbolic Algebra Console
+Copyright 2012-{DateTime.Now.Year} at Lost Particles.
 ";
 
             copyright += "\nVersion " + lib_ver.Version + @"
@@ -49,10 +49,18 @@ Enjoy
                 {
                     if (line.ToUpperInvariant() == ":Q") break;
 
-                    var result = SymbolicAlgebra.SymbolicVariable.Parse(line);
+                    try
+                    {
+                        var result = SymbolicAlgebra.SymbolicVariable.Parse(line);
 
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("     " + result);
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("     " + result);
+                    }
+                    catch(SymbolicAlgebra.SymbolicException se)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Magenta;
+                        Console.WriteLine(se.Message);
+                    }
                 }
                 else
                 {
