@@ -150,17 +150,9 @@ namespace SymbolicAlgebra
             return FunctionParameters;
         }
         
-        string _FunctionName;
+        private readonly string _FunctionName;
 
-        public string FunctionName
-        {
-            get
-            {
-                return _FunctionName;
-            }
-        }
-
-        
+        public string FunctionName => _FunctionName;
 
 
         /// <summary>
@@ -282,7 +274,7 @@ namespace SymbolicAlgebra
                         }
 
                         bool log = false;
-                        if (_FunctionName.Equals(lnText, StringComparison.OrdinalIgnoreCase))
+                        if (_FunctionName.Equals(FunctionOperation.LnText, StringComparison.OrdinalIgnoreCase))
                         {
                             #region log simplification region
                             if (!FunctionParameters[0].IsMultiTerm)
@@ -1918,13 +1910,8 @@ namespace SymbolicAlgebra
         /// <summary>
         /// returns all the symbols involved in this object
         /// </summary>
-        public string[] InvolvedSymbols
-        {
-            get
-            {
-                return this.GetInvolvedSymbols();
-            }
-        }
+        public string[] InvolvedSymbols => this.GetInvolvedSymbols();
+        
 
         #region ICloneable Members
 

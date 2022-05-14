@@ -92,8 +92,8 @@ namespace SymbolicAlgebra
         /// <returns></returns>
         public static string[] WordsFromExpression(string expression)
         {
-            char[] separators = { '^', '*', '/', '+', '-', '(', '|', '<', '>', '=' };
-            char[] seps = { '^', '*', '/', '+', '-', '|' };
+            char[] separators = { '^', '*', '/', '+', '-', '(', '|', '.', '<', '>', '=' };
+            char[] seps = { '^', '*', '/', '+', '-', '|', '.' };
             expression = expression.Replace(" ", "");
 
             List<string> results = new List<string>();

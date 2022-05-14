@@ -18,24 +18,49 @@ namespace SAConsole
 
             var lib_ver = (AssemblyFileVersionAttribute)ts.Assembly.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false)[0];
 
-            string copyright = $@"Symbolic Algebra Console
+            string copyright = $@"Symbolic Algebra Console {lib_ver.Version}
 Copyright 2012-{DateTime.Now.Year} at Lost Particles.
-";
+All Rights Reserved for Ahmed.Sadek@LostParticles.net the Author of the library.
 
-            copyright += "\nVersion " + lib_ver.Version + @"
-All Rights Reserved for Ahmed Sadek the Auther of the library.
+Postfix Operators:
+    '.'  Integration Operator       -- STILL EXPERIMENTAL -- 
+    '|'  Differentiation Operator
+    '^'  Power Operator
+    '*'  Multiplication
+    '/'  Division
+    '+'  Addition
+    '-'  Subtraction
 
-Ahmed.Sadek@LostParticles.net
------------------------------
-Type :Q  to Quit
+Prefix Operators:
+    '%'  Constants Prefix 
 
-SA> x+x   will produce 2*x
-    '|' Differentiation Operator
-
+SA> x+x           will produce 2*x
 SA> (x^2+2*x)|x   will produce  2*x+x
+SA> (2*x).x       will produce  x^2
 
-Enjoy
+SA> :Q            to Quit  like VIM ;)
 ";
+
+            string help2 = @$"
+Custom Function Declaration:
+    ':=' f(x) := x^3 
+
+Using the library in your C# program directly:
+
+Using SymbolicAlgebra;
+
+// Assign variable immediately
+var x = new SymbolicVariable(""x"");
+var y = new SymbolicVariable(""y"");
+
+// or parse the expression directly.
+var myeq = SymbolicVariable.Parse(""(a+b)^2"");
+
+// then use the language overloaded arithmatic opertors directly.
+var total = (x*y*x).Differentiate(""x"");
+
+Finally  .. Enjoy";
+
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Write(copyright);
 

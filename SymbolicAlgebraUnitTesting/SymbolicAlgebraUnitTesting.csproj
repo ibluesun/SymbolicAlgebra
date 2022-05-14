@@ -60,6 +60,7 @@
     <Compile Include="SymbolicVariableSolveTest.cs" />
     <Compile Include="SymbolicVariableTest.cs" />
     <Compile Include="TextToolsTest.cs" />
+    <Compile Include="IntegrationUnitTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SymbolicAlgebra\SymbolicAlgebra.csproj">

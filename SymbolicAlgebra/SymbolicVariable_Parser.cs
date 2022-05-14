@@ -47,6 +47,8 @@ namespace SymbolicAlgebra
             public Expression DynamicExpression;
         }
         
+        static readonly char[] parse_separators = {'^', '*', '/', '+', '-', '(', '|', '.'};
+        static readonly char[] parse_seps       = {'^', '*', '/', '+', '-', '|', '.'};
 
         /// <summary>
         /// Parse expression of variables and make SymbolicVariable
@@ -73,8 +75,6 @@ namespace SymbolicAlgebra
             else
                 expr = rr[0];
 
-            char[] separators = {'^', '*', '/', '+', '-', '(', '|'};
-            char[] seps = {'^', '*', '/', '+', '-', '|'};
 
 
             expr = expr.Replace(" ", "");
@@ -107,7 +107,7 @@ namespace SymbolicAlgebra
                 if (PLevels.Count == 0)
                 {
                     // include the normal parsing when we are not in parenthesis group
-                    if (separators.Contains(expr[ix]))
+                    if (parse_separators.Contains(expr[ix]))
                     {
                         if ((expr[ix] == '-' || expr[ix] == '+') && ix == 0)
                         {
@@ -129,7 +129,7 @@ namespace SymbolicAlgebra
                                 TokenBuilder.Append(expr[ix]);
                             }
                         }
-                        else if (ix > 1 
+                        else if (ix > 1
                             && char.ToUpper(expr[ix - 1]) == 'E' && char.IsDigit(expr[ix - 2])
                             && (expr[ix] == '-' || expr[ix] == '+'))
                         {
@@ -139,7 +139,7 @@ namespace SymbolicAlgebra
                         else if (expr[ix] == '(')
                         {
                             PLevels.Push(1);
-                            var bb = ix > 0 ? separators.Contains(expr[ix - 1]) : true;
+                            var bb = ix > 0 ? parse_separators.Contains(expr[ix - 1]) : true;
                             if (!bb)
                             {
                                 //the previous charachter is normal word which indicates we reached a function
@@ -148,10 +148,10 @@ namespace SymbolicAlgebra
                             }
                         }
                         else if (
-                            seps.Contains(expr[ix - 1])
+                            parse_seps.Contains(expr[ix - 1])
                             && (expr[ix] == '-' || expr[ix] == '+')
                             )
-                        {                                
+                        {
                             if (expr[ix + 1] == '(')
                             {
                                 // so this sign is glued to the next parentheisis group
@@ -164,7 +164,7 @@ namespace SymbolicAlgebra
                                 //   that it has a sign.
 
                                 string signs = TokenBuilder.ToString();
-                                
+
                                 int nve = signs.ToCharArray().Count(sign => sign == '-');
 
                                 if ((nve % 2.0) != 0)
@@ -178,6 +178,11 @@ namespace SymbolicAlgebra
                             {
                                 TokenBuilder.Append(expr[ix]);
                             }
+                        }
+                        else if (expr[ix] == '.' && ix < expr.Length - 1 && char.IsDigit(expr[ix + 1]))
+                        {
+                            // the check is checking if the dot  .   contains a digit after .. if it is a digit then we are in a fraction number
+                            TokenBuilder.Append(expr[ix]);
                         }
                         else
                         {
@@ -268,7 +273,8 @@ namespace SymbolicAlgebra
             string[] Group = { "^"    /* Power for normal product '*' */
                              };
 
-            string[] SymGroup = { "|" /* Derivation operator */};
+            string[] SymGroup = { "|" /* Derivation operator */,
+                                  "." /* Integration operator */};
 
             string[] Group1 = { "*"   /* normal multiplication */, 
                                 "/"   /* normal division */, 
@@ -344,13 +350,27 @@ namespace SymbolicAlgebra
 
             if (op == "|")
             {
-                int p = (int) right.SymbolPower;
+                int p = (int)right.SymbolPower;
                 string rp = right.Symbol;
 
                 SymbolicVariable v = left;
                 while (p > 0)
                 {
                     v = v.Differentiate(rp);
+                    p--;
+                }
+                return v;
+            }
+
+            if (op == ".")
+            {
+                int p = (int)right.SymbolPower;
+                string rp = right.Symbol;
+
+                SymbolicVariable v = left;
+                while (p > 0)
+                {
+                    v = v.Integrate(rp);
                     p--;
                 }
                 return v;

@@ -8,383 +8,110 @@ namespace SymbolicAlgebra
     public partial class SymbolicVariable
     {
 
+
         /// <summary>
-        /// Add to symbolic variables.
+        /// Raise to specified power.
         /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
+        /// <param name="power"></param>
         /// <returns></returns>
-        public static SymbolicVariable Add(SymbolicVariable a, SymbolicVariable b)
+        public SymbolicVariable Power(int power)
         {
-            if (a == null || b == null) return null;
+            if (power == 0) return SymbolicVariable._One;
 
-            // check for the denominator part .. if it is not the same .. you will have to put the whole
-            //  symbolic variable in the extra term.
-            if (!a.DividedTerm.Equals( b.DividedTerm))
+            SymbolicVariable total = this.Clone();
+            int pw = Math.Abs(power);
+            while (pw > 1)
             {
-                SymbolicVariable a_b = a.Clone();
-                bool econsumed = false;
-                if (a_b.ExtraTerms.Count > 0)
+                if (this.IsFunction && this.FunctionName.Equals("Sqrt", StringComparison.OrdinalIgnoreCase))
                 {
-                    // find if in extra terms there is an equality  of b into it
-                    for (int iet = 0; iet < a_b.ExtraTerms.Count; iet++)
-                    {
-                        if (a_b.ExtraTerms[iet].Term.DividedTerm.Equals(b.DividedTerm))
-                        {
-                            a_b.ExtraTerms[iet].Term = Add(a_b.ExtraTerms[iet].Term, b);
-                            econsumed = true;
-                            break;
-                        }
-                    }
-                }
+                    //
+                    var parameterpower = power * 0.5;
 
-                if (!econsumed)
-                {
-                    // add in the extra terms
-                    SymbolicVariable positive_b = b.Clone();
-                    a_b.ExtraTerms.Add(new ExtraTerm { Term = positive_b, Negative = false });
-                }
-                AdjustZeroCoeffecientTerms(ref a_b);
-                return a_b;
-                
-            }
+                    total = this.FunctionParameters[0].Power(parameterpower);
 
-
-            SymbolicVariable subB = b.Clone();
-            int sub = -1;
-
-            SymbolicVariable sv = a.Clone();
-            NewPart:
-            
-
-            // compare the first or primary part of this instance to the primary part of other instance.
-            // if they are the same sum their coefficients.
-            bool consumed = false;
-
-            if (a.BaseEquals(subB))
-            {
-                if (a.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
-                {
-                    sv.Coeffecient = a.Coeffecient + subB.Coeffecient;
-                    consumed = true;
-                }
-                else if (a.CoeffecientPowerTerm != null && subB.CoeffecientPowerTerm != null)
-                {
-                    if (a.CoeffecientPowerTerm.Equals(subB.CoeffecientPowerTerm))
-                    {
-                        var cr = a.Coeffecient + subB.Coeffecient;
-                        if (cr == 0)
-                        {
-                            sv.Coeffecient = cr;
-                            consumed = true;
-                        }
-                    }
+                    pw = 0; // to end the loop
                 }
                 else
                 {
-                    // nothing
-                }
-
-            }
-              
-            //so the equality doesn't exits or this instance have other terms also
-
-            // there are two cases now 
-            //  1- the symbolic can be added to one of the existing terms primary and others in addedvariables (which will be perfect)
-            //  2- there are no compatible term so we have to add it to the AddedTerms of this instance.
-            
-
-            //try to add to the rest terms
-            foreach (var av in a.AddedTerms)
-            {
-                if (av.Value.BaseEquals(subB))
-                {
-                    var iv = a.AddedTerms[av.Key].Clone();
-
-                    if (iv.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
-                    {
-                        iv.Coeffecient = iv.Coeffecient + subB.Coeffecient;
-                        sv.AddedTerms[av.Key] = iv;
-                        consumed = true;
-                    }
-                    else if (iv.CoeffecientPowerTerm != null && subB.CoeffecientPowerTerm != null)
-                    {
-                        if (iv.CoeffecientPowerTerm.Equals(subB.CoeffecientPowerTerm) )
-                        {
-                            var cr = iv.Coeffecient + subB.Coeffecient;
-                            if (cr == 0)
-                            {
-                                iv.Coeffecient = cr;
-                                sv.AddedTerms[av.Key] = iv;
-                                consumed = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        /* do nothing */
-                    }
+                    total = SymbolicVariable.Multiply(total, this);
+                    pw--;
                 }
             }
 
-            if (!consumed)
+            if (power < 0)
             {
-                // add it to the positive variables.
+                total = SymbolicVariable.Divide(SymbolicVariable._One, total);
+            }
 
-                SymbolicVariable pv = null;
+            return total;
+        }
 
-                sv.AddedTerms.TryGetValue(subB.WholeValueBaseKey, out pv);
+        public SymbolicVariable Power(double power)
+        {
+            if (Math.Floor(power) == power) return Power((int)power);
 
-                if (pv == null)
+            SymbolicVariable p = this.Clone();
+            if (p.IsOneTerm)
+            {
+                // raise the coeffecient and symbol
+                if (!string.IsNullOrEmpty(p.Symbol)) p.SymbolPower = power;
+                p.Coeffecient = Math.Pow(p.Coeffecient, power);
+            }
+            else
+            {
+                if (power == 0.5)
                 {
-                    pv = subB.Clone();
+                    // return sqrt function of the multi term
 
-                    var SubTerms = pv._AddedTerms; // store them for later use.
-                    pv._AddedTerms = null;
-
-                    pv.DividedTerm = One;
-                    // then add the original term
-                    sv.AddedTerms.Add(pv.WholeValueBaseKey, pv);
-
-                    if (SubTerms != null)
-                    {
-                        //then add the value added terms if exist
-                        foreach (var at in pv.AddedTerms)
-                        {
-                            sv.AddedTerms.Add(at.Value.WholeValueBaseKey, at.Value);
-                        }
-                    }
+                    return new SymbolicVariable("Sqrt(" + p.ToString() + ")");
+                }
+                else if (power > 0 && power < 1)
+                {
+                    // I don't have solution for this now
+                    throw new SymbolicException("I don't have solution for this type of power " + p.ToString() + "^ (" + power.ToString() + ")");
                 }
                 else
                 {
-                    //exist before add it to this variable.
-                    sv.AddedTerms[subB.WholeValueBaseKey] = Add(sv.AddedTerms[subB.WholeValueBaseKey], subB);
+                    // multi term that we can't raise it to the double
+                    return p.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
                 }
             }
 
-            if (b.AddedTerms.Count > 0)
-            {
-                sub = sub + 1;  //increase 
-                if (sub < b.AddedTerms.Count)
-                {
-                    // there are still terms to be consumed 
-                    //   this new term is a sub term in b and will be added to all terms of a.
-                    subB = b.AddedTerms.ElementAt(sub).Value;
-                    goto NewPart;
-                }
-            }
-
-
-            // reaching here indicates that we didn't sum up the value to any of the target extra terms
-            // so we need to include extra terms here
-            if (b._ExtraTerms != null && b._ExtraTerms.Count > 0)
-            {
-                // add extra terms of b into sv
-                foreach (var eb in b._ExtraTerms)
-                {
-                    sv.ExtraTerms.Add(eb.Clone());
-                }
-            }
-
-            AdjustSpecialFunctions(ref sv);
-
-            AdjustZeroPowerTerms(sv);
-            AdjustZeroCoeffecientTerms(ref sv);
-
-
-            return sv;
+            return p;
         }
 
 
-        /// <summary>
-        /// Subtracts symbolic variable b from symbolic variable a
-        /// </summary>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <returns></returns>
-        public static SymbolicVariable Subtract(SymbolicVariable a, SymbolicVariable b)
+        public static SymbolicVariable Pow(SymbolicVariable a, int power)
         {
-            if (a == null || b == null) return null;
-
-            if (!a.DividedTerm.Equals(b.DividedTerm))
-            {
-                SymbolicVariable a_b = a.Clone();
-                bool econsumed = false;
-                if (a_b.ExtraTerms.Count > 0)
-                {
-                    // find if in extra terms there is an equality  of b into it
-                    for (int iet = 0; iet < a_b.ExtraTerms.Count; iet++)
-                    {
-                        if (a_b.ExtraTerms[iet].Term.DividedTerm.Equals(b.DividedTerm))
-                        {
-                            a_b.ExtraTerms[iet].Term = Subtract(a_b.ExtraTerms[iet].Term, b);
-                            econsumed = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!econsumed)
-                {
-                    // add in the extra terms
-                    var negative_b = b.Clone();
-                    
-                    a_b.ExtraTerms.Add(new ExtraTerm { Term = negative_b, Negative = true });
-                }
-                AdjustZeroCoeffecientTerms(ref a_b);
-                return a_b;
-
-            }
-
-
-            SymbolicVariable subB = b.Clone();
-            int sub = -1;
-
-            SymbolicVariable sv = a.Clone();
-        NewPart:
-
-            
-            bool consumed = false;
-
-            if (a.BaseEquals(subB))
-            {
-                if (a.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
-                {
-                    sv.Coeffecient = a.Coeffecient - subB.Coeffecient;
-                    consumed = true;
-                }
-                else if (a.CoeffecientPowerTerm != null && subB.CoeffecientPowerTerm != null)
-                {
-                    if (a.CoeffecientPowerTerm.Equals(subB.CoeffecientPowerTerm))
-                    {
-                        var cr = a.Coeffecient - subB.Coeffecient;
-                        if (cr == 0)
-                        {
-                            sv.Coeffecient = cr;
-                            consumed = true;
-                        }
-                    }
-                }
-                else
-                {
-                    // nothing
-                }
-            }
-
-            //so the equality doesn't exits or this instance have other terms also
-
-            // there are two cases now 
-            //  1- the symbolic can be added to one of the existing terms (which will be perfect)
-            //  2- there are no compatible term so we have to add it to the addedvariables of this instance.
-
-
-            foreach (var av in a.AddedTerms)
-            {
-                if (av.Value.BaseEquals(subB))
-                {
-                    var iv = a.AddedTerms[av.Key].Clone();
-
-                    if (iv.CoeffecientPowerTerm == null && subB.CoeffecientPowerTerm == null)
-                    {
-                        iv.Coeffecient = iv.Coeffecient - subB.Coeffecient;
-                        sv.AddedTerms[av.Key] = iv;
-                        consumed = true;
-                    }
-                    else if (iv.CoeffecientPowerTerm != null && subB.CoeffecientPowerTerm != null)
-                    {
-                        if (iv.CoeffecientPowerTerm.Equals(subB.CoeffecientPowerTerm))
-                        {
-                            var cr = iv.Coeffecient - subB.Coeffecient;
-                            if (cr == 0)
-                            {
-                                iv.Coeffecient = cr;
-                                sv.AddedTerms[av.Key] = iv;
-                                consumed = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                    }
-                }
-            }
-
-
-            if (!consumed)
-            {
-                // add it to the positive variables.
-
-                SymbolicVariable pv;
-
-                sv.AddedTerms.TryGetValue(subB.WholeValueBaseKey, out pv);
-
-                if (pv == null)
-                {
-                    pv = subB.Clone();
-                    pv.Coeffecient *= -1;
-
-                    var SubTerms = pv._AddedTerms; // store them for later use.
-                    pv._AddedTerms = null;
-
-                    pv.DividedTerm = One;
-
-                    sv.AddedTerms.Add(pv.WholeValueBaseKey, pv);
-
-                    if (SubTerms != null)
-                    {
-                        //then add the value added terms if exist
-                        foreach (var at in pv.AddedTerms)
-                        {
-                            at.Value.Coeffecient *= -1;
-                            sv.AddedTerms.Add(at.Value.WholeValueBaseKey, at.Value);
-                        }
-                    }
-
-                }
-                else
-                {
-                    //exist before add it to this variable.
-
-                    sv.AddedTerms[subB.WholeValueBaseKey] = Subtract(sv.AddedTerms[subB.WholeValueBaseKey], subB);
-                }
-            }
-
-            if (b.AddedTerms.Count > 0)
-            {
-                sub = sub + 1;  //increase 
-                if (sub < b.AddedTerms.Count)
-                {
-                    // there are still terms to be consumed 
-                    //   this new term is a sub term in b and will be added to all terms of a.
-                    subB = b.AddedTerms.ElementAt(sub).Value;
-                    goto NewPart;
-                }
-            }
-
-            // reaching here indicates that we didn't sum up the value to any of the target extra terms
-            // so we need to include extra terms here
-            if (b._ExtraTerms != null && b._ExtraTerms.Count > 0)
-            {
-                // add extra terms of b into sv
-                foreach (var eb in b._ExtraTerms)
-                {
-                    var eeb = eb.Clone();
-
-                    if (eeb.Negative) eeb.Negative = false;  // -- == +
-
-                    sv.ExtraTerms.Add(eeb);
-                }
-            }
-
-
-            AdjustSpecialFunctions(ref sv);
-            AdjustZeroPowerTerms(sv);
-            AdjustZeroCoeffecientTerms(ref sv);
-
-
-            return sv;
+            return a.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
         }
 
+        public static SymbolicVariable Pow(SymbolicVariable a, double power)
+        {
+
+            return a.RaiseToSymbolicPower(new SymbolicVariable(power.ToString()));
+        }
+
+
+        public static SymbolicVariable operator +(SymbolicVariable a, SymbolicVariable b)
+        {
+            return SymbolicVariable.Add(a, b);
+        }
+
+        public static SymbolicVariable operator -(SymbolicVariable a, SymbolicVariable b)
+        {
+            return SymbolicVariable.Subtract(a, b);
+        }
+
+        public static SymbolicVariable operator *(SymbolicVariable a, SymbolicVariable b)
+        {
+            return SymbolicVariable.Multiply(a, b);
+        }
+
+        public static SymbolicVariable operator /(SymbolicVariable a, SymbolicVariable b)
+        {
+            return SymbolicVariable.Divide(a, b);
+        }
 
 
     }
