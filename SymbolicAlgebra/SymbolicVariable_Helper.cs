@@ -10,6 +10,13 @@ namespace SymbolicAlgebra
 
     public partial class SymbolicVariable
     {
+
+        public static SymbolicVariable Number(double number)
+        {
+            var sv = new SymbolicVariable(number.ToString(CultureInfo.InvariantCulture));
+            return sv;
+        }
+
         private static SymbolicVariable _NegativeOne = new SymbolicVariable("-1");
         private static SymbolicVariable _Zero = new SymbolicVariable("0");
         private static SymbolicVariable _One = new SymbolicVariable("1");

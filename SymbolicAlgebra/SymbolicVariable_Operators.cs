@@ -27,7 +27,7 @@ namespace SymbolicAlgebra
                     //
                     var parameterpower = power * 0.5;
 
-                    total = this.FunctionParameters[0].Power(parameterpower);
+                    total = this._FunctionParameters[0].Power(parameterpower);
 
                     pw = 0; // to end the loop
                 }

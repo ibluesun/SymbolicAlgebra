@@ -66,15 +66,15 @@ namespace SymbolicAlgebra
 
                     foreach (var term in TermsToBeTested)
                     {
-                        if (term.IsFunction && term._SymbolPower == 2 && term.RawFunctionParameters.Length == 1)
+                        if (term.IsFunction && term._SymbolPower == 2 && term._RawFunctionParameters.Length == 1)
                         {
                             if (term.FunctionName.Equals("Sin", StringComparison.OrdinalIgnoreCase))
                             {
-                                PST(term.RawFunctionParameters[0]).Sin_2_Count++;
+                                PST(term._RawFunctionParameters[0]).Sin_2_Count++;
                             }
                             else if (term.FunctionName.Equals("Cos", StringComparison.OrdinalIgnoreCase))
                             {
-                                PST(term.RawFunctionParameters[0]).Cos_2_Count++;
+                                PST(term._RawFunctionParameters[0]).Cos_2_Count++;
                             }
                             else
                             {

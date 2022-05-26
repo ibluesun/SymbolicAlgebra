@@ -25,6 +25,20 @@ namespace SymbolicAlgebra
             Trig
             Exponentials
 
+        ILATE stands for:
+
+            I: Inverse trigonometric functions : arctan x, arcsec x, arcsin x etc.
+
+            L: Logarithmic functions : ln x, log5(x), etc.
+
+            A: Algebraic functions.
+
+            T: Trigonometric functions, such as sin x, cos x, tan x etc.
+
+            E: Exponential functions.
+
+
+
             ∫u dv = uv − ∫v du
             
             we select u and v based on the list of priorities above  
@@ -60,12 +74,16 @@ namespace SymbolicAlgebra
             else if (sv.IsFunction && symbolpowercontainParameter == true)
             {
                 // search if a parameter contains the same parameter
-                foreach (var pf in sv.FunctionParameters)
+                foreach (var pf in sv._FunctionParameters)
                     if (pf.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
                     {
                         cc = true;
                         break;
                     }
+            }
+            else if(sv.IsFunction && sv.InvolvedSymbols.Contains(parameter, StringComparer.OrdinalIgnoreCase) == false)
+            {
+                cc = true;  // treat the symvar  as an algebraic because there is no variable inside parameters that resemble what we want.
             }
             else
             {
@@ -77,7 +95,11 @@ namespace SymbolicAlgebra
             {
                 if (sv._SymbolPowerTerm == null)
                 {
-                    if (sv._SymbolPower + 1 == 0)  // case of 1/x
+                    if (sv.IsFunction)
+                    {
+                        sv = SymbolicVariable.Multiply(sv, new SymbolicVariable(parameter));
+                    }
+                    else if (sv._SymbolPower + 1 == 0)  // case of 1/x
                     {
                         sv._Symbol = $"{FunctionOperation.LnText}({parameter.ToLowerInvariant()})";
                         sv._SymbolPower = 1;
@@ -161,25 +183,82 @@ namespace SymbolicAlgebra
                         fv.Coeffecient = 1.0;
 
 
-                        if (fv.FunctionName.Equals(FunctionOperation.LnText, StringComparison.OrdinalIgnoreCase))
+                        if (fv.FunctionName.Equals(FunctionOperation.ExpText, StringComparison.OrdinalIgnoreCase))
                         {
-                            if (fv.FunctionParameters.Length != 1) throw new SymbolicException("Log function must have one parameter for differentiation to be done.");
+                            if (fv._FunctionParameters.Length != 1) throw new SymbolicException("Exp function must have one parameter for differentiation to be done.");
 
-                            
-                            // ∫ln x dx = xlnx - x + C,
+                            // ∫ e^x = e^x
+                            // ∫ exp(x*y) = exp(x*y)/y
+
+                            var spara = new SymbolicVariable(parameter);
 
                             var pa = fv.FunctionParameters[0];
-                            var dpa = pa.Differentiate(parameter);
-                            fv = SymbolicVariable.Divide(dpa, pa);
+
+                            var divo = SymbolicVariable.Divide(pa, spara);
+
+                            if (divo.IsOne) return fv;
+                            else return SymbolicVariable.Divide(fv, divo);
+
+                        }
+                        else if (fv.FunctionName.Equals(FunctionOperation.LnText, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (fv._FunctionParameters.Length != 1) throw new SymbolicException("Log function must have one parameter for differentiation to be done.");
+
+                            // actually  .. in here we need to factorize the paramter if it was a complex equation
+
+                            // ∫u dv = uv − ∫v du
+
+                            // so  ∫ln(x) dx  by parts  is  
+
+                            // u  = ln x 
+                            // dv = dx
+                            // v  = x 
+                            // uv = x ln x 
+                            // du = 1/x  dx
+                            // ∫v du   = ∫ x * 1/x dx 
+                            //         = ∫ x/x dx
+                            //         = ∫ 1 dx
+                            //         =  x
+                            // ∫ln(x) dx = ∫u dv = uv − ∫v du = x ln x − x
+
+
+                            // ∫ log(x^2+x) dx
+                            // ----------------
+                            // u = log(x^2+x)
+                            // dv = dx
+                            // v = x
+                            // uv = x*log(x^2+x) 
+                            // du = (2*x+1)/(x^2+x) dx
+                            // ∫v du   = ∫ x * (2*x+1)/(x^2+x) dx 
+                            //         = ∫ (2*x^2+x)/(x^2+x) dx
+                            //         = 2*x-log(x+1)   
+
+                            // uv − ∫v du = x*log(x^2+x) - (2*x + log(x+1) ) 
+
+                            var u = fv.Clone();
+                            var v = new SymbolicVariable(parameter);
+                            var uv = SymbolicVariable.Multiply(u, v);
+
+                            var du = u.Differentiate(parameter);
+                            var vdu = SymbolicVariable.Multiply(v, du);
+                            var ivdu = vdu.Integrate(parameter);
+
+                            fv = SymbolicVariable.Subtract(uv, ivdu);
+
+                            /*
+                            var pa = fv._FunctionParameters[0];
+                            var hh = SymbolicVariable.Subtract(fv, SymbolicVariable.One);
+                            fv = SymbolicVariable.Multiply(pa, hh);
+                            */
 
                         }
                         else if (fv.FunctionName.Equals(FunctionOperation.SqrtText, StringComparison.OrdinalIgnoreCase))
                         {
                             throw new NotImplementedException();
                             // d/dx ( sqrt( g(x) ) ) = g'(x) / 2* sqrt(g(x))
-                            if (fv.FunctionParameters.Length != 1) throw new SymbolicException("Sqrt function must have one parameter for differentiation to be done.");
+                            if (fv._FunctionParameters.Length != 1) throw new SymbolicException("Sqrt function must have one parameter for differentiation to be done.");
 
-                            var pa = fv.FunctionParameters[0];
+                            var pa = fv._FunctionParameters[0];
                             var dpa = pa.Differentiate(parameter);
                             var den = Multiply(Two, fv);
                             fv = Divide(dpa, den);
@@ -187,39 +266,15 @@ namespace SymbolicAlgebra
                         }
                         else if (FunctionOperation.InversedTrigFunctions.Contains(fv.FunctionName, StringComparer.OrdinalIgnoreCase))
                         {
-                            throw new NotImplementedException();
-                            fv = FunctionOperation.DiffInversedTrigFunction(fv, parameter);
+                            fv = FunctionOperation.IntegInversedTrigFunction(fv, parameter);
                         }
                         else if (FunctionOperation.TrigFunctions.Contains(fv.FunctionName, StringComparer.OrdinalIgnoreCase))
                         {
                             // triogonometric functions 
-                            bool IsNegativeResult;
-                            string[] newfuntions = FunctionOperation.DiffTrigFunction(fv, out IsNegativeResult);
+                            
+                            fv = FunctionOperation.IntegTrigFunction(fv, parameter);
 
-                            if (newfuntions != null)
-                            {
-                                //if(IsNegative)
-                                // get the parameters in the function and differentiate them
-                                if (fv.FunctionParameters.Length == 0)
-                                {
-                                    throw new SymbolicException("Special function without any parameters is not suitable for differentiation");
-                                }
-                                else if (fv.FunctionParameters.Length == 1)
-                                {
-                                    var pa = fv.FunctionParameters[0];
-                                    var presult = pa.Differentiate(parameter);
-                                    fv.SetFunctionName(newfuntions);
-
-                                    if (IsNegativeResult)
-                                        fv = SymbolicVariable.Multiply(presult, SymbolicAlgebra.SymbolicVariable.NegativeOne * fv);
-                                    else
-                                        fv = SymbolicVariable.Multiply(presult, fv);
-                                }
-                                else
-                                {
-                                    throw new SymbolicException("more than one parameter is not normal for this special function");
-                                }
-                            }
+                            
                         }
 
                         else
@@ -236,14 +291,14 @@ namespace SymbolicAlgebra
                             {
                                 string[] fps = extendedFunction.Substring(extendedFunction.IndexOf("(")).TrimStart('(').TrimEnd(')').Split(',');
 
-                                if (fps.Length != fv.RawFunctionParameters.Length) throw new SymbolicException("Insufficient function parameters");
+                                if (fps.Length != fv._RawFunctionParameters.Length) throw new SymbolicException("Insufficient function parameters");
 
                                 // replace parameters
                                 var dsf = Functions[extendedFunction].ToString();
 
                                 for (int ipxf = 0; ipxf < fps.Length; ipxf++)
                                 {
-                                    dsf = dsf.Replace(fps[ipxf], fv.RawFunctionParameters[ipxf]);
+                                    dsf = dsf.Replace(fps[ipxf], fv._RawFunctionParameters[ipxf]);
                                 }
 
                                 fv = SymbolicVariable.Parse(dsf).Differentiate(parameter);
@@ -323,9 +378,43 @@ namespace SymbolicAlgebra
         }
 
 
+        public static SymbolicVariable IntegByParts(string parameter, SymbolicVariable u, Stack<SymbolicVariable> dv)
+        {
+
+            // ∫u dv = uv − ∫v du
+
+            if (dv.Count == 0)
+            {
+                return IntegTerm(u, parameter);
+            }
+            else
+            {
+
+                // ∫u dv = uv − ∫v du
+                var popped_dv = dv.Pop();
+                var v = IntegByParts(parameter, popped_dv, dv);
+                var uv = SymbolicVariable.Multiply(u, v);
+
+                var du = u.Differentiate(parameter);
+                var vdu = SymbolicVariable.Multiply(v, du);
+
+                var ivdu = vdu.Integrate(parameter);
+
+
+                var result = SymbolicVariable.Subtract(uv, ivdu);
+
+                return result;
+
+            }
+        }
 
         private static SymbolicVariable IntegBigTerm(SymbolicVariable sv, string parameter)
         {
+            if (sv.IsZero)
+                return SymbolicVariable.Zero;
+            if (sv.IsCoeffecientOnly)
+                return SymbolicVariable.Multiply(sv, new SymbolicVariable(parameter));
+
             // now result contains only one term
             // -----------------------------------
 
@@ -344,6 +433,21 @@ namespace SymbolicAlgebra
 
             // 
 
+            /*
+                ILATE stands for:
+
+                I: Inverse trigonometric functions : arctan x, arcsec x, arcsin x etc.
+
+                L: Logarithmic functions : ln x, log5(x), etc.
+
+                A: Algebraic functions.
+
+                T: Trigonometric functions, such as sin x, cos x, tan x etc.
+
+                E: Exponential functions.
+
+            */
+
             SymbolicVariable SvDividedTerm = sv.DividedTerm;  // here we isolate the divided term for later calculations
             sv.DividedTerm = One;
 
@@ -356,12 +460,25 @@ namespace SymbolicAlgebra
             SymbolicVariable Trig_Term = SymbolicVariable.One;
             SymbolicVariable Exponential_Term = SymbolicVariable.One;
 
+            
+
             // distribute everything
             foreach (var mt in MultipliedTerms)
             {
-                if (mt.Term.IsFunction)
+                if (mt.Term.IsFunction && mt.Term.InvolvedSymbols.Contains(parameter, StringComparer.OrdinalIgnoreCase ))
                 {
-                    
+                    if (mt.Term.FunctionName.Equals(FunctionOperation.LnText, StringComparison.OrdinalIgnoreCase))
+                        Logarithms_Term = SymbolicVariable.Multiply(Logarithms_Term, mt.Term);
+
+                    if (mt.Term.FunctionName.Equals(FunctionOperation.ExpText, StringComparison.OrdinalIgnoreCase))
+                        Exponential_Term = SymbolicVariable.Multiply(Exponential_Term, mt.Term);
+
+                    else if (FunctionOperation.InversedTrigFunctions.Contains(mt.Term.FunctionName, StringComparer.OrdinalIgnoreCase))
+                        InversedTrig_Term = SymbolicVariable.Multiply(InversedTrig_Term, mt.Term);
+
+                    else if (FunctionOperation.TrigFunctions.Contains(mt.Term.FunctionName, StringComparer.OrdinalIgnoreCase))
+                        Trig_Term = SymbolicVariable.Multiply(Trig_Term, mt.Term);
+
                 }
                 else
                 {
@@ -369,9 +486,19 @@ namespace SymbolicAlgebra
                 }
             }
 
-            List<SymbolicVariable> CalculatedIntegs = new List<SymbolicVariable>(1);
+            Stack<SymbolicVariable> OrderedVariables = new Stack<SymbolicVariable>();
+            if (!Exponential_Term.IsOne) OrderedVariables.Push(Exponential_Term);
+            if (!Trig_Term.IsOne) OrderedVariables.Push(Trig_Term);
+            if (!Algebra_Term.IsOne) OrderedVariables.Push(Algebra_Term);
+            if (!Logarithms_Term.IsOne) OrderedVariables.Push(Logarithms_Term);
+            if (!InversedTrig_Term.IsOne) OrderedVariables.Push(InversedTrig_Term);
 
-            CalculatedIntegs.Add(IntegTerm(Algebra_Term, parameter));
+
+            var result = IntegByParts(parameter, OrderedVariables.Pop(), OrderedVariables);
+
+            return result;
+
+            List<SymbolicVariable> CalculatedIntegs = new List<SymbolicVariable>(1);
 
 
 
@@ -438,11 +565,7 @@ namespace SymbolicAlgebra
             List<ExtraTerm> OtherExtraTerms = result._ExtraTerms;
             result._ExtraTerms = null;
 
-
-
             result = IntegBigTerm(result, parameter);
-
-
 
 
             // take the rest terms

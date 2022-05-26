@@ -138,17 +138,12 @@ namespace SymbolicAlgebra
 
 
         private bool? _IsFunction;
-        private SymbolicVariable[] FunctionParameters;
-        private string[] RawFunctionParameters;
+        private SymbolicVariable[] _FunctionParameters;
+        private string[] _RawFunctionParameters;
 
-        /// <summary>
-        /// method for accessing the inner parameters if the symbol defined is function 
-        /// I use it only for testing.
-        /// </summary>
-        public SymbolicVariable[] GetFunctionParameters()
-        {
-            return FunctionParameters;
-        }
+        public SymbolicVariable[] FunctionParameters => _FunctionParameters;
+        public string[] RawFunctionParameters => _RawFunctionParameters;
+
         
         private readonly string _FunctionName;
 
@@ -234,17 +229,17 @@ namespace SymbolicAlgebra
                     var parms = m.Groups["parameters"].Value;
                     if (!string.IsNullOrEmpty(parms))
                     {
-                        RawFunctionParameters = TextTools.ComaSplit(parms);
+                        _RawFunctionParameters = TextTools.ComaSplit(parms);
 
-                        FunctionParameters = new SymbolicVariable[RawFunctionParameters.Length];
-                        for (int i = 0; i < RawFunctionParameters.Length; i++)
+                        _FunctionParameters = new SymbolicVariable[_RawFunctionParameters.Length];
+                        for (int i = 0; i < _RawFunctionParameters.Length; i++)
                         {
-                            FunctionParameters[i] = Parse(RawFunctionParameters[i]);
+                            _FunctionParameters[i] = Parse(_RawFunctionParameters[i]);
                         }
                     }
 
                     // the following is the process of simplifieng known functions to its simplified form
-                    if (FunctionParameters != null)
+                    if (_FunctionParameters != null)
                     {
                         string[] oddfuncs = { "sin", "csc", "tan", "cot" };
                         string[] evenfuncs = { "cos", "sec" };
@@ -256,10 +251,10 @@ namespace SymbolicAlgebra
                         if (oddfuncs.Contains(_FunctionName, StringComparer.OrdinalIgnoreCase))
                         {
                             // 
-                            if (FunctionParameters[0].IsNegative)
+                            if (_FunctionParameters[0].IsNegative)
                             {
                                 Coeffecient *= -1;
-                                FunctionParameters[0].Coeffecient = FunctionParameters[0].Coeffecient * (-1);
+                                _FunctionParameters[0].Coeffecient = _FunctionParameters[0].Coeffecient * (-1);
                             }
                         }
 
@@ -267,9 +262,9 @@ namespace SymbolicAlgebra
                         if (evenfuncs.Contains(_FunctionName, StringComparer.OrdinalIgnoreCase))
                         {
                             // 
-                            if (FunctionParameters[0].IsNegative)
+                            if (_FunctionParameters[0].IsNegative)
                             {
-                                FunctionParameters[0].Coeffecient = FunctionParameters[0].Coeffecient * (-1);
+                                _FunctionParameters[0].Coeffecient = _FunctionParameters[0].Coeffecient * (-1);
                             }
                         }
 
@@ -277,36 +272,36 @@ namespace SymbolicAlgebra
                         if (_FunctionName.Equals(FunctionOperation.LnText, StringComparison.OrdinalIgnoreCase))
                         {
                             #region log simplification region
-                            if (!FunctionParameters[0].IsMultiTerm)
+                            if (!_FunctionParameters[0].IsMultiTerm)
                             {
-                                if (FunctionParameters[0].IsOne)
+                                if (_FunctionParameters[0].IsOne)
                                 {
                                     _Symbol = string.Empty;
                                     Coeffecient = 0;
                                     _SymbolPower = 0;
-                                    FunctionParameters = null;
+                                    _FunctionParameters = null;
                                 }
 
-                                if (FunctionParameters != null)
+                                if (_FunctionParameters != null)
                                 {
-                                    if (!string.IsNullOrEmpty(FunctionParameters[0].FunctionName))
+                                    if (!string.IsNullOrEmpty(_FunctionParameters[0].FunctionName))
                                     {
-                                        if (FunctionParameters[0].FunctionName.Equals("exp", StringComparison.OrdinalIgnoreCase))
+                                        if (_FunctionParameters[0].FunctionName.Equals("exp", StringComparison.OrdinalIgnoreCase))
                                         {
                                             // take the inner of exp and put it as a symbolic variable
-                                            ReplaceCurrentValuesWith(FunctionParameters[0].FunctionParameters[0]);
+                                            ReplaceCurrentValuesWith(_FunctionParameters[0]._FunctionParameters[0]);
 
-                                            FunctionParameters = null;
+                                            _FunctionParameters = null;
                                         }
                                     }
                                 }
 
-                                if (FunctionParameters != null)
+                                if (_FunctionParameters != null)
                                 {
-                                    if (FunctionParameters[0].FusedSymbols.Count > 0 || FunctionParameters[0].FusedConstants.Count > 0 ||
-                                        (FunctionParameters[0].CoeffecientPowerTerm != null && FunctionParameters[0].SymbolPowerTerm != null) ||
-                                        ((FunctionParameters[0].CoeffecientPowerTerm != null) && (FunctionParameters[0].SymbolPower > 1 || FunctionParameters[0].SymbolPower < 0)) ||
-                                        (FunctionParameters[0].Coeffecient!=1 && !string.IsNullOrEmpty(FunctionParameters[0].Symbol) && FunctionParameters[0].SymbolPower!=0)
+                                    if (_FunctionParameters[0].FusedSymbols.Count > 0 || _FunctionParameters[0].FusedConstants.Count > 0 ||
+                                        (_FunctionParameters[0].CoeffecientPowerTerm != null && _FunctionParameters[0].SymbolPowerTerm != null) ||
+                                        ((_FunctionParameters[0].CoeffecientPowerTerm != null) && (_FunctionParameters[0].SymbolPower > 1 || _FunctionParameters[0].SymbolPower < 0)) ||
+                                        (_FunctionParameters[0].Coeffecient!=1 && !string.IsNullOrEmpty(_FunctionParameters[0].Symbol) && _FunctionParameters[0].SymbolPower!=0)
 
                                         )
                                     {
@@ -315,7 +310,7 @@ namespace SymbolicAlgebra
                                         // we take the power of each term and also fused constants 
                                         // and we prepare an expanded expression of term1_power*log(term1)+ term2_power*log(term2)+...
 
-                                        var logparam = FunctionParameters[0];
+                                        var logparam = _FunctionParameters[0];
 
                                         // Constants part
                                         var first_constant = new HybridVariable { NumericalVariable = 1, SymbolicVariable = logparam.CoeffecientPowerTerm };
@@ -369,37 +364,37 @@ namespace SymbolicAlgebra
                                     }
                                     else
                                     {
-                                        if (FunctionParameters[0].SymbolPowerTerm != null || FunctionParameters[0].SymbolPower > 1 || FunctionParameters[0].SymbolPower < 0)
+                                        if (_FunctionParameters[0].SymbolPowerTerm != null || _FunctionParameters[0].SymbolPower > 1 || _FunctionParameters[0].SymbolPower < 0)
                                         {
                                             // like log(y^x) for example
 
                                             // get the power term
-                                            var spt = new HybridVariable { NumericalVariable = FunctionParameters[0].SymbolPower, SymbolicVariable = FunctionParameters[0].SymbolPowerTerm };
+                                            var spt = new HybridVariable { NumericalVariable = _FunctionParameters[0].SymbolPower, SymbolicVariable = _FunctionParameters[0].SymbolPowerTerm };
 
 
                                             // make the log(parameter without its power)
-                                            FunctionParameters[0]._SymbolPowerTerm = null;
-                                            FunctionParameters[0].SymbolPower = 1;
+                                            _FunctionParameters[0]._SymbolPowerTerm = null;
+                                            _FunctionParameters[0].SymbolPower = 1;
 
-                                            string pwop = "log(" + FunctionParameters[0] + ")";
-                                            FunctionParameters = null;
+                                            string pwop = "log(" + _FunctionParameters[0] + ")";
+                                            _FunctionParameters = null;
                                             var t = new SymbolicVariable(pwop);
 
                                             // replace the primary symbol with the information of the power in parameter
                                             var rs = Multiply(spt, t);
                                             ReplaceCurrentValuesWith(rs);
                                         }
-                                        else if (FunctionParameters[0].CoeffecientPowerTerm != null)
+                                        else if (_FunctionParameters[0].CoeffecientPowerTerm != null)
                                         {
                                             // like log(4^x)
 
                                             // get the power term
-                                            var spt = FunctionParameters[0].CoeffecientPowerTerm;
+                                            var spt = _FunctionParameters[0].CoeffecientPowerTerm;
 
                                             // make the log(parameter without its power)
-                                            FunctionParameters[0]._CoeffecientPowerTerm = null;
-                                            string pwop = "log(" + FunctionParameters[0] + ")";
-                                            FunctionParameters = null;
+                                            _FunctionParameters[0]._CoeffecientPowerTerm = null;
+                                            string pwop = "log(" + _FunctionParameters[0] + ")";
+                                            _FunctionParameters = null;
                                             var t = new SymbolicVariable(pwop);
 
                                             // replace the primary symbol with the information of the power in parameter
@@ -409,7 +404,7 @@ namespace SymbolicAlgebra
                                         else
                                         {
                                             //nothing
-                                            Symbol = _FunctionName + "(" + FunctionParameters[0].ToString() +")";
+                                            Symbol = _FunctionName + "(" + _FunctionParameters[0].ToString() +")";
                                         }
                                     }
                                 }
@@ -424,9 +419,9 @@ namespace SymbolicAlgebra
                         else 
                         {
                             Symbol = _FunctionName + "(";
-                            for (int i = 0; i < FunctionParameters.Length; i++)
+                            for (int i = 0; i < _FunctionParameters.Length; i++)
                             {
-                                Symbol += FunctionParameters[i].ToString() + ",";
+                                Symbol += _FunctionParameters[i].ToString() + ",";
                             }
 
                             if (Symbol.EndsWith(",")) Symbol = Symbol.TrimEnd(',');
@@ -474,7 +469,7 @@ namespace SymbolicAlgebra
 
             string iparms = string.Empty;
 
-            foreach (var p in FunctionParameters)
+            foreach (var p in _FunctionParameters)
             {
                 Symbol += p.ToString() + ",";
                 iparms += p.ToString() + ",";
@@ -1519,7 +1514,7 @@ namespace SymbolicAlgebra
             {
                 var parameterPower = 0.5 * sv.SymbolPower;
                 
-                var newvalue = sv.FunctionParameters[0].Power(parameterPower);
+                var newvalue = sv._FunctionParameters[0].Power(parameterPower);
                 newvalue.Coeffecient *= sv.Coeffecient;
 
                 sv = newvalue;

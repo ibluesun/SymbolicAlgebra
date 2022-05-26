@@ -728,7 +728,7 @@ namespace SymbolicAlgebraUnitTesting
 
 
             var cf = SymbolicVariable.Parse("sum(o, sum(a,b))");
-            var g = cf.GetFunctionParameters();
+            var g = cf.FunctionParameters;
             Assert.AreEqual("o", g[0].ToString());
             Assert.AreEqual("sum(a,b)", g[1].ToString());
 
@@ -1549,6 +1549,9 @@ namespace SymbolicAlgebraUnitTesting
             Assert.AreEqual("sin(theta)^2*(sin(phi)^2+cos(phi)^2)+cos(theta)^2", factored.ToString());
 
             var spz = SymbolicVariable.FactorWithCommonFactor(SymbolicVariable.Parse("0"));
+
+
+
 
         }
 

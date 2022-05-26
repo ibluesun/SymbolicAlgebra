@@ -38,7 +38,7 @@ namespace SymbolicAlgebra
             else if (sv.IsFunction && symbolpowercontainParameter == true)
             {
                 // search if a parameter contains the same parameter
-                foreach (var pf in sv.FunctionParameters)
+                foreach (var pf in sv._FunctionParameters)
                     if (pf.Symbol.Equals(parameter, StringComparison.OrdinalIgnoreCase))
                     {
                         cc = true;
@@ -124,14 +124,24 @@ namespace SymbolicAlgebra
                         fv.SymbolPower = 1.0;
                         fv.Coeffecient = 1.0;
 
-
-                        if (fv.FunctionName.Equals(FunctionOperation.LnText, StringComparison.OrdinalIgnoreCase))
+                        if (fv.FunctionName.Equals(FunctionOperation.ExpText, StringComparison.OrdinalIgnoreCase))
                         {
-                            if (fv.FunctionParameters.Length != 1) throw new SymbolicException("Log function must have one parameter for differentiation to be done.");
+                            if (fv._FunctionParameters.Length != 1) throw new SymbolicException("Exp function must have one parameter for differentiation to be done.");
+
+                            // d/dx e^x = e^x
+                            // d/dx e^(x^2) = 2*x*e^(x^2)
+
+                            var pa = fv._FunctionParameters[0];
+                            var presult = pa.Differentiate(parameter);
+                            fv = SymbolicVariable.Multiply(presult, fv);
+                        }
+                        else if (fv.FunctionName.Equals(FunctionOperation.LnText, StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (fv._FunctionParameters.Length != 1) throw new SymbolicException("Log function must have one parameter for differentiation to be done.");
 
                             // d/dx ( ln( g(x) ) ) = g'(x)/g(x)
 
-                            var pa = fv.FunctionParameters[0];
+                            var pa = fv._FunctionParameters[0];
                             var dpa = pa.Differentiate(parameter);
                             fv = SymbolicVariable.Divide(dpa, pa);
                             
@@ -139,9 +149,9 @@ namespace SymbolicAlgebra
                         else if(fv.FunctionName.Equals(FunctionOperation.SqrtText, StringComparison.OrdinalIgnoreCase))
                         {
                             // d/dx ( sqrt( g(x) ) ) = g'(x) / 2* sqrt(g(x))
-                            if (fv.FunctionParameters.Length != 1) throw new SymbolicException("Sqrt function must have one parameter for differentiation to be done.");
+                            if (fv._FunctionParameters.Length != 1) throw new SymbolicException("Sqrt function must have one parameter for differentiation to be done.");
 
-                            var pa = fv.FunctionParameters[0];
+                            var pa = fv._FunctionParameters[0];
                             var dpa = pa.Differentiate(parameter);
                             var den = Multiply(Two, fv);
                             fv = Divide(dpa, den);
@@ -161,13 +171,13 @@ namespace SymbolicAlgebra
                             {
                                 //if(IsNegative)
                                 // get the parameters in the function and differentiate them
-                                if (fv.FunctionParameters.Length == 0)
+                                if (fv._FunctionParameters.Length == 0)
                                 {
                                     throw new SymbolicException("Special function without any parameters is not suitable for differentiation");
                                 }
-                                else if (fv.FunctionParameters.Length == 1)
+                                else if (fv._FunctionParameters.Length == 1)
                                 {
-                                    var pa = fv.FunctionParameters[0];
+                                    var pa = fv._FunctionParameters[0];
                                     var presult = pa.Differentiate(parameter);
                                     fv.SetFunctionName(newfuntions);
 
@@ -195,14 +205,14 @@ namespace SymbolicAlgebra
                             {
                                 string[] fps = extendedFunction.Substring(extendedFunction.IndexOf("(")).TrimStart('(').TrimEnd(')').Split(',');
                                     
-                                if(fps.Length != fv.RawFunctionParameters.Length) throw new SymbolicException("Insufficient function parameters");
+                                if(fps.Length != fv._RawFunctionParameters.Length) throw new SymbolicException("Insufficient function parameters");
 
                                 // replace parameters
                                 var dsf = Functions[extendedFunction].ToString();
 
                                 for(int ipxf=0; ipxf < fps.Length ;ipxf++)
                                 {
-                                    dsf = dsf.Replace(fps[ipxf], fv.RawFunctionParameters[ipxf]);
+                                    dsf = dsf.Replace(fps[ipxf], fv._RawFunctionParameters[ipxf]);
                                 }
 
                                 fv = SymbolicVariable.Parse(dsf).Differentiate(parameter);

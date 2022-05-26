@@ -57,5 +57,32 @@ namespace SymbolicAlgebraUnitTesting
 
 
         }
+
+        public void LogIntegrationTest()
+        {
+            var a = SymbolicVariable.Parse("log(x)");
+            var ia = a.Integrate("x");
+            Assert.AreEqual("log(x)*x-x", ia.ToString());
+
+
+            a = SymbolicVariable.Parse("log(x+1)");
+            ia = a.Integrate("x");
+            Assert.AreEqual("(x+1)*log(x+1)-x-1", ia.ToString());
+
+            a = SymbolicVariable.Parse("log(x^2)");
+            ia = a.Integrate("x");
+            Assert.AreEqual("2*x*log(x)-2*x", ia.ToString());
+
+            a = SymbolicVariable.Parse("log(x^2+x)");
+            ia = a.Integrate("x");
+            Assert.AreEqual("still working on it", ia.ToString());
+
+
+            a = SymbolicVariable.Parse("log(x^2)");
+            ia = a.Integrate("y");                   // different parameter
+            Assert.AreEqual("2*log(x)*y", ia.ToString());
+
+
+        }
     }
 }
