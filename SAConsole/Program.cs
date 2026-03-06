@@ -35,7 +35,7 @@ Prefix Operators:
     '%'  Constants Prefix 
 
 SA> x+x           will produce 2*x
-SA> (x^2+2*x)|x   will produce  2*x+x
+SA> (x^2+2*x)|x   will produce  2*x+2
 SA> (2*x).x       will produce  x^2
 
 SA> :Q            to Quit  like VIM ;)
