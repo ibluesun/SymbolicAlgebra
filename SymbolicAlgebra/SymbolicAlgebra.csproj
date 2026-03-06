@@ -20,6 +20,14 @@
     <PackageReleaseNotes>
 </PackageReleaseNotes>
     <Authors>Ahmed Sadek</Authors>
+    <PackageReadmeFile>README.MD</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.MD">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 </Project>
