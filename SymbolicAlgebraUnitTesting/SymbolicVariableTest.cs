@@ -1731,6 +1731,49 @@ namespace SymbolicAlgebraUnitTesting
 
 
         }
+
+
+        [TestMethod]
+        public void OpaqueGroupTest()
+        {
+            // the case with zero coverage today — < and > in one expression
+            var mixed = SymbolicVariable.Parse("IIF(x<5, 1, 2) + IIF(y>3, 4, 5)");
+            Assert.AreEqual(2, mixed.InvolvedSymbols.Length);   // x and y, not one swallowed blob
+
+            // groups survive as atoms
+            Assert.AreEqual("0", SymbolicVariable.Parse("{1 1} - {1  1}").ToString());
+            Assert.AreEqual("0", SymbolicVariable.Parse("[3 4 5] - [3 4 5]").ToString());
+
+            // nesting by depth
+            Assert.AreEqual("0", SymbolicVariable.Parse("[{1 2} {3 4}] - [{1 2} {3 4}]").ToString());
+
+            // unit as inert coefficient through the power rule
+            var d = SymbolicVariable.Parse("(3<kg.m/s^2> * t^2)|t");
+            Assert.AreEqual(2, d.InvolvedSymbols.Length);       // t only, no kg/m/s leaking in
+        }
+
+
+        [TestMethod]
+        public void MultiLineExpressionTest()
+        {
+            // newline as trivia outside groups
+            var a = SymbolicVariable.Parse("2*x\n+ 3*x");
+            Assert.AreEqual("5*x", a.ToString());
+
+            // verbatim, the way it arrives from an editor or a Qs body
+            var b = SymbolicVariable.Parse(@"2*x
+                                     + 3*x");
+            Assert.AreEqual("5*x", b.ToString());
+
+            // newline inside a group must normalize, not split identity
+            Assert.AreEqual("0", SymbolicVariable.Parse("{1\n1} - {1 1}").ToString());
+            Assert.AreEqual("0", SymbolicVariable.Parse("[1\r\n2] - [1 2]").ToString());
+
+            // and the group keeps its canonical single-space spelling
+            Assert.AreEqual("{1 1}", SymbolicVariable.Parse("{1\n\n1}").ToString());
+
+            
+        }
     }
 
 }

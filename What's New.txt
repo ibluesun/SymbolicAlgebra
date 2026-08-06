@@ -1,3 +1,50 @@
+Symbolic Algebra [0.9.4]
+--------------------------------
+- Anything between {} [] or <>  is now treated as ONE symbol and the spaces inside it are preserved.
+  so  {1 1}  stays  {1 1}   and doesn't become  {11}  anymore  .. it used to eat the spaces because 
+  whitespace was considered trivia everywhere  which is right outside the group and wrong inside it 
+  (space is the separator in vectors and matrices  [3 4 5; 3 4 2]  )
+
+- <kg.m/s^2>  parses correctly now .. before this the '^' inside was read as a power operator and it 
+  swallowed the closing '>'  giving  <kg*m/s^(2>)   :)  
+  and because the unit is one atom now  it survives differentiation as an inert coefficient
+      (3<kg.m/s^2> * t^2)|t   ==   2*3<kg.m/s^2>*t
+  which means the unit symbols (kg, m, s) no longer leak out as if they were variables.
+
+- Added WillClose() .. an opener only starts a group if a matching closer is really ahead of it.
+  so  a{b^4  is  (a{b)^4  and not one giant symbol  .. and '^' stays a live separator.
+  note WillClose validates the whole subtree not just the outer pair  so if the outer opener passed 
+  then every nested opener inside it is guaranteed to pass too.
+
+- Malformed brackets are just ordinary text now  and behave the same wherever they are in the token.
+  [2 5}   and   a[2 5}   both give the same verdict  (they used to differ because the checks were 
+  StartsWith/EndsWith based which only saw a group spanning the WHOLE token)
+
+- Added ParsedTokenHadUnmatchedBrackets property  to record that the token had a bad opener .. 
+  I don't need it yet but I don't want to rescan the string later to find out.
+
+- Fixed the Symbol setter .. it was re-stripping the whitespace that the constructor had already 
+  normalized  and it only recognized a group if it spanned the entire symbol 
+  so  a{1 1}  became  a{11}  while  {1 1}  was fine.  Now the constructor is the only place that 
+  decides the whitespace policy.
+
+- Line breaks:  \r \n \t  are normalized to a space at parse entry  so multi line expressions work
+      2*x
+      + 3*x    ==   5*x
+  and constructing a SymbolicVariable directly with a line break throws  (backstop for direct calls)
+
+- Careful: '<' opens a group only OUTSIDE parentheses .. inside parentheses it is still the 
+  comparison operator of IIF  ( IIF(x<5, 1, 2) )  and that keeps working.
+
+- Note by design:  preserving the spaces means the spelling is part of the identity  
+  so  {b - b}  and  {b-b}  are two different symbols and they will not cancel each other.
+  you can't have preservation and spelling-independent identity at the same time  .. I chose preservation.
+
+- Added OpaqueGroupTest with 20 test methods .. the old suite had 141 Parse calls and not a single 
+  one of them contained  {  or  [  .. and the four IIF tests were passing by luck because none of 
+  them had a '<' and a '>' in the same expression.
+
+
 Symbolic Algebra [0.8.98]
 ------------------------------
 - apparently fixed something that I can't remember now .. (this is a headache I should always write what I've done so far)

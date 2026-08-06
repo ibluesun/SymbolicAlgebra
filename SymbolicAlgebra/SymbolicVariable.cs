@@ -27,7 +27,7 @@ namespace SymbolicAlgebra
 
         /// <summary>
         /// the symbol name   a*x^2 I mean {x}
-        /// Note: name will not contain any spaces
+        /// Note: name will not contain any spaces  but we will accept groups of brackets {,[,<,>,],}  as a complete symbol
         /// </summary>
         public string Symbol 
         {
@@ -35,12 +35,7 @@ namespace SymbolicAlgebra
             {
                 if (_BaseVariable == null)
                 {
-                    _Symbol = string.Empty; // remove trailing and begining spaces.
-                    foreach (var vc in value)
-                    {
-                        if (!char.IsWhiteSpace(vc))
-                            _Symbol += vc;
-                    }
+                    _Symbol = value;
                 }
                 else
                 {
@@ -150,28 +145,132 @@ namespace SymbolicAlgebra
         public string FunctionName => _FunctionName;
 
 
+        public bool ParsedTokenHadUnmatchedBrackets { get; private set; } = false;
+
         /// <summary>
         /// The only constructor for the symbolic variable
         /// </summary>
         /// <param name="expression">Could be number, string, or function form</param>
-        public SymbolicVariable(string token)
+        public SymbolicVariable(string toks)
         {
+            if (toks.IndexOf('\n') >= 0 || toks.IndexOf('\r') >= 0)
+                throw new SymbolicException("Line breaks are not valid in a symbolic variable");
+
+            string token = toks.Trim();
+
             StringBuilder sb = new StringBuilder();
             int minuscount = 0;
             bool inStart = true;  //because i am testing at the begining of string.
-            foreach (var t in token)
+
+            Stack<char> InsideBracketGroup = new Stack<char>();
+
+            for (int ix = 0; ix < token.Length; ix++)
             {
-                if (t != ' ')
+                char t = token[ix];
+                if (InsideBracketGroup.Count > 0)
                 {
-                    if (t == '-' && inStart==true) minuscount++;
+                    // inside bracket group we ignore spaces .. actually we need to merge spaces into one space
+
+                    if (t == ' ' || t == '\t')
+                    {
+                        if (sb[sb.Length - 1] == ' ' || sb[sb.Length - 1] == '{' || sb[sb.Length - 1] == '[' || sb[sb.Length - 1] == '<')
+                        {
+                            // ignore  because we don't want to accumulate spaces
+                        }
+                        else
+                        {
+                            sb.Append(' ');
+                        }
+                    }
+                    else
+                    {
+                        if (t == '{' || t == '[' || t == '<')
+                        {
+                            if (WillClose(token.Substring(ix)))
+                            {
+                                InsideBracketGroup.Push(t);
+                             
+                            }
+                            else
+                            {
+                                ParsedTokenHadUnmatchedBrackets = true;
+                            }
+
+                            sb.Append(t);
+                        }
+
+                        else if (t == '}')
+                        {
+                            var c = InsideBracketGroup.Pop();
+                            if (c != '{')
+                            {
+                                //throw new SymbolicException($"Symbol '{token}' encountered Group Started With '{c}' and ended with '}}'");
+                                ParsedTokenHadUnmatchedBrackets = true;
+                            }
+
+                            if (sb[sb.Length - 1] == ' ')
+                                sb[sb.Length - 1] = '}';
+                            else
+                                sb.Append('}');
+                        }
+                        else if (t == ']')
+                        {
+                            var c = InsideBracketGroup.Pop();
+                            if (c != '[')
+                            {
+                                //throw new SymbolicException($"Symbol '{token}' encountered Group Started With '{c}' and ended with '}}'");
+                                ParsedTokenHadUnmatchedBrackets = true;
+                            }
+
+                            if (sb[sb.Length - 1] == ' ')
+                                sb[sb.Length - 1] = ']';
+                            else
+                                sb.Append(']');
+                        }
+                        else if (t == '>')
+                        {
+                            var c = InsideBracketGroup.Pop();
+                            if (c != '<')
+                            {
+                                //throw new SymbolicException($"Symbol '{token}' encountered Group Started With '{c}' and ended with '}}'");
+                                ParsedTokenHadUnmatchedBrackets = true;
+                            }
+
+                            if (sb[sb.Length - 1] == ' ')
+                                sb[sb.Length - 1] = '>';
+                            else
+                                sb.Append('>');
+                        }
+                        else
+                            sb.Append(t);
+
+                    }
+
+                }
+                else if (t != ' ' && t != '\t')
+                {
+                    if (t == '-' && inStart == true) minuscount++;
                     else if (t == '+' && inStart == true)
                     {
                         /*ignore*/
                     }
                     else
                     {
+                        
                         sb.Append(t);
                         inStart = false;
+
+                        if (t == '{' || t == '[' || t == '<')
+                        {
+                            if (WillClose(token.Substring(ix)))
+                                InsideBracketGroup.Push(t);
+                            else
+                                ParsedTokenHadUnmatchedBrackets = true;
+
+                        }
+
+
+
                     }
                 }
             }

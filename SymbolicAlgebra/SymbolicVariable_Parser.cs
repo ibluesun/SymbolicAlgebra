@@ -50,6 +50,44 @@ namespace SymbolicAlgebra
         static readonly char[] parse_separators = {'^', '*', '/', '+', '-', '(', '|', '.'};
         static readonly char[] parse_seps       = {'^', '*', '/', '+', '-', '|', '.'};
 
+
+        static bool WillClose(string remainingText)
+        {
+            Stack<char> brackets = new Stack<char>();
+            brackets.Push(remainingText[0]);
+
+
+            for (int ix = 1; ix < remainingText.Length; ix++)
+            {
+                char t = remainingText[ix];
+
+                //if (parse_seps.Contains(t)) return false;
+                //else 
+                    
+                if (t == '{') brackets.Push('{');
+                else if (t == '[') brackets.Push('[');
+                else if (t == '<') brackets.Push('<');
+                else if (t == '}' && brackets.Count > 0)
+                {
+                    if (brackets.Pop() != '{') return false;
+                }
+                else if (t == ']' && brackets.Count > 0)
+                {
+                    if (brackets.Pop() != '[') return false;
+                }
+                else if (t == '>' && brackets.Count > 0)
+                {
+                    if (brackets.Pop() != '<') return false;
+                }
+
+                if (brackets.Count == 0) return true;
+            }
+
+            return false;
+
+
+        }
+
         /// <summary>
         /// Parse expression of variables and make SymbolicVariable
         /// </summary>
@@ -77,9 +115,9 @@ namespace SymbolicAlgebra
 
 
 
-            expr = expr.Replace(" ", "");
+            expr = expr.Replace('\r', ' ').Replace('\n', ' ').Replace('\t', ' ');
 
-            //if (expression.StartsWith("-") ||expression.StartsWith("+")) expression = expression.Insert(1,"1*");
+
 
             // simple parsing 
             // obeys the rules of priorities
@@ -102,12 +140,14 @@ namespace SymbolicAlgebra
             Stack<int> PLevels = new Stack<int>();
             bool Inner = false;
             bool FunctionContext = false;
+
+            Stack<char> InsideBracketGroup = new Stack<char>();
             for (int ix = 0; ix < expr.Length; ix++)
             {
                 if (PLevels.Count == 0)
                 {
                     // include the normal parsing when we are not in parenthesis group
-                    if (parse_separators.Contains(expr[ix]))
+                    if (parse_separators.Contains(expr[ix])== true && InsideBracketGroup.Count == 0)
                     {
                         if ((expr[ix] == '-' || expr[ix] == '+') && ix == 0)
                         {
@@ -213,7 +253,25 @@ namespace SymbolicAlgebra
                     }
                     else
                     {
-                        TokenBuilder.Append(expr[ix]);
+                        char t = expr[ix];
+                        TokenBuilder.Append(t);
+
+                        if (t == '{' && WillClose(expr.Substring(ix)) == true) InsideBracketGroup.Push('{');
+                        else if (t == '[' && WillClose(expr.Substring(ix)) == true) InsideBracketGroup.Push('[');
+                        else if (t == '<' && WillClose(expr.Substring(ix)) == true) InsideBracketGroup.Push('<');
+
+                        else if (t == '}' && InsideBracketGroup.Count > 0)
+                        {
+                            if (InsideBracketGroup.Pop() != '{') throw new InvalidOperationException("Group Starts With '{' Should End With '}'");
+                        }
+                        else if (t == ']' && InsideBracketGroup.Count > 0)
+                        {
+                            if (InsideBracketGroup.Pop() != '[') throw new InvalidOperationException("Group Starts With '[' Should End With ']'");
+                        }
+                        else if (t == '>' && InsideBracketGroup.Count > 0)
+                        {
+                            if (InsideBracketGroup.Pop() != '<') throw new InvalidOperationException("Group Starts With '<' Should End With '>'");
+                        }
                     }
                 }
                 else

@@ -34,11 +34,11 @@ Postfix Operators:
 Prefix Operators:
     '%'  Constants Prefix 
 
-SA> x+x           will produce 2*x
-SA> (x^2+2*x)|x   will produce  2*x+2
-SA> (2*x).x       will produce  x^2
+SAC> x+x           will produce 2*x
+SAC> (x^2+2*x)|x   will produce  2*x+2
+SAC> (2*x).x       will produce  x^2
 
-SA> :Q            to Quit  like VIM ;)
+SAC> :Q            to Quit  like VIM ;)
 ";
 
             string help2 = @$"
