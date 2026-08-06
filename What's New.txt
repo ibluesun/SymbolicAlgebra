@@ -45,6 +45,34 @@ Symbolic Algebra [0.9.4]
   them had a '<' and a '>' in the same expression.
 
 
+
+Symbolic Algebra [0.9.2]
+------------------------
+- Started the integration functionality .. simple integration for the algebraic values only
+  (no functions yet)
+- Integration by parts is in .. the code is more logical this way but it still needs testing
+- KNOWN ISSUE:  sin(x)*exp(x)  enters an infinite loop in integration by parts .. not solved yet
+- Console application upgraded to .NET 8
+
+
+Symbolic Algebra [0.9.1]
+------------------------
+- Removed the silverlight project (and added a failing test for trigonometric simplification
+  to be implemented in the future)
+- Project converted from Portable Library to .NET Standard 2.0
+- Published as a nuget package with the readme associated to it
+
+
+Symbolic Algebra [0.9.0]
+------------------------
+- Moved the solution from codeplex to github .. converted to VS 2013 and added a README
+- Fixed the french culture problem in parsing numbers .. the problem was parsing without
+  using the proper arguments
+- Spotted more ToString calls without CultureInfo.InvariantCulture and corrected them .. those
+  were probably the culprits behind the errors reported from other windows languages
+- Enhanced the exception message when executing the expression
+- MIT LICENSE added .. and merged some community PRs (readme typo fixes)
+
 Symbolic Algebra [0.8.98]
 ------------------------------
 - apparently fixed something that I can't remember now .. (this is a headache I should always write what I've done so far)
